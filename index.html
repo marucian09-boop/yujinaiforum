@@ -121,7 +121,7 @@
     getDatabase, ref, onDisconnect, set, onValue
   } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
 
-  // Firebase config
+  // ✅ Correct databaseURL for asia-southeast1 region
   const firebaseConfig = {
     apiKey: "AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4",
     authDomain: "forum-3dec5.firebaseapp.com",
@@ -130,10 +130,9 @@
     messagingSenderId: "519284298976",
     appId: "1:519284298976:web:8bb5e94a44f202802c2c85",
     measurementId: "G-SXS8FRTT03",
-    databaseURL: "https://forum-3dec5-default-rtdb.firebaseio.com"
+    databaseURL: "https://forum-3dec5-default-rtdb.asia-southeast1.firebasedatabase.app"
   };
 
-  // Init Firebase
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
@@ -149,12 +148,12 @@
   const totalMembersEl = document.getElementById("totalMembers");
   const onlineVisitorsEl = document.getElementById("onlineVisitors");
 
-  // Sign in with Google (redirect)
+  // Google Sign-In (redirect)
   signInBtn.addEventListener("click", () => {
     signInWithRedirect(auth, provider);
   });
 
-  // Handle redirect result after returning from Google
+  // Handle redirect result
   getRedirectResult(auth)
     .then((result) => {
       if (result && result.user) {
