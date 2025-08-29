@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Community Forum — Diagnostics Build</title>
+  <title>Community Forum</title>
   <script>window.tailwind=window.tailwind||{};tailwind.config={darkMode:'class'};</script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -14,75 +14,56 @@
     <header class="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-between sm:items-center mb-6 sm:mb-8">
       <div class="min-w-0">
         <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-100 truncate">Community Forum</h1>
-        <p class="text-gray-400 text-sm sm:text-base">Diagnostics build to surface exact Firebase errors.</p>
+        <p class="text-gray-400 text-sm sm:text-base">Post, like, and comment.</p>
       </div>
-      <div id="auth-container" class="flex flex-wrap gap-2 sm:gap-3">
-        <button id="login-btn" class="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg shadow hover:bg-blue-600 transition">Log In</button>
-        <button id="signup-btn" class="bg-gray-800 text-gray-100 font-semibold px-4 py-2 rounded-lg hover:bg-gray-700 transition">Sign Up</button>
-        <div id="user-info" class="hidden items-center flex-wrap gap-2">
-          <p class="font-semibold break-all" id="user-email"></p>
-          <button id="logout-btn" class="bg-red-500 text-white font-semibold px-4 py-2 rounded-lg shadow hover:bg-red-600 transition">Logout</button>
+      <div class="flex flex-wrap gap-2 sm:gap-3">
+        <button id="login-btn" class="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg shadow hover:bg-blue-600">Log In</button>
+        <button id="signup-btn" class="bg-gray-800 text-gray-100 font-semibold px-4 py-2 rounded-lg hover:bg-gray-700">Sign Up</button>
+        <div id="user-info" class="hidden items-center gap-2">
+          <p id="user-email" class="font-semibold break-all"></p>
+          <button id="logout-btn" class="bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600">Logout</button>
         </div>
       </div>
     </header>
 
-    <!-- Stats -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
-      <div class="bg-gray-900 border border-gray-700 p-4 sm:p-5 rounded-xl shadow text-center">
-        <p class="text-2xl sm:text-3xl font-bold text-blue-400" id="member-count">0</p>
+      <div class="bg-gray-900 border border-gray-700 p-4 sm:p-5 rounded-xl text-center">
+        <p id="member-count" class="text-2xl sm:text-3xl font-bold text-blue-400">0</p>
         <p class="text-gray-400 text-sm sm:text-base">Total Members</p>
       </div>
-      <div class="bg-gray-900 border border-gray-700 p-4 sm:p-5 rounded-xl shadow text-center">
-        <p class="text-2xl sm:text-3xl font-bold text-green-400" id="visitor-count">—</p>
+      <div class="bg-gray-900 border border-gray-700 p-4 sm:p-5 rounded-xl text-center">
+        <p id="visitor-count" class="text-2xl sm:text-3xl font-bold text-green-400">—</p>
         <p class="text-gray-400 text-sm sm:text-base">Visitors (approx.)</p>
       </div>
     </div>
 
-    <!-- Composer -->
-    <div id="create-post-form" class="hidden bg-gray-900 border border-gray-700 p-4 sm:p-6 rounded-xl shadow mb-6 sm:mb-8">
+    <section id="create-post-form" class="hidden bg-gray-900 border border-gray-700 p-4 sm:p-6 rounded-xl mb-6 sm:mb-8">
       <h2 class="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Create a New Post</h2>
-      <textarea id="post-content" class="w-full p-3 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-800 text-gray-100 placeholder:text-gray-400" rows="3" placeholder="What's on your mind?"></textarea>
-      <div class="mt-3 sm:mt-4 flex flex-col sm:flex-row gap-2">
-        <button id="submit-post-btn" class="bg-blue-500 text-white font-semibold px-5 py-2 rounded-lg shadow hover:bg-blue-600 transition w-full sm:w-auto">Post</button>
-      </div>
-    </div>
+      <textarea id="post-content" rows="3" class="w-full p-3 border border-gray-700 rounded-lg bg-gray-800 text-gray-100 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500" placeholder="What's on your mind?"></textarea>
+      <button id="submit-post-btn" class="mt-3 bg-blue-500 text-white font-semibold px-5 py-2 rounded-lg hover:bg-blue-600 w-full sm:w-auto">Post</button>
+      <p id="last-error" class="text-xs text-red-400 mt-2 whitespace-pre-wrap"></p>
+    </section>
 
     <main id="posts-container" class="space-y-3 sm:space-y-4"></main>
-
-    <!-- Admin Diagnostics (visible only to ADMIN_EMAIL) -->
-    <section id="diag-panel" class="hidden bg-gray-900 border border-gray-700 p-4 sm:p-6 rounded-xl shadow mt-8 sm:mt-10">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="text-lg sm:text-xl font-bold">Diagnostics</h2>
-        <span class="text-xs bg-gray-800 px-2 py-1 rounded-full text-gray-300">Admin only</span>
-      </div>
-      <p class="text-sm text-gray-300 mb-3">Click "Run checks" to test Firebase init, read, and write. Paste the output back to me.</p>
-      <div class="flex flex-wrap gap-2 mb-3">
-        <button id="run-diag" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded">Run checks</button>
-        <button id="clear-diag" class="bg-gray-800 hover:bg-gray-700 text-gray-100 px-3 py-2 rounded">Clear</button>
-      </div>
-      <pre id="diag-log" class="whitespace-pre-wrap text-xs sm:text-sm bg-black/40 border border-gray-700 rounded p-3 max-h-80 overflow-auto"></pre>
-    </section>
   </div>
 
-  <!-- Simple modal for alerts -->
-  <div id="generic-modal" class="modal fixed inset-0 bg-black/70 items-center justify-center p-3 sm:p-4 z-50">
-    <div class="bg-gray-900 text-gray-100 rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-[92vw] sm:max-w-sm text-center border border-gray-700">
-      <h3 id="modal-title" class="text-lg sm:text-xl font-bold mb-3"></h3>
-      <p id="modal-message" class="text-gray-300 mb-4"></p>
-      <div id="modal-buttons" class="flex justify-center">
-        <button id="modal-ok-btn" class="bg-blue-500 text-white px-6 py-2 rounded">OK</button>
-      </div>
+  <!-- Modal -->
+  <div id="alert" class="modal fixed inset-0 bg-black/70 items-center justify-center p-4 z-50">
+    <div class="bg-gray-900 text-gray-100 rounded-xl shadow-xl p-6 w-full max-w-[92vw] sm:max-w-sm text-center border border-gray-700">
+      <h3 class="text-xl font-bold mb-3" id="alert-title">Alert</h3>
+      <p id="alert-msg" class="text-gray-300 mb-4"></p>
+      <button id="alert-ok" class="bg-blue-500 text-white px-6 py-2 rounded">OK</button>
     </div>
   </div>
 
   <script type="module">
-    import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js';
-    import { getFirestore, collection, addDoc, query, onSnapshot, orderBy, doc, deleteDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, setDoc, setLogLevel, getDoc, getDocs, where, limit } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js';
+    import { getFirestore, collection, addDoc, query, onSnapshot, orderBy, doc, deleteDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp, setDoc, setLogLevel, getDoc } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js';
 
-    // ✳️ Use your intended config here (project values must match ONE project)
+    // 🔧 Your (one-project) config — using your rotating key and the correct bucket
     const firebaseConfig = {
-      apiKey: 'AIzaSyAwym9ZPU9PBJ5Q-EAHbBtdvCqCqwfjZNM', // your rotating key (same project)
+      apiKey: 'AIzaSyAwym9ZPU9PBJ5Q-EAHbBtdvCqCqwfjZNM',
       authDomain: 'forum-3dec5.firebaseapp.com',
       projectId: 'forum-3dec5',
       storageBucket: 'forum-3dec5.appspot.com',
@@ -90,91 +71,53 @@
       appId: '1:519284298976:web:8bb5e94a44f202802c2c85',
       measurementId: 'G-SXS8FRTT03'
     };
+
     const ADMIN_EMAIL = 'yujinbussinessmatter@gmail.com';
 
-    const loginBtn = document.getElementById('login-btn');
-    const signupBtn = document.getElementById('signup-btn');
-    const logoutBtn = document.getElementById('logout-btn');
-    const userInfo = document.getElementById('user-info');
-    const userEmailEl = document.getElementById('user-email');
-    const createPostForm = document.getElementById('create-post-form');
-    const postsContainer = document.getElementById('posts-container');
-    const memberCountEl = document.getElementById('member-count');
+    const $ = (id)=>document.getElementById(id);
+    const show = (el)=>el.classList.remove('hidden');
+    const hide = (el)=>el.classList.add('hidden');
 
-    const diagPanel = document.getElementById('diag-panel');
-    const runDiagBtn = document.getElementById('run-diag');
-    const clearDiagBtn = document.getElementById('clear-diag');
-    const diagLog = document.getElementById('diag-log');
+    function alertBox(msg,title='Alert'){ $('alert-title').textContent=title; $('alert-msg').textContent=msg; $('alert').classList.add('active'); }
+    $('alert-ok').onclick=()=>$('alert').classList.remove('active');
 
-    const genericModal = document.getElementById('generic-modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalMessage = document.getElementById('modal-message');
+    let auth, db, currentUser, currentUserDoc;
 
-    function showAlert(msg, title='Alert'){
-      modalTitle.textContent = title; modalMessage.textContent = msg; genericModal.classList.add('active');
-      document.getElementById('modal-ok-btn').onclick = ()=>genericModal.classList.remove('active');
-    }
-
-    let auth, db, currentUser;
-
-    async function initializeFirebase(){
+    async function init(){
       try{
         const app = initializeApp(firebaseConfig);
         auth = getAuth(app); db = getFirestore(app); setLogLevel('debug');
+
         onAuthStateChanged(auth, async (user)=>{
-          currentUser = user || null;
-          const isMember = !!user;
-          if(isMember){
-            loginBtn.classList.add('hidden'); signupBtn.classList.add('hidden');
-            userInfo.classList.remove('hidden'); userInfo.classList.add('flex');
-            userEmailEl.textContent = user.email || 'Member';
-            createPostForm.classList.remove('hidden');
-            await setDoc(doc(db,'users',user.uid),{email:user.email||null,updatedAt:serverTimestamp(),createdAt:serverTimestamp()},{merge:true});
+          currentUser=user||null;
+          if(user){
+            hide($('login-btn')); hide($('signup-btn')); show($('user-info')); $('user-info').classList.add('flex'); $('user-email').textContent=user.email||'Member'; show($('create-post-form'));
+            const uref = doc(db,'users',user.uid); await setDoc(uref,{email:user.email||null,updatedAt:serverTimestamp(),createdAt:serverTimestamp()},{merge:true});
+            currentUserDoc = (await getDoc(uref)).data();
           }else{
-            loginBtn.classList.remove('hidden'); signupBtn.classList.remove('hidden');
-            userInfo.classList.add('hidden'); userInfo.classList.remove('flex');
-            userEmailEl.textContent=''; createPostForm.classList.add('hidden');
+            show($('login-btn')); show($('signup-btn')); hide($('user-info')); $('user-info').classList.remove('flex'); $('user-email').textContent=''; hide($('create-post-form'));
           }
-          // show diag to admin
-          diagPanel.classList.toggle('hidden', !(user && user.email===ADMIN_EMAIL));
-          fetchPosts(); getMemberCount();
+          fetchPosts(); memberCount();
         });
-      }catch(e){ console.error('Init error',e); showAlert((e.code||'')+' '+(e.message||'').trim(),'Connection Error'); }
+      }catch(e){ console.error('Init error',e); alertBox(`${e.code||''} ${e.message||''}`.trim(),'Connection Error'); }
     }
 
-    // Auth modal basics
-    loginBtn.addEventListener('click',()=>showAlert('Use your email/password via the normal modal in your production build. This diag build focuses on Firestore checks.'));
-    signupBtn.addEventListener('click',()=>showAlert('Sign up via the production build.'));
-    logoutBtn.addEventListener('click',()=>signOut(auth).catch(console.error));
+    $('login-btn').onclick=()=>alertBox('Use your email/password to sign in from your normal flow.');
+    $('signup-btn').onclick=()=>alertBox('Sign up from your normal flow.');
+    $('logout-btn').onclick=()=>signOut(auth).catch(console.error);
 
-    // Posting
-    document.getElementById('submit-post-btn').addEventListener('click', async ()=>{
-      const content = document.getElementById('post-content').value.trim();
-      if(!currentUser) return showAlert('Please log in to post.');
-      if(!content) return;
-      try{ await addDoc(collection(db,'posts'),{content,authorId:currentUser.uid,authorEmail:currentUser.email||null,createdAt:serverTimestamp(),likes:[],comments:[]});
-        document.getElementById('post-content').value='';
-      }catch(e){ console.error(e); showAlert(`Could not publish your post.\n\n${e.code||''} ${e.message||''}`.trim()); }
-    });
-
-    function fetchPosts(){ const qy=query(collection(db,'posts'),orderBy('createdAt','desc')); onSnapshot(qy,(qs)=>{ postsContainer.innerHTML=''; qs.forEach((d)=>{ const p=d.data(); const div=document.createElement('div'); div.className='bg-gray-900 border border-gray-700 p-4 rounded-xl'; div.innerHTML=`<div class='text-sm text-gray-400'>${p.authorEmail||'Member'}</div><div class='text-gray-100 mt-2 whitespace-pre-wrap'>${(p.content||'')}</div>`; postsContainer.appendChild(div); });}); }
-    function getMemberCount(){ onSnapshot(collection(db,'users'),(s)=>{ memberCountEl.textContent=s.size; }); }
-
-    // Diagnostics
-    function log(...a){ diagLog.textContent += a.join(' ')+'\n'; }
-    clearDiagBtn.onclick = ()=>{ diagLog.textContent=''; };
-    runDiagBtn.onclick = async ()=>{
-      diagLog.textContent='';
-      try { log('SDK projectId:', getApp().options.projectId); } catch(e){ log('No app?',e.message); }
-      log('Auth signed in:', !!currentUser, currentUser?.email||'');
-      try { await getDocs(query(collection(db,'posts'), limit(1))); log('Firestore READ: OK'); }
-      catch(e){ log('Firestore READ error:', e.code, e.message); }
-      try { await addDoc(collection(db,'diagnostics'), { by: currentUser?.email||null, ts: new Date() }); log('Firestore WRITE: OK'); }
-      catch(e){ log('Firestore WRITE error:', e.code, e.message); }
-      log('Done.');
+    $('submit-post-btn').onclick=async ()=>{
+      const content = $('post-content').value.trim(); if(!currentUser) return alertBox('Please log in to post.'); if(!content) return;
+      try{
+        await addDoc(collection(db,'posts'),{content,authorId:currentUser.uid,authorEmail:currentUser.email||null,createdAt:serverTimestamp(),likes:[],comments:[]});
+        $('post-content').value=''; $('last-error').textContent='';
+      }catch(e){ console.error('addDoc error',e); const msg = `${e.code||'unknown'}\n${e.message||''}`.trim(); $('last-error').textContent = msg; alertBox(`Could not publish your post.\n\n${msg}`,'Alert'); }
     };
 
-    document.addEventListener('DOMContentLoaded', initializeFirebase);
+    function fetchPosts(){ const q=query(collection(db,'posts'),orderBy('createdAt','desc')); onSnapshot(q,(qs)=>{ const c=$('posts-container'); c.innerHTML=''; qs.forEach(d=>{ const p=d.data(); const div=document.createElement('div'); div.className='bg-gray-900 border border-gray-700 p-4 rounded-xl'; div.innerHTML=`<div class='text-sm text-gray-400'>${p.authorEmail||'Member'}</div><div class='text-gray-100 mt-2 whitespace-pre-wrap'>${(p.content||'')}</div>`; c.appendChild(div);});}); }
+    function memberCount(){ onSnapshot(collection(db,'users'),(s)=>{ $('member-count').textContent=s.size; }); }
+
+    document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
