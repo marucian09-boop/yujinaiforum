@@ -110,6 +110,57 @@
 </main>
 
 <script type="module">
+  /*
+  ============================================================
+  🔒 FIREBASE SECURITY RULES REFERENCE
+  ------------------------------------------------------------
+  1 — Firestore Rules (Firestore Database → Rules)
+  
+  rules_version = '2';
+  service cloud.firestore {
+    match /databases/{database}/documents {
+      match /users/{userId} {
+        allow read: if true;
+        allow create: if request.auth != null && request.auth.uid == userId;
+        allow update, delete: if request.auth != null && request.auth.uid == userId;
+      }
+      match /posts/{postId} {
+        allow read: if true;
+        allow create: if request.auth != null
+                      && request.auth.token.firebase.sign_in_provider != 'anonymous'
+                      && request.resource.data.keys().hasOnly([
+                          'content','authorId','authorEmail','createdAt','likes','comments'
+                        ])
+                      && request.resource.data.content is string
+                      && request.resource.data.content.size() > 0
+                      && request.resource.data.content.size() <= 2000
+                      && request.resource.data.authorId == request.auth.uid
+                      && request.resource.data.likes is list
+                      && request.resource.data.comments is list;
+        allow update, delete: if request.auth != null
+                               && request.auth.uid == resource.data.authorId;
+      }
+    }
+  }
+
+  ------------------------------------------------------------
+  2 — Realtime Database Rules (Realtime Database → Rules)
+
+  {
+    "rules": {
+      "onlineUsers": {
+        ".read": true,
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid"
+        }
+      },
+      ".read": false,
+      ".write": false
+    }
+  }
+  ============================================================
+  */
+
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
   import { 
     getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut 
@@ -121,7 +172,6 @@
     getDatabase, ref, onDisconnect, set, onValue
   } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
 
-  // ✅ Correct databaseURL for asia-southeast1 region
   const firebaseConfig = {
     apiKey: "AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4",
     authDomain: "forum-3dec5.firebaseapp.com",
@@ -148,12 +198,10 @@
   const totalMembersEl = document.getElementById("totalMembers");
   const onlineVisitorsEl = document.getElementById("onlineVisitors");
 
-  // Google Sign-In (redirect)
   signInBtn.addEventListener("click", () => {
     signInWithRedirect(auth, provider);
   });
 
-  // Handle redirect result
   getRedirectResult(auth)
     .then((result) => {
       if (result && result.user) {
@@ -164,18 +212,15 @@
       console.error("Redirect sign-in error:", error);
     });
 
-  // Sign out
   signOutBtn.addEventListener("click", async () => {
     await signOut(auth);
   });
 
-  // Track total members
   async function updateTotalMembers() {
     const snapshot = await getDocs(collection(db, "users"));
     totalMembersEl.textContent = snapshot.size;
   }
 
-  // Track online visitors
   function trackPresence(user) {
     const myRef = ref(rtdb, "onlineUsers/" + user.uid);
     set(myRef, { email: user.email || "Guest", lastActive: Date.now() });
@@ -190,7 +235,6 @@
     }
   });
 
-  // Auth state listener
   onAuthStateChanged(auth, (user) => {
     if (user) {
       userEmailEl.textContent = user.email;
@@ -207,7 +251,6 @@
     }
   });
 
-  // Create post
   createPostBtn.addEventListener("click", async () => {
     const user = auth.currentUser;
     if (!user) {
@@ -215,40 +258,4 @@
       return;
     }
     const content = postContentEl.value.trim();
-    if (content.length === 0 || content.length > 2000) {
-      alert("Post must be between 1 and 2000 characters.");
-      return;
-    }
-    const post = {
-      content,
-      authorId: user.uid,
-      authorEmail: user.email || "",
-      createdAt: serverTimestamp(),
-      likes: [],
-      comments: []
-    };
-    try {
-      await addDoc(collection(db, "posts"), post);
-      postContentEl.value = "";
-    } catch (err) {
-      console.error("Error adding document:", err);
-      alert("Could not create post. Check console for details.");
-    }
-  });
-
-  // Load posts in real-time
-  const postsQuery = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-  onSnapshot(postsQuery, (snapshot) => {
-    postListEl.innerHTML = "";
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-      const div = document.createElement("div");
-      div.className = "post";
-      div.innerHTML = `<strong>${data.authorEmail}</strong><br>${data.content}`;
-      postListEl.appendChild(div);
-    });
-  });
-</script>
-
-</body>
-</html>
+    if (content.length === 0 || content.length > 2000
