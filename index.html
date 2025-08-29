@@ -152,9 +152,9 @@
       limit
     } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js';
 
-    // ------- CONFIG -------
+    // ------- CONFIG (updated API key) -------
     const firebaseConfig = {
-      apiKey: 'AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4',
+      apiKey: 'AIzaSyAwym9ZPU9PBJ5Q-EAHbBtdvCqCqwfjZNM',
       authDomain: 'forum-3dec5.firebaseapp.com',
       projectId: 'forum-3dec5',
       storageBucket: 'forum-3dec5.appspot.com',
@@ -204,8 +204,8 @@
       modalTitle.textContent = title;
       modalMessage.textContent = message;
       modalButtons.innerHTML = `
-        <button id="modal-cancel-btn" class="w-full sm:w-auto bg-gray-700 text-gray-100 px-6 py-2 rounded-lg hover:bg-gray-600 transition">Cancel</button>
-        <button id="modal-confirm-btn" class="w-full sm:w-auto bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition">Confirm</button>`;
+        <button id=\"modal-cancel-btn\" class=\"w-full sm:w-auto bg-gray-700 text-gray-100 px-6 py-2 rounded-lg hover:bg-gray-600 transition\">Cancel</button>
+        <button id=\"modal-confirm-btn\" class=\"w-full sm:w-auto bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition\">Confirm</button>`;
       genericModal.classList.add('active');
       document.getElementById('modal-confirm-btn').onclick = () => { genericModal.classList.remove('active'); onConfirm && onConfirm(); };
       document.getElementById('modal-cancel-btn').onclick = () => genericModal.classList.remove('active');
