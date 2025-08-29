@@ -2,7 +2,7 @@
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>My Community Forum</title>
   <!-- Tailwind in class-based dark mode -->
   <script>
@@ -18,64 +18,66 @@
     .modal.active { display: flex; }
   </style>
 </head>
-<body class="bg-black text-gray-100">
-  <div class="container mx-auto max-w-4xl p-4 sm:p-6">
+<body class="min-h-screen bg-black text-gray-100 antialiased">
+  <div class="container mx-auto max-w-5xl px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
     <!-- Header -->
-    <header class="flex flex-col sm:flex-row justify-between items-center mb-6">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-100">Community Forum</h1>
-        <p class="text-gray-400">Discuss, share, and connect with others.</p>
+    <header class="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-between sm:items-center mb-6 sm:mb-8">
+      <div class="min-w-0">
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-100 truncate">Community Forum</h1>
+        <p class="text-gray-400 text-sm sm:text-base">Discuss, share, and connect with others.</p>
       </div>
-      <div id="auth-container" class="mt-4 sm:mt-0 flex items-center gap-3">
+      <div id="auth-container" class="flex flex-wrap gap-2 sm:gap-3">
         <button id="login-btn" class="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg shadow hover:bg-blue-600 transition">Log In</button>
         <button id="signup-btn" class="bg-gray-800 text-gray-100 font-semibold px-4 py-2 rounded-lg hover:bg-gray-700 transition">Sign Up</button>
-        <div id="user-info" class="hidden items-center">
-          <p class="mr-4 font-semibold" id="user-email"></p>
+        <div id="user-info" class="hidden items-center flex-wrap gap-2">
+          <p class="font-semibold break-all" id="user-email"></p>
           <button id="logout-btn" class="bg-red-500 text-white font-semibold px-4 py-2 rounded-lg shadow hover:bg-red-600 transition">Logout</button>
         </div>
       </div>
     </header>
 
     <!-- Stats -->
-    <div class="grid grid-cols-2 gap-4 mb-6">
-      <div class="bg-gray-900 border border-gray-700 p-4 rounded-lg shadow text-center">
-        <p class="text-2xl font-bold text-blue-400" id="member-count">0</p>
-        <p class="text-gray-400">Total Members</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
+      <div class="bg-gray-900 border border-gray-700 p-4 sm:p-5 rounded-xl shadow text-center">
+        <p class="text-2xl sm:text-3xl font-bold text-blue-400" id="member-count">0</p>
+        <p class="text-gray-400 text-sm sm:text-base">Total Members</p>
       </div>
-      <div class="bg-gray-900 border border-gray-700 p-4 rounded-lg shadow text-center">
-        <p class="text-2xl font-bold text-green-400" id="visitor-count">—</p>
-        <p class="text-gray-400">Visitors (approx.)</p>
+      <div class="bg-gray-900 border border-gray-700 p-4 sm:p-5 rounded-xl shadow text-center">
+        <p class="text-2xl sm:text-3xl font-bold text-green-400" id="visitor-count">—</p>
+        <p class="text-gray-400 text-sm sm:text-base">Visitors (approx.)</p>
       </div>
     </div>
 
     <!-- Composer -->
-    <div id="create-post-form" class="hidden bg-gray-900 border border-gray-700 p-6 rounded-lg shadow mb-6">
-      <h2 class="text-xl font-bold mb-4">Create a New Post</h2>
+    <div id="create-post-form" class="hidden bg-gray-900 border border-gray-700 p-4 sm:p-6 rounded-xl shadow mb-6 sm:mb-8">
+      <h2 class="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Create a New Post</h2>
       <textarea id="post-content" class="w-full p-3 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-800 text-gray-100 placeholder:text-gray-400" rows="3" placeholder="What's on your mind?"></textarea>
-      <button id="submit-post-btn" class="mt-3 bg-blue-500 text-white font-semibold px-5 py-2 rounded-lg shadow hover:bg-blue-600 transition w-full sm:w-auto">Post</button>
+      <div class="mt-3 sm:mt-4 flex flex-col sm:flex-row gap-2">
+        <button id="submit-post-btn" class="bg-blue-500 text-white font-semibold px-5 py-2 rounded-lg shadow hover:bg-blue-600 transition w-full sm:w-auto">Post</button>
+      </div>
     </div>
 
     <!-- Feed -->
-    <main id="posts-container"></main>
+    <main id="posts-container" class="space-y-3 sm:space-y-4"></main>
 
     <!-- Admin Panel (visible only to ADMIN_EMAIL) -->
-    <section id="admin-panel" class="hidden bg-gray-900 border border-gray-700 p-6 rounded-lg shadow mt-8">
-      <div class="flex items-center justify-between">
-        <h2 class="text-lg font-bold">Admin Panel</h2>
-        <span class="text-xs bg-gray-800 px-2 py-1 rounded-full text-gray-300">Visible to admin only</span>
+    <section id="admin-panel" class="hidden bg-gray-900 border border-gray-700 p-4 sm:p-6 rounded-xl shadow mt-8 sm:mt-10">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <h2 class="text-lg sm:text-xl font-bold">Admin Panel</h2>
+        <span class="text-xs sm:text-[13px] bg-gray-800 px-2 py-1 rounded-full text-gray-300 self-start sm:self-auto">Visible to admin only</span>
       </div>
 
-      <div class="grid md:grid-cols-2 gap-6 mt-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mt-4">
         <!-- Ban/Unban -->
         <div class="border rounded-xl p-4 border-gray-700">
           <h3 class="font-semibold mb-2">Ban / Unban User</h3>
           <label class="text-sm text-gray-300">User email</label>
           <input id="ban-email" type="email" class="mt-1 w-full rounded-lg border p-2 bg-gray-800 border-gray-700 text-gray-100" placeholder="user@example.com" />
-          <div class="mt-2 flex gap-2">
+          <div class="mt-2 flex flex-wrap gap-2">
             <button id="ban-btn" class="px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700">Ban</button>
             <button id="unban-btn" class="px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700">Unban</button>
           </div>
-          <p id="ban-msg" class="text-sm text-gray-400 mt-2"></p>
+          <p id="ban-msg" class="text-sm text-gray-400 mt-2 break-words"></p>
         </div>
 
         <!-- Recent posts moderation -->
@@ -88,35 +90,35 @@
   </div>
 
   <!-- Login Modal -->
-  <div id="login-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center p-4 z-50">
-    <div class="bg-gray-900 text-gray-100 rounded-lg shadow-xl p-8 w-full max-w-md relative border border-gray-700">
-      <h2 class="text-2xl font-bold mb-6 text-center">Login to your Account</h2>
-      <input type="email" id="login-email" placeholder="Email" class="w-full p-3 mb-4 border border-gray-700 rounded-lg bg-gray-800 text-gray-100">
+  <div id="login-modal" class="modal fixed inset-0 bg-black/70 items-center justify-center p-3 sm:p-4 z-50">
+    <div class="bg-gray-900 text-gray-100 rounded-xl shadow-xl p-6 sm:p-8 w-full max-w-[92vw] sm:max-w-md relative border border-gray-700">
+      <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center">Login to your Account</h2>
+      <input type="email" id="login-email" placeholder="Email" class="w-full p-3 mb-3 sm:mb-4 border border-gray-700 rounded-lg bg-gray-800 text-gray-100">
       <input type="password" id="login-password" placeholder="Password" class="w-full p-3 mb-4 border border-gray-700 rounded-lg bg-gray-800 text-gray-100">
       <button id="login-submit" class="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600">Login</button>
       <p id="login-error" class="text-red-400 text-center mt-3"></p>
-      <button id="close-login-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-200 text-2xl">&times;</button>
+      <button id="close-login-modal" class="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-200 text-2xl">&times;</button>
     </div>
   </div>
 
   <!-- Signup Modal -->
-  <div id="signup-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center p-4 z-50">
-    <div class="bg-gray-900 text-gray-100 rounded-lg shadow-xl p-8 w-full max-w-md relative border border-gray-700">
-      <h2 class="text-2xl font-bold mb-6 text-center">Create an Account</h2>
-      <input type="email" id="signup-email" placeholder="Email" class="w-full p-3 mb-4 border border-gray-700 rounded-lg bg-gray-800 text-gray-100">
+  <div id="signup-modal" class="modal fixed inset-0 bg-black/70 items-center justify-center p-3 sm:p-4 z-50">
+    <div class="bg-gray-900 text-gray-100 rounded-xl shadow-xl p-6 sm:p-8 w-full max-w-[92vw] sm:max-w-md relative border border-gray-700">
+      <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center">Create an Account</h2>
+      <input type="email" id="signup-email" placeholder="Email" class="w-full p-3 mb-3 sm:mb-4 border border-gray-700 rounded-lg bg-gray-800 text-gray-100">
       <input type="password" id="signup-password" placeholder="Password (min. 6 characters)" class="w-full p-3 mb-4 border border-gray-700 rounded-lg bg-gray-800 text-gray-100">
       <button id="signup-submit" class="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600">Sign Up</button>
       <p id="signup-error" class="text-red-400 text-center mt-3"></p>
-      <button id="close-signup-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-200 text-2xl">&times;</button>
+      <button id="close-signup-modal" class="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-200 text-2xl">&times;</button>
     </div>
   </div>
 
   <!-- Generic Modal -->
-  <div id="generic-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center p-4 z-50">
-    <div class="bg-gray-900 text-gray-100 rounded-lg shadow-xl p-6 w-full max-w-sm text-center border border-gray-700">
-      <h3 id="modal-title" class="text-xl font-bold mb-4"></h3>
-      <p id="modal-message" class="text-gray-300 mb-6"></p>
-      <div id="modal-buttons" class="flex justify-center space-x-4"></div>
+  <div id="generic-modal" class="modal fixed inset-0 bg-black/70 items-center justify-center p-3 sm:p-4 z-50">
+    <div class="bg-gray-900 text-gray-100 rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-[92vw] sm:max-w-sm text-center border border-gray-700">
+      <h3 id="modal-title" class="text-lg sm:text-xl font-bold mb-3 sm:mb-4"></h3>
+      <p id="modal-message" class="text-gray-300 mb-4 sm:mb-6"></p>
+      <div id="modal-buttons" class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:space-x-4"></div>
     </div>
   </div>
 
@@ -194,7 +196,7 @@
     function showAlert(message, title = 'Alert') {
       modalTitle.textContent = title;
       modalMessage.textContent = message;
-      modalButtons.innerHTML = '<button id="modal-ok-btn" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition">OK</button>';
+      modalButtons.innerHTML = '<button id="modal-ok-btn" class="w-full sm:w-auto bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition">OK</button>';
       genericModal.classList.add('active');
       document.getElementById('modal-ok-btn').onclick = () => genericModal.classList.remove('active');
     }
@@ -202,8 +204,8 @@
       modalTitle.textContent = title;
       modalMessage.textContent = message;
       modalButtons.innerHTML = `
-        <button id="modal-cancel-btn" class="bg-gray-700 text-gray-100 px-6 py-2 rounded-lg hover:bg-gray-600 transition">Cancel</button>
-        <button id="modal-confirm-btn" class="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition">Confirm</button>`;
+        <button id="modal-cancel-btn" class="w-full sm:w-auto bg-gray-700 text-gray-100 px-6 py-2 rounded-lg hover:bg-gray-600 transition">Cancel</button>
+        <button id="modal-confirm-btn" class="w-full sm:w-auto bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition">Confirm</button>`;
       genericModal.classList.add('active');
       document.getElementById('modal-confirm-btn').onclick = () => { genericModal.classList.remove('active'); onConfirm && onConfirm(); };
       document.getElementById('modal-cancel-btn').onclick = () => genericModal.classList.remove('active');
@@ -310,29 +312,29 @@
       const userLiked = currentUser && likes.includes(currentUser?.uid);
 
       const el = document.createElement('div');
-      el.className = 'bg-gray-900 border border-gray-700 p-5 rounded-lg shadow mb-4';
+      el.className = 'bg-gray-900 border border-gray-700 p-4 sm:p-5 rounded-xl shadow';
       el.id = `post-${id}`;
       el.dataset.post = id;
 
       const delHTML = (isAdmin || isAuthor) ? `<button data-id="${id}" class="delete-post-btn text-gray-400 hover:text-red-500"><i class=\"fas fa-trash\"></i> Delete</button>` : '';
 
       el.innerHTML = `
-        <div class=\"flex justify-between items-start\"> 
-          <div>
-            <p class=\"font-semibold text-gray-100\">${post.authorEmail || 'Member'}</p>
-            <p class=\"text-sm text-gray-400\">${post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleString() : 'Just now'}</p>
+        <div class=\"flex items-start justify-between gap-3\"> 
+          <div class='min-w-0'>
+            <p class=\"font-semibold text-gray-100 break-all\">${post.authorEmail || 'Member'}</p>
+            <p class=\"text-xs sm:text-sm text-gray-400\">${post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleString() : 'Just now'}</p>
           </div>
           ${delHTML}
         </div>
-        <p class=\"my-4 text-gray-100 break-words\">${escapeHTML(post.content || '')}</p>
-        <div class=\"flex items-center space-x-6 text-gray-300\">
+        <p class=\"my-3 sm:my-4 text-gray-100 whitespace-pre-wrap break-words\">${escapeHTML(post.content || '')}</p>
+        <div class=\"flex flex-wrap items-center gap-x-6 gap-y-3 text-gray-300\">
           <button data-id=\"${id}\" class=\"like-btn ${userLiked ? 'text-blue-400' : 'hover:text-blue-400'}\"><i class=\"fas fa-thumbs-up\"></i> <span class=\"like-count\">${likes.length}</span></button>
           <button data-id=\"${id}\" class=\"comment-btn hover:text-blue-400\"><i class=\"fas fa-comment\"></i> ${comments.length}</button>
           <button data-id=\"${id}\" class=\"share-btn hover:text-blue-400\"><i class=\"fas fa-share\"></i> Share</button>
         </div>
         <div class=\"comment-section mt-4 pt-4 border-t border-gray-700 hidden\">
-          <div class=\"comment-list\">${comments.map(c => `<div class='bg-gray-800 p-2 rounded-lg mb-2'><p><strong>${escapeHTML(c.authorEmail || 'Member')}:</strong> ${escapeHTML(c.text || '')}</p></div>`).join('')}</div>
-          ${currentUser ? `<div class=\"mt-2 flex\"><input type=\"text\" class=\"comment-input w-full p-2 border border-gray-700 rounded-l-lg bg-gray-800 text-gray-100\" placeholder=\"Write a comment...\"><button data-id=\"${id}\" class=\"submit-comment-btn bg-blue-500 text-white px-4 rounded-r-lg hover:bg-blue-600\">Post</button></div>` : ''}
+          <div class=\"comment-list space-y-2\">${comments.map(c => `<div class='bg-gray-800 p-2 rounded-lg'><p class='break-words'><strong>${escapeHTML(c.authorEmail || 'Member')}:</strong> ${escapeHTML(c.text || '')}</p></div>`).join('')}</div>
+          ${currentUser ? `<div class=\"mt-3 flex flex-col sm:flex-row gap-2\"><input type=\"text\" class=\"comment-input w-full p-2 border border-gray-700 rounded-lg bg-gray-800 text-gray-100\" placeholder=\"Write a comment...\"><button data-id=\"${id}\" class=\"submit-comment-btn bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 w-full sm:w-auto\">Post</button></div>` : ''}
         </div>`;
       return el;
     }
@@ -383,7 +385,7 @@
             <div class='min-w-0'>
               <div class='font-medium truncate'>${escapeHTML(p.authorEmail || 'Member')}</div>
               <div class='text-xs text-gray-400'>${p.createdAt ? new Date(p.createdAt.seconds*1000).toLocaleString() : ''}</div>
-              <div class='text-sm mt-1 line-clamp-2'>${escapeHTML(p.content || '')}</div>
+              <div class='text-sm mt-1 break-words'>${escapeHTML(p.content || '')}</div>
             </div>
             <div class='flex-shrink-0 flex gap-2'>
               <button data-id='${d.id}' class='admin-del px-2 py-1 rounded bg-red-900/20 text-red-400 hover:bg-red-900/30'>Delete</button>
