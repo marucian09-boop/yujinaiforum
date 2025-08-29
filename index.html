@@ -5,80 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Community Forum</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background-color: #f5f5f5;
-    }
-    header {
-      background-color: #333;
-      color: white;
-      padding: 10px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 1.5rem;
-    }
-    header .auth-controls {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    button {
-      padding: 6px 12px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    #signInBtn {
-      background-color: #4285F4;
-      color: white;
-    }
-    #signOutBtn {
-      background-color: #d9534f;
-      color: white;
-    }
-    main {
-      max-width: 800px;
-      margin: 20px auto;
-      padding: 0 15px;
-    }
-    section {
-      background: white;
-      padding: 15px;
-      border-radius: 5px;
-      margin-bottom: 20px;
-    }
-    textarea {
-      width: 100%;
-      height: 80px;
-      margin-top: 10px;
-      padding: 8px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      resize: vertical;
-    }
-    #createPostBtn {
-      background-color: #28a745;
-      color: white;
-      margin-top: 10px;
-    }
-    .post {
-      background: #fafafa;
-      border: 1px solid #ddd;
-      padding: 10px;
-      border-radius: 4px;
-      margin-bottom: 10px;
-    }
-    .stats {
-      margin-top: 10px;
-      font-size: 0.9rem;
-      color: #ddd;
-    }
+    body { font-family: Arial, sans-serif; margin: 0; background-color: #f5f5f5; }
+    header { background-color: #333; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+    header h1 { margin: 0; font-size: 1.5rem; }
+    header .auth-controls { display: flex; align-items: center; gap: 10px; }
+    button { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; }
+    #signInBtn { background-color: #4285F4; color: white; }
+    #signOutBtn { background-color: #d9534f; color: white; }
+    main { max-width: 800px; margin: 20px auto; padding: 0 15px; }
+    section { background: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+    textarea { width: 100%; height: 80px; margin-top: 10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; resize: vertical; }
+    #createPostBtn { background-color: #28a745; color: white; margin-top: 10px; }
+    .post { background: #fafafa; border: 1px solid #ddd; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
+    .stats { margin-top: 10px; font-size: 0.9rem; color: #ddd; }
+    .badge { padding: 2px 6px; border-radius: 4px; color: white; font-size: 0.8rem; margin-left: 6px; }
+    .badge.admin { background-color: violet; }
+    .badge.member { background-color: green; }
+    .admin-tools { margin-top: 5px; }
+    .admin-tools button { margin-right: 5px; font-size: 0.8rem; padding: 4px 8px; }
   </style>
 </head>
 <body>
@@ -110,63 +54,12 @@
 </main>
 
 <script type="module">
-  /*
-  ============================================================
-  🔒 FIREBASE SECURITY RULES REFERENCE
-  ------------------------------------------------------------
-  1 — Firestore Rules (Firestore Database → Rules)
-  
-  rules_version = '2';
-  service cloud.firestore {
-    match /databases/{database}/documents {
-      match /users/{userId} {
-        allow read: if true;
-        allow create: if request.auth != null && request.auth.uid == userId;
-        allow update, delete: if request.auth != null && request.auth.uid == userId;
-      }
-      match /posts/{postId} {
-        allow read: if true;
-        allow create: if request.auth != null
-                      && request.auth.token.firebase.sign_in_provider != 'anonymous'
-                      && request.resource.data.keys().hasOnly([
-                          'content','authorId','authorEmail','createdAt','likes','comments'
-                        ])
-                      && request.resource.data.content is string
-                      && request.resource.data.content.size() > 0
-                      && request.resource.data.content.size() <= 2000
-                      && request.resource.data.authorId == request.auth.uid
-                      && request.resource.data.likes is list
-                      && request.resource.data.comments is list;
-        allow update, delete: if request.auth != null
-                               && request.auth.uid == resource.data.authorId;
-      }
-    }
-  }
-
-  ------------------------------------------------------------
-  2 — Realtime Database Rules (Realtime Database → Rules)
-
-  {
-    "rules": {
-      "onlineUsers": {
-        ".read": true,
-        "$uid": {
-          ".write": "auth != null && auth.uid === $uid"
-        }
-      },
-      ".read": false,
-      ".write": false
-    }
-  }
-  ============================================================
-  */
-
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
   import { 
     getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut 
   } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
   import { 
-    getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, getDocs 
+    getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, getDocs, doc, getDoc, setDoc, deleteDoc, updateDoc 
   } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
   import {
     getDatabase, ref, onDisconnect, set, onValue
@@ -189,6 +82,8 @@
   const rtdb = getDatabase(app);
   const provider = new GoogleAuthProvider();
 
+  let currentUserData = null;
+
   const signInBtn = document.getElementById("signInBtn");
   const signOutBtn = document.getElementById("signOutBtn");
   const userEmailEl = document.getElementById("userEmail");
@@ -202,19 +97,30 @@
     signInWithRedirect(auth, provider);
   });
 
-  getRedirectResult(auth)
-    .then((result) => {
-      if (result && result.user) {
-        console.log("Signed in as:", result.user.email);
-      }
-    })
-    .catch((error) => {
-      console.error("Redirect sign-in error:", error);
-    });
+  getRedirectResult(auth).then(async (result) => {
+    if (result && result.user) {
+      await ensureUserProfile(result.user);
+    }
+  });
 
   signOutBtn.addEventListener("click", async () => {
     await signOut(auth);
   });
+
+  async function ensureUserProfile(user) {
+    const userRef = doc(db, "users", user.uid);
+    const snap = await getDoc(userRef);
+    if (!snap.exists()) {
+      const username = prompt("Choose a username:");
+      await setDoc(userRef, {
+        email: user.email,
+        username: username || "Unnamed",
+        role: "member",
+        banned: false,
+        createdAt: serverTimestamp()
+      });
+    }
+  }
 
   async function updateTotalMembers() {
     const snapshot = await getDocs(collection(db, "users"));
@@ -228,22 +134,23 @@
   }
 
   onValue(ref(rtdb, "onlineUsers"), (snapshot) => {
-    if (snapshot.exists()) {
-      onlineVisitorsEl.textContent = Object.keys(snapshot.val()).length;
-    } else {
-      onlineVisitorsEl.textContent = 0;
-    }
+    onlineVisitorsEl.textContent = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
   });
 
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     if (user) {
-      userEmailEl.textContent = user.email;
+      await ensureUserProfile(user);
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      currentUserData = userDoc.data();
+      userEmailEl.textContent = `${currentUserData.username} (${user.email})`;
       signInBtn.style.display = "none";
       signOutBtn.style.display = "inline-block";
-      createPostBtn.disabled = false;
+      createPostBtn.disabled = currentUserData.banned;
+      if (currentUserData.banned) alert("You are banned from posting.");
       trackPresence(user);
       updateTotalMembers();
     } else {
+      currentUserData = null;
       userEmailEl.textContent = "";
       signInBtn.style.display = "inline-block";
       signOutBtn.style.display = "none";
@@ -252,10 +159,22 @@
   });
 
   createPostBtn.addEventListener("click", async () => {
-    const user = auth.currentUser;
-    if (!user) {
-      alert("Please sign in first.");
+    if (!auth.currentUser || currentUserData.banned) return;
+    const content = postContentEl.value.trim();
+    if (content.length === 0 || content.length > 2000) {
+      alert("Post must be between 1 and 2000 characters.");
       return;
     }
-    const content = postContentEl.value.trim();
-    if (content.length === 0 || content.length > 2000
+    await addDoc(collection(db, "posts"), {
+      content,
+      authorId: auth.currentUser.uid,
+      authorEmail: auth.currentUser.email,
+      createdAt: serverTimestamp(),
+      likes: [],
+      comments: []
+    });
+    postContentEl.value = "";
+  });
+
+  const postsQuery = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+  onSnapshot(postsQuery, async (snapshot
