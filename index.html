@@ -121,12 +121,12 @@
     getDatabase, ref, onDisconnect, set, onValue
   } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
 
-  // Your Firebase config
+  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4",
     authDomain: "forum-3dec5.firebaseapp.com",
     projectId: "forum-3dec5",
-    storageBucket: "forum-3dec5.firebasestorage.app",
+    storageBucket: "forum-3dec5.appspot.com",
     messagingSenderId: "519284298976",
     appId: "1:519284298976:web:8bb5e94a44f202802c2c85",
     measurementId: "G-SXS8FRTT03",
@@ -164,20 +164,19 @@
     await signOut(auth);
   });
 
-  // Track total members (count of users collection)
+  // Track total members
   async function updateTotalMembers() {
     const snapshot = await getDocs(collection(db, "users"));
     totalMembersEl.textContent = snapshot.size;
   }
 
-  // Track online visitors using Realtime Database presence
+  // Track online visitors
   function trackPresence(user) {
     const myRef = ref(rtdb, "onlineUsers/" + user.uid);
     set(myRef, { email: user.email || "Guest", lastActive: Date.now() });
     onDisconnect(myRef).remove();
   }
 
-  // Listen for online visitors count
   onValue(ref(rtdb, "onlineUsers"), (snapshot) => {
     if (snapshot.exists()) {
       onlineVisitorsEl.textContent = Object.keys(snapshot.val()).length;
@@ -241,4 +240,10 @@
       const div = document.createElement("div");
       div.className = "post";
       div.innerHTML = `<strong>${data.authorEmail}</strong><br>${data.content}`;
-      postListEl
+      postListEl.appendChild(div);
+    });
+  });
+</script>
+
+</body>
+</html>
