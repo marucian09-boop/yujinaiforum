@@ -3,137 +3,345 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Community Forum - Home</title>
+<title>Community Forum - Repaired</title>
+<script src="https://cdn.tailwindcss.com"></script>
 <style>
-  body { font-family: Arial, sans-serif; margin: 0; background-color: #f5f5f5; color: #000; }
-  header { background-color: #333; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-  header h1 { margin: 0; font-size: 1.5rem; }
-  header .auth-controls { display: flex; align-items: center; gap: 10px; }
-  button { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; }
-  #signInBtn { background-color: #4285F4; color: white; }
-  #showSignupFormBtn { background-color: #6c63ff; color: white; }
-  #signOutBtn { background-color: #d9534f; color: white; }
-  main { max-width: 800px; margin: 20px auto; padding: 0 15px; }
-  section { background: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-  section h2 { color: #222; }
-  body.dark section h2 { color: #fff; }
-  textarea { width: 100%; height: 80px; margin-top: 10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; resize: vertical; }
-  #createPostBtn { background-color: #28a745; color: white; margin-top: 10px; }
-  .stats { margin-top: 10px; font-size: 0.9rem; color: #ddd; }
-  /* Dark mode */
-  body.dark { background-color: #121212; color: white; }
-  body.dark header { background-color: #1f1f1f; }
-  /* Toggle switch */
-  .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-  .switch input { opacity: 0; width: 0; height: 0; }
-  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
-  .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-  input:checked + .slider { background-color: #2196F3; }
-  input:checked + .slider:before { transform: translateX(26px); }
-  /* Nav bar */
-  .section-nav { display: flex; gap: 10px; padding: 10px 20px; background-color: #eee; }
-  .section-nav a { padding: 6px 12px; border-radius: 4px; background-color: #4285F4; color: white; text-decoration: none; font-weight: bold; }
-  .section-nav a:hover { background-color: #3367d6; }
-  body.dark .section-nav { background-color: #1f1f1f; }
-  body.dark .section-nav a { background-color: #2196F3; }
-  /* Signup form */
-  #signupForm { display:none; padding: 15px; background: #fff; border-radius: 5px; max-width: 400px; margin: 15px auto; }
-  body.dark #signupForm { background: #1f1f1f; }
-  #signupForm input { width: 100%; margin-bottom: 8px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+    /* Inter Font */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body {
+        font-family: 'Inter', sans-serif;
+        transition: background-color 0.3s, color 0.3s;
+    }
+    /* Simple fade-in animation for elements */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+
+    /* Toggle switch styles */
+    .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #4f46e5; }
+    input:checked + .slider:before { transform: translateX(26px); }
+
+    /* Custom styles for dark mode compatibility */
+    .dark .bg-gray-100 { background-color: #1f2937; }
+    .dark .text-gray-900 { color: #f9fafb; }
+    .dark .text-gray-500 { color: #d1d5db; }
+    .dark .text-gray-800 { color: #e5e7eb; }
+    .dark .border-gray-300 { border-color: #4b5563; }
+    .dark .ring-indigo-500 { ring-color: #818cf8; }
+    .dark .placeholder-gray-400::placeholder { color: #9ca3af; }
+
 </style>
 </head>
-<body>
+<body class="bg-gray-100">
 
-<header>
-  <h1>Community Forum</h1>
-  <div class="auth-controls">
-    <span id="userEmail"></span>
-    <button id="signInBtn" type="button">Sign in with Google</button>
-    <button id="showSignupFormBtn" type="button">Sign up with Email</button>
-    <button id="signOutBtn" type="button" style="display:none;">Sign out</button>
-    <label class="switch">
-      <input type="checkbox" id="darkModeToggle">
-      <span class="slider"></span>
-    </label>
-  </div>
-  <div class="stats">
-    <span id="totalMembers">0</span> Total Members |
-    <span id="onlineVisitors">0</span> Online Visitors
-  </div>
-</header>
+<div id="app-container">
+    <!-- Header -->
+    <header class="bg-white dark:bg-gray-800 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">Community Forum</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="userEmail" class="text-sm font-medium text-gray-600 dark:text-gray-300"></span>
+                    <!-- Auth Buttons -->
+                    <div id="auth-container" class="flex items-center space-x-2">
+                        <button id="signInBtn" type="button" class="px-3 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">Sign in with Google</button>
+                        <button id="showSignupFormBtn" type="button" class="px-3 py-2 text-sm font-semibold text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-all">Sign up</button>
+                    </div>
+                     <button id="signOutBtn" type="button" style="display:none;" class="px-3 py-2 text-sm font-semibold text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all">Sign out</button>
+                    <!-- Dark Mode Toggle -->
+                    <label class="switch">
+                        <input type="checkbox" id="darkModeToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+             <div class="pb-3 flex justify-center sm:justify-end items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+                <span><span id="totalMembers" class="font-bold">0</span> Total Members</span>
+                <span class="h-4 border-l border-gray-300 dark:border-gray-600"></span>
+                <span><span id="onlineVisitors" class="font-bold">0</span> Online</span>
+            </div>
+        </div>
+    </header>
 
-<nav class="section-nav">
-  <a href="index.html">Home</a>
-  <a href="contributor.html">Contributor Section</a>
-</nav>
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+         <!-- Signup Form (hidden by default) -->
+        <div id="signupForm" style="display:none;" class="mb-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md fade-in">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Create an Account</h3>
+            <div class="space-y-4">
+                <input type="email" id="signupEmail" placeholder="Email address" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="password" id="signupPassword" placeholder="Password" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <button id="signupBtn" class="w-full px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all">Sign Up</button>
+            </div>
+        </div>
 
-<!-- Signup form (hidden by default) -->
-<div id="signupForm">
-  <h3>Create Account</h3>
-  <input type="text" id="usernameInput" placeholder="Username">
-  <input type="email" id="signupEmail" placeholder="Email">
-  <input type="password" id="signupPassword" placeholder="Password">
-  <button id="signupBtn">Sign Up</button>
+        <!-- Post Creation Section -->
+        <section id="post-creation" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Create a New Post</h2>
+            <textarea id="postContent" placeholder="What's on your mind?" class="w-full h-28 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400 dark:placeholder-gray-500" disabled></textarea>
+            <button id="createPostBtn" class="mt-4 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all" disabled>Create Post</button>
+            <p id="auth-prompt" class="text-xs text-red-500 mt-2">Please sign in to create a post.</p>
+        </section>
+
+        <!-- Post List -->
+        <div id="postList" class="mt-8 space-y-4">
+            <!-- Posts will be dynamically inserted here -->
+        </div>
+    </main>
 </div>
 
-<main>
-  <section id="homePage">
-    <h2>Home Page</h2>
-    <textarea id="postContent" placeholder="Write something..."></textarea><br>
-    <button id="createPostBtn" disabled>Create Post</button>
-    <div id="postList"></div>
-  </section>
-</main>
-
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-  import { getFirestore, doc, setDoc, serverTimestamp, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
-  import { getDatabase, ref, onValue, onDisconnect, set } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
+    // Firebase imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, onSnapshot, addDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4",
-    authDomain: "forum-3dec5.firebaseapp.com",
-    databaseURL: "https://forum-3dec5-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "forum-3dec5",
-    storageBucket: "forum-3dec5.firebasestorage.app",
-    messagingSenderId: "519284298976",
-    appId: "1:519284298976:web:8bb5e94a44f202802c2c85",
-    measurementId: "G-SXS8FRTT03"
-  };
+    // --- DO NOT EDIT ---
+    // These variables are provided by the environment
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN", ...console.error("Firebase config not found.") };
+    // ---
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const rtdb = getDatabase(app);
-  const provider = new GoogleAuthProvider();
+    // Firebase Initialization
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const rtdb = getDatabase(app);
+    const provider = new GoogleAuthProvider();
 
-  const signInBtn = document.getElementById("signInBtn");
-  const showSignupFormBtn = document.getElementById("showSignupFormBtn");
-  const signupForm = document.getElementById("signupForm");
-  const signupBtn = document.getElementById("signupBtn");
-  const signOutBtn = document.getElementById("signOutBtn");
-  const darkModeToggle = document.getElementById("darkModeToggle");
-  const totalMembersEl = document.getElementById("totalMembers");
-  const onlineVisitorsEl = document.getElementById("onlineVisitors");
+    // UI Elements
+    const signInBtn = document.getElementById("signInBtn");
+    const showSignupFormBtn = document.getElementById("showSignupFormBtn");
+    const signupForm = document.getElementById("signupForm");
+    const signupBtn = document.getElementById("signupBtn");
+    const signOutBtn = document.getElementById("signOutBtn");
+    const darkModeToggle = document.getElementById("darkModeToggle");
+    const totalMembersEl = document.getElementById("totalMembers");
+    const onlineVisitorsEl = document.getElementById("onlineVisitors");
+    const userEmailEl = document.getElementById("userEmail");
+    const postContent = document.getElementById("postContent");
+    const createPostBtn = document.getElementById("createPostBtn");
+    const authPrompt = document.getElementById("auth-prompt");
+    const postList = document.getElementById("postList");
+    const authContainer = document.getElementById("auth-container");
 
-  // Dark mode
-  if (localStorage.getItem("darkMode") === "true") {
-    document.body.classList.add("dark");
-    darkModeToggle.checked = true;
-  }
-  darkModeToggle.addEventListener("change", (e) => {
-    document.body.classList.toggle("dark", e.target.checked);
-    localStorage.setItem("darkMode", e.target.checked);
-  });
+    let unsubscribeUsers = null;
+    let unsubscribePosts = null;
 
-  // Google sign-in
-  signInBtn.addEventListener("click", async () => {
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (err) {
-      alert("Google sign-in failed: " + err.message);
+    // --- Dark Mode ---
+    function applyDarkMode(isDark) {
+        document.documentElement.classList.toggle('dark', isDark);
+        localStorage.setItem("darkMode", isDark);
     }
-  });
 
-  // Toggle signup form
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedMode = localStorage.getItem("darkMode");
+    const initialDarkMode = savedMode !== null ? savedMode === 'true' : prefersDark;
+    darkModeToggle.checked = initialDarkMode;
+    applyDarkMode(initialDarkMode);
+
+    darkModeToggle.addEventListener("change", (e) => {
+        applyDarkMode(e.target.checked);
+    });
+
+    // --- Authentication ---
+    signInBtn.addEventListener("click", async () => {
+        try {
+            const result = await signInWithPopup(auth, provider);
+            await handleUser(result.user);
+        } catch (error) {
+            console.error("Google sign-in error:", error);
+            if (error.code === 'auth/unauthorized-domain') {
+                alert("This domain is not authorized for sign-in. Please add it to the Firebase console's list of authorized domains in Authentication > Settings.");
+            }
+        }
+    });
+
+    showSignupFormBtn.addEventListener("click", () => {
+        signupForm.style.display = signupForm.style.display === 'none' ? 'block' : 'none';
+    });
+
+    signupBtn.addEventListener("click", async () => {
+        const email = document.getElementById("signupEmail").value;
+        const password = document.getElementById("signupPassword").value;
+        if (!email || !password) {
+            alert("Please enter both email and password.");
+            return;
+        }
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            await handleUser(userCredential.user);
+            signupForm.style.display = 'none'; // Hide form on success
+        } catch (error) {
+            console.error("Email signup error:", error);
+            alert(`Error: ${error.message}`);
+        }
+    });
+    
+    signOutBtn.addEventListener("click", () => signOut(auth));
+
+    // --- User Management ---
+    async function handleUser(user) {
+        if (!user) return;
+        const userRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userRef);
+        if (!userDoc.exists()) {
+            await setDoc(userRef, {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName || user.email.split('@')[0],
+                createdAt: serverTimestamp(),
+                role: "member",
+                banned: false
+            });
+        }
+    }
+    
+    // Auth State Observer
+    onAuthStateChanged(auth, user => {
+        // Detach any existing listeners
+        if (unsubscribeUsers) unsubscribeUsers();
+        if (unsubscribePosts) unsubscribePosts();
+        
+        if (user) {
+            // A user is signed in (either anonymous or full)
+            attachFirestoreListeners();
+            
+            if (!user.isAnonymous) {
+                // Fully signed-in user
+                userEmailEl.textContent = user.displayName || user.email;
+                authContainer.style.display = 'none';
+                signOutBtn.style.display = 'block';
+                postContent.disabled = false;
+                createPostBtn.disabled = false;
+                authPrompt.style.display = 'none';
+                setupPresence(user);
+            } else {
+                // Anonymous user
+                userEmailEl.textContent = '';
+                authContainer.style.display = 'flex';
+                signOutBtn.style.display = 'none';
+                postContent.disabled = true;
+                createPostBtn.disabled = true;
+                authPrompt.style.display = 'block';
+            }
+        } else {
+            // User is signed out
+            userEmailEl.textContent = '';
+            authContainer.style.display = 'flex';
+            signOutBtn.style.display = 'none';
+            postContent.disabled = true;
+            createPostBtn.disabled = true;
+            authPrompt.style.display = 'block';
+            postList.innerHTML = ''; // Clear posts from UI
+            totalMembersEl.textContent = '0';
+            onlineVisitorsEl.textContent = '0';
+        }
+    });
+    
+    // Initial Auth
+    (async () => {
+      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+        try {
+            await signInWithCustomToken(auth, __initial_auth_token);
+        } catch(e) {
+            console.error("Custom token sign-in failed, trying anonymous.", e);
+            await signInAnonymously(auth);
+        }
+      } else {
+        await signInAnonymously(auth);
+      }
+    })();
+
+    // --- Presence and Member Count ---
+    function setupPresence(user) {
+        const myConnectionsRef = ref(rtdb, `status/${user.uid}`);
+        const connectedRef = ref(rtdb, '.info/connected');
+
+        onValue(connectedRef, (snap) => {
+            if (snap.val() === true) {
+                set(myConnectionsRef, { online: true, last_changed: rtdbServerTimestamp() });
+                onDisconnect(myConnectionsRef).remove();
+            }
+        });
+    }
+
+    function attachFirestoreListeners() {
+        // Listener for total members
+        const usersColRef = collection(db, "users");
+        unsubscribeUsers = onSnapshot(usersColRef, (snapshot) => {
+            totalMembersEl.textContent = snapshot.size;
+        }, (error) => {
+            console.error("Firestore 'users' snapshot error:", error);
+        });
+
+        // Listener for online visitors
+        const statusRef = ref(rtdb, "status");
+        onValue(statusRef, (snapshot) => {
+            onlineVisitorsEl.textContent = snapshot.exists() ? snapshot.size : 0;
+        });
+
+        // Listener for posts
+        const postsColRef = collection(db, "posts");
+        const q = query(postsColRef, orderBy("createdAt", "desc"));
+        unsubscribePosts = onSnapshot(q, (snapshot) => {
+            postList.innerHTML = ''; // Clear existing posts
+            snapshot.forEach(doc => {
+                const post = doc.data();
+                const postEl = document.createElement('div');
+                postEl.className = 'bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md fade-in';
+                
+                const timestamp = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now';
+
+                postEl.innerHTML = `
+                    <div class="flex items-center mb-2">
+                        <div class="font-bold text-gray-900 dark:text-white">${post.authorName}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 ml-auto">${timestamp}</div>
+                    </div>
+                    <p class="text-gray-800 dark:text-gray-200">${post.content}</p>
+                `;
+                postList.appendChild(postEl);
+            });
+        }, (error) => {
+            console.error("Firestore 'posts' snapshot error:", error);
+        });
+    }
+    
+    // --- Post Creation ---
+    createPostBtn.addEventListener('click', async () => {
+        const content = postContent.value.trim();
+        const user = auth.currentUser;
+        if (content && user && !user.isAnonymous) {
+            try {
+                const postsColRef = collection(db, "posts");
+                await addDoc(postsColRef, {
+                    content: content,
+                    authorId: user.uid,
+                    authorName: user.displayName || user.email,
+                    createdAt: serverTimestamp(),
+                });
+                postContent.value = ''; // Clear textarea
+            } catch (error) {
+                console.error("Error creating post:", error);
+                alert("Failed to create post. Your account may be banned or there was a server error.");
+            }
+        } else if (user && user.isAnonymous) {
+            alert("Please sign up or sign in to create posts.");
+        }
+    });
+
+</script>
+</body>
+</html>
+
+
