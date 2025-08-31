@@ -156,12 +156,12 @@
             } else {
                 // User is not a contributor or admin
                 console.log("Access denied. User is not a contributor.");
-                window.location.href = "./index.html";
+                window.location.href = window.location.href.replace("contributor.html", "index.html");
             }
         } else {
             // User is not signed in
             console.log("Access denied. User not signed in.");
-            window.location.href = "./index.html";
+            window.location.href = window.location.href.replace("contributor.html", "index.html");
         }
     });
     
