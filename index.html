@@ -147,6 +147,30 @@
     </main>
     
     <!-- Modals -->
+    <div id="signInModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-sm">
+            <div class="flex justify-between items-start mb-4">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Sign In</h3>
+                <button id="closeSignInModal" class="text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <button id="signInWithGoogleBtnModal" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <svg class="w-5 h-5 mr-3" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.223,0-9.657-3.356-11.303-7.962l-6.571,4.819C9.656,39.663,16.318,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C44.464,34.048,48,27.421,48,20c0-1.577-0.191-3.118-0.54-4.594l-0.231,0.195C45.696,17.227,44.254,19.14,43.611,20.083z"></path></svg>
+                    Sign in with Google
+                </button>
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+                    <span class="flex-shrink mx-4 text-gray-400">or</span>
+                    <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+                </div>
+                <input type="text" id="signInIdentifier" placeholder="Username or Email" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="password" id="signInPassword" placeholder="Password" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <p id="signInError" class="text-xs text-red-500 mt-1" style="display: none;"></p>
+                <button id="signInWithEmailBtnModal" class="w-full px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all">Sign In</button>
+            </div>
+        </div>
+    </div>
+    
     <div id="usernameModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-sm">
             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Choose a Username</h3>
@@ -188,7 +212,7 @@
 <script type="module">
     // Firebase imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, onSnapshot, addDoc, query, orderBy, where, getDocs, updateDoc, deleteDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
@@ -225,6 +249,12 @@
     const signUpWithGoogleBtn = document.getElementById("signUpWithGoogleBtn");
     const signUpWithEmailBtn = document.getElementById("signUpWithEmailBtn");
     
+    // Sign In Modal Elements
+    const signInModal = document.getElementById("signInModal");
+    const closeSignInModal = document.getElementById("closeSignInModal");
+    const signInWithGoogleBtnModal = document.getElementById("signInWithGoogleBtnModal");
+    const signInWithEmailBtnModal = document.getElementById("signInWithEmailBtnModal");
+
     // Signup Form Elements
     const signupForm = document.getElementById("signupForm");
     const signupBtn = document.getElementById("signupBtn");
@@ -285,12 +315,20 @@
         try {
             const result = await signInWithPopup(auth, provider);
             await handleUser(result.user);
+            signInModal.style.display = 'none';
         } catch (error) {
             console.error("Google sign-in error:", error);
         }
     };
 
-    signInLink.addEventListener("click", googleSignInHandler);
+    signInLink.addEventListener("click", () => {
+        signInModal.style.display = 'flex';
+    });
+    closeSignInModal.addEventListener("click", () => {
+        signInModal.style.display = 'none';
+    });
+    
+    signInWithGoogleBtnModal.addEventListener("click", googleSignInHandler);
     
     signUpWithGoogleBtn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -317,7 +355,44 @@
     });
 
 
-    // --- Email/Password Signup Logic ---
+    // --- Email/Password Signup & Signin Logic ---
+    signInWithEmailBtnModal.addEventListener('click', async () => {
+        const identifier = document.getElementById('signInIdentifier').value.trim();
+        const password = document.getElementById('signInPassword').value;
+        const signInError = document.getElementById('signInError');
+        signInError.style.display = 'none';
+
+        if (!identifier || !password) {
+            signInError.textContent = 'Please enter your credentials.';
+            signInError.style.display = 'block';
+            return;
+        }
+
+        let email = identifier;
+        
+        try {
+            if (!identifier.includes('@')) {
+                const usersRef = collection(db, "users");
+                const q = query(usersRef, where("displayName", "==", identifier));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    signInError.textContent = 'User not found.';
+                    signInError.style.display = 'block';
+                    return;
+                }
+                email = querySnapshot.docs[0].data().email;
+            }
+            
+            await signInWithEmailAndPassword(auth, email, password);
+            signInModal.style.display = 'none';
+        } catch (error) {
+            console.error("Sign in error:", error);
+            signInError.textContent = 'Invalid credentials. Please try again.';
+            signInError.style.display = 'block';
+        }
+    });
+
     signupBtn.addEventListener("click", async () => {
         const email = document.getElementById("signupEmail").value;
         const password = signupPasswordInput.value;
@@ -602,5 +677,4 @@
 </script>
 </body>
 </html>
-
 
