@@ -103,14 +103,21 @@
 <script type="module">
     // Firebase imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, onSnapshot, addDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
-    // --- DO NOT EDIT ---
-    // These variables are provided by the environment
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN", ...console.error("Firebase config not found.") };
-    // ---
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4",
+      authDomain: "forum-3dec5.firebaseapp.com",
+      databaseURL: "https://forum-3dec5-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "forum-3dec5",
+      storageBucket: "forum-3dec5.firebasestorage.app",
+      messagingSenderId: "519284298976",
+      appId: "1:519284298976:web:8bb5e94a44f202802c2c85",
+      measurementId: "G-SXS8FRTT03"
+    };
 
     // Firebase Initialization
     const app = initializeApp(firebaseConfig);
@@ -250,18 +257,10 @@
     });
     
     // Initial Auth
-    (async () => {
-      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-        try {
-            await signInWithCustomToken(auth, __initial_auth_token);
-        } catch(e) {
-            console.error("Custom token sign-in failed, trying anonymous.", e);
-            await signInAnonymously(auth);
-        }
-      } else {
-        await signInAnonymously(auth);
-      }
-    })();
+    signInAnonymously(auth).catch(error => {
+        console.error("Anonymous sign-in failed:", error);
+    });
+
 
     // --- Presence and Member Count ---
     function setupPresence(user) {
@@ -343,5 +342,4 @@
 </script>
 </body>
 </html>
-
 
