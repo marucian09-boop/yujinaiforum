@@ -97,7 +97,22 @@
             <div class="space-y-4">
                 <input type="text" id="signupUsername" placeholder="Username" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <input type="email" id="signupEmail" placeholder="Email address" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <input type="password" id="signupPassword" placeholder="Password" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <div>
+                    <div class="relative">
+                        <input type="password" id="signupPassword" placeholder="Password" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10">
+                        <button type="button" id="togglePasswordVisibility" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 dark:text-gray-400">
+                            <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.02 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                            </svg>
+                            <svg id="eyeSlashIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.955 9.955 0 00-4.502 1.071L3.707 2.293zM10.707 10.707a2 2 0 00-2.828-2.828l2.828 2.828zM10 12a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                <path d="M2.043 10c1.274 4.057 5.02 7 9.542 7 .848 0 1.67-.11 2.458-.316l-1.473-1.473A10.014 10.014 0 012.043 10z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <p id="passwordError" class="text-xs text-red-500 mt-1" style="display: none;"></p>
+                </div>
                 <button id="signupBtn" class="w-full px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all">Sign Up</button>
             </div>
         </div>
@@ -173,6 +188,11 @@
     const userInfoContainer = document.getElementById("userInfoContainer");
     const userNameEl = document.getElementById("userName");
     const userRoleEl = document.getElementById("userRole");
+    const signupPasswordInput = document.getElementById("signupPassword");
+    const togglePasswordVisibilityBtn = document.getElementById("togglePasswordVisibility");
+    const eyeIcon = document.getElementById("eyeIcon");
+    const eyeSlashIcon = document.getElementById("eyeSlashIcon");
+    const passwordError = document.getElementById("passwordError");
 
     let unsubscribeUsers = null;
     let unsubscribePosts = null;
@@ -191,6 +211,20 @@
 
     darkModeToggle.addEventListener("change", (e) => {
         applyDarkMode(e.target.checked);
+    });
+
+    // --- Password Visibility Toggle ---
+    togglePasswordVisibilityBtn.addEventListener("click", () => {
+        const type = signupPasswordInput.getAttribute("type") === "password" ? "text" : "password";
+        signupPasswordInput.setAttribute("type", type);
+        eyeIcon.classList.toggle("hidden");
+        eyeSlashIcon.classList.toggle("hidden");
+    });
+    
+    signupPasswordInput.addEventListener("input", () => {
+        if (passwordError.style.display === 'block') {
+            passwordError.style.display = 'none';
+        }
     });
 
     // --- Authentication ---
@@ -212,10 +246,11 @@
 
     signupBtn.addEventListener("click", async () => {
         const email = document.getElementById("signupEmail").value;
-        const password = document.getElementById("signupPassword").value;
+        const password = signupPasswordInput.value;
         const username = document.getElementById("signupUsername").value.trim();
         
-        // Password validation regex: 7-16 chars, letters, numbers, special chars
+        passwordError.style.display = 'none'; // Hide error on new attempt
+
         const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,16}$/;
 
         if (!email || !password || !username) {
@@ -224,7 +259,8 @@
         }
 
         if (!passwordRegex.test(password)) {
-            alert("Password must be 7-16 characters long and include at least one letter, one number, and one special character (@$!%*?&).");
+            passwordError.textContent = "Must be 7-16 characters & contain a letter, number, & special character.";
+            passwordError.style.display = 'block';
             return;
         }
 
