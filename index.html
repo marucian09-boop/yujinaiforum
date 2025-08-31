@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Ensure UTF-8 is declared first -->
   <meta charset="UTF-8">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Community Forum</title>
 
-  <!-- Favicon setup -->
+  <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -15,7 +14,7 @@
   <meta name="theme-color" content="#0a1a3f">
 
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; background-color: #f5f5f5; }
+    body { font-family: Arial, sans-serif; margin: 0; background-color: #f5f5f5; color: #000; }
     header { background-color: #333; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
     header h1 { margin: 0; font-size: 1.5rem; }
     header .auth-controls { display: flex; align-items: center; gap: 10px; }
@@ -25,14 +24,23 @@
     main { max-width: 800px; margin: 20px auto; padding: 0 15px; }
     section { background: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
     textarea { width: 100%; height: 80px; margin-top: 10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; resize: vertical; }
-    #createPostBtn { background-color: #28a745; color: white; margin-top: 10px; }
+    #createPostBtn, #createContributorPostBtn { background-color: #28a745; color: white; margin-top: 10px; }
     .post { background: #fafafa; border: 1px solid #ddd; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
     .stats { margin-top: 10px; font-size: 0.9rem; color: #ddd; }
     .badge { padding: 2px 6px; border-radius: 4px; color: white; font-size: 0.8rem; margin-left: 6px; }
     .badge.admin { background-color: violet; }
-    .badge.member { background-color: green; }
-    .admin-tools { margin-top: 5px; }
-    .admin-tools button { margin-right: 5px; font-size: 0.8rem; padding: 4px 8px; }
+    .badge.contributor { background-color: green; }
+    .badge.newbie { background-color: blue; }
+    /* Dark mode */
+    body.dark { background-color: #121212; color: white; }
+    body.dark header { background-color: #1f1f1f; }
+    /* Toggle switch */
+    .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #2196F3; }
+    input:checked + .slider:before { transform: translateX(26px); }
   </style>
 </head>
 <body>
@@ -41,8 +49,13 @@
   <h1>Community Forum</h1>
   <div class="auth-controls">
     <span id="userEmail"></span>
-    <button id="signInBtn">Sign in with Google</button>
-    <button id="signOutBtn" style="display:none;">Sign out</button>
+    <button id="signInBtn" type="button">Sign in with Google</button>
+    <button id="signOutBtn" type="button" style="display:none;">Sign out</button>
+    <!-- Dark mode toggle -->
+    <label class="switch">
+      <input type="checkbox" id="darkModeToggle">
+      <span class="slider"></span>
+    </label>
   </div>
   <div class="stats">
     <span id="totalMembers">0</span> Total Members |
@@ -51,41 +64,40 @@
 </header>
 
 <main>
-  <section>
-    <h2>Create a New Post</h2>
+  <!-- Main Page -->
+  <section id="mainPage">
+    <h2>Main Page</h2>
     <textarea id="postContent" placeholder="Write something..."></textarea><br>
     <button id="createPostBtn" disabled>Create Post</button>
+    <div id="postList"></div>
   </section>
 
-  <section>
-    <h2>Posts</h2>
-    <div id="postList"></div>
+  <!-- Contributor Section -->
+  <section id="contributorSection">
+    <h2>Contributor Section</h2>
+    <textarea id="contributorPostContent" placeholder="Write something for contributors..."></textarea><br>
+    <button id="createContributorPostBtn" disabled>Create Contributor Post</button>
+    <div id="contributorPostList"></div>
   </section>
 </main>
 
+<!-- Account creation modal -->
+<div id="accountModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
+  <div style="background:white; padding:20px; max-width:400px; margin:100px auto; border-radius:8px;">
+    <h3>Create Account</h3>
+    <input type="text" id="usernameInput" placeholder="Username"><br><br>
+    <input type="password" id="passwordInput" placeholder="Password"><br><br>
+    <button id="saveAccountBtn">Save</button>
+  </div>
+</div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-  import { 
-    getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut 
-  } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-  import { 
-    getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, getDocs, doc, getDoc, setDoc, deleteDoc, updateDoc 
-  } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
-  import {
-    getDatabase, ref, onDisconnect, set, onValue
-  } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+  import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, getDocs, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+  import { getDatabase, ref, onDisconnect, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4",
-    authDomain: "forum-3dec5.firebaseapp.com",
-    projectId: "forum-3dec5",
-    storageBucket: "forum-3dec5.appspot.com",
-    messagingSenderId: "519284298976",
-    appId: "1:519284298976:web:8bb5e94a44f202802c2c85",
-    measurementId: "G-SXS8FRTT03",
-    databaseURL: "https://forum-3dec5-default-rtdb.asia-southeast1.firebasedatabase.app"
-  };
-
+  const firebaseConfig = { /* your config here */ };
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
@@ -100,18 +112,15 @@
   const createPostBtn = document.getElementById("createPostBtn");
   const postContentEl = document.getElementById("postContent");
   const postListEl = document.getElementById("postList");
+  const createContributorPostBtn = document.getElementById("createContributorPostBtn");
+  const contributorPostContentEl = document.getElementById("contributorPostContent");
+  const contributorPostListEl = document.getElementById("contributorPostList");
   const totalMembersEl = document.getElementById("totalMembers");
   const onlineVisitorsEl = document.getElementById("onlineVisitors");
+  const accountModal = document.getElementById("accountModal");
+  const usernameInput = document.getElementById("usernameInput");
+  const passwordInput = document.getElementById("passwordInput");
+  const saveAccountBtn = document.getElementById("saveAccountBtn");
 
-  signInBtn.addEventListener("click", () => {
-    signInWithRedirect(auth, provider);
-  });
-
-  getRedirectResult(auth).then(async (result) => {
-    if (result && result.user) {
-      await ensureUserProfile(result.user);
-    }
-  });
-
-  signOutBtn.addEventListener("click", async () => {
-    await signOut
+  // Dark mode
+  const
