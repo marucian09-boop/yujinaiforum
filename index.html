@@ -230,7 +230,15 @@
              <div class="space-y-4">
                  <div>
                      <label for="warningMessage" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Send Warning</label>
+                     <div class="flex items-center space-x-2 my-2">
+                        <button id="warningBoldBtn" class="px-2 py-1 text-sm font-bold border rounded">B</button>
+                        <button id="warningItalicBtn" class="px-2 py-1 text-sm italic border rounded">I</button>
+                        <button id="warningStrikeBtn" class="px-2 py-1 text-sm line-through border rounded">S</button>
+                        <input type="color" id="warningColor" value="#000000" class="h-8 w-8 p-0 border-none cursor-pointer" title="Text Color">
+                        <input type="color" id="warningBgColor" value="#FFFFFF" class="h-8 w-8 p-0 border-none cursor-pointer" title="Background Color">
+                     </div>
                      <textarea id="warningMessage" placeholder="Enter warning message..." rows="3" class="mt-1 w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                      <div id="warningPreview" class="p-2 mt-2 rounded border dark:border-gray-600">Preview Text</div>
                      <button id="sendWarningBtn" class="mt-2 w-full px-4 py-2 text-sm font-semibold text-white bg-yellow-500 rounded-md hover:bg-yellow-600 transition-all">Send Warning</button>
                  </div>
                  <div class="flex space-x-4">
@@ -324,6 +332,15 @@
     const messageHistory = document.getElementById('messageHistory');
     const messageInput = document.getElementById('messageInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
+    
+    // Admin Warning Formatting
+    const warningBoldBtn = document.getElementById('warningBoldBtn');
+    const warningItalicBtn = document.getElementById('warningItalicBtn');
+    const warningStrikeBtn = document.getElementById('warningStrikeBtn');
+    const warningColor = document.getElementById('warningColor');
+    const warningBgColor = document.getElementById('warningBgColor');
+    const warningMessage = document.getElementById('warningMessage');
+    const warningPreview = document.getElementById('warningPreview');
 
 
     let currentUserRole = null;
@@ -973,6 +990,4 @@
 </script>
 </body>
 </html>
-" selected in the canvas.
-Add the option to attach and view an image when posting, which should be displayed below the post's content and visible in both the post list and the detailed view modal.
 
