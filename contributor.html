@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Community Forum - Contributor Section</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; background-color: #f5f5f5; color: #000; }
+  header { background-color: #333; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 1.5rem; }
+  header .auth-controls { display: flex; align-items: center; gap: 10px; }
+  button { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; }
+  #signInBtn { background-color: #4285F4; color: white; }
+  #signOutBtn { background-color: #d9534f; color: white; }
+  main { max-width: 800px; margin: 20px auto; padding: 0 15px; }
+  section { background: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+  section h2 { color: #222; }
+  body.dark section h2 { color: #fff; }
+  textarea { width: 100%; height: 80px; margin-top: 10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; resize: vertical; }
+  #createContributorPostBtn { background-color: #28a745; color: white; margin-top: 10px; }
+  .stats { margin-top: 10px; font-size: 0.9rem; color: #ddd; }
+  /* Dark mode */
+  body.dark { background-color: #121212; color: white; }
+  body.dark header { background-color: #1f1f1f; }
+  /* Toggle switch */
+  .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+  .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+  input:checked + .slider { background-color: #2196F3; }
+  input:checked + .slider:before { transform: translateX(26px); }
+  /* Nav bar */
+  .section-nav { display: flex; gap: 10px; padding: 10px 20px; background-color: #eee; }
+  .section-nav a { padding: 6px 12px; border-radius: 4px; background-color: #4285F4; color: white; text-decoration: none; font-weight: bold; }
+  .section-nav a:hover { background-color: #3367d6; }
+  body.dark .section-nav { background-color: #1f1f1f; }
+  body.dark .section-nav a { background-color: #2196F3; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Community Forum</h1>
+  <div class="auth-controls">
+    <span id="userEmail"></span>
+    <button id="signInBtn" type="button">Sign in with Google</button>
+    <button id="signOutBtn" type="button" style="display:none;">Sign out</button>
+    <label class="switch">
+      <input type="checkbox" id="darkModeToggle">
+      <span class="slider"></span>
+    </label>
+  </div>
+  <div class="stats">
+    <span id="totalMembers">0</span> Total Members |
+    <span id="onlineVisitors">0</span> Online Visitors
+  </div>
+</header>
+
+<nav class="section-nav">
+  <a href="index.html">Home</a>
+  <a href="contributor.html">Contributor Section</a>
+</nav>
+
+<main>
+  <section id="contributorSection">
+    <h2>Contributor Section</h2>
+    <textarea id="contributorPostContent" placeholder="Write something for contributors..."></textarea><br>
+    <button id="createContributorPostBtn" disabled>Create Contributor Post</button>
+    <div id="contributorPostList"></div>
+  </section>
+</main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+  import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+
+  const firebaseConfig = { /* your config */ };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+
+  const signInBtn = document.getElementById("signInBtn");
+  const signOutBtn = document.getElementById("signOutBtn");
+  const darkModeToggle = document.getElementById("darkModeToggle");
+
+  // Dark mode
+  if (localStorage.getItem("darkMode") === "true") {
+    document.body.classList.add("dark");
+    darkModeToggle.checked = true;
+  }
+  darkModeToggle.addEventListener("change", (e) => {
+    document.body.classList.toggle("dark", e.target.checked);
+    localStorage.setItem("darkMode", e.target.checked);
+  });
+
+  // Google sign-in
+  signInBtn.addEventListener("click", async () => {
+    try { await signInWithPopup(auth, provider); }
+    catch (err) { console.error(err); }
+  });
+
+  signOutBtn.addEventListener("click", () => signOut(auth));
+
+  // Role check
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      alert("You must be signed in to view this page.");
+      window.location.href = "index.html";
+      return;
+    }
+    const snap = await getDoc(doc(db, "users", user.uid));
+    if (!snap.exists() || !["admin", "contributor"].includes(snap.data().role)) {
+      alert("Access denied. Contributors and Admins only.");
+      window.location.href = "index.html";
+      return;
+    }
+    // If allowed, enable post creation
+    document.getElementById("createContributorPostBtn").disabled = false;
+    loadContributorPosts();
+  });
+
+  // Load posts
+  function loadContributorPosts() {
+    const q = query(collection(db, "contributorPosts"), orderBy("createdAt", "desc"));
+    onSnapshot(q, (snapshot) => {
+      const list = document.getElementById("contributorPostList");
+      list.innerHTML = "";
+      snapshot.forEach((docSnap) => {
+        const post = docSnap.data();
+        const div = document.createElement("div");
+        div.textContent = `${post.author}: ${post.content}`;
+        list.appendChild(div);
+      });
+    });
+  }
+
+  // Create post
+  document.getElementById("createContributorPostBtn").addEventListener("click", async () => {
+    const content = document.getElementById("contributorPostContent").value.trim();
+    if (!content) return;
+    await addDoc(collection(db, "contributorPosts"), {
+      content,
+      author: auth.currentUser.email,
+      authorId: auth.currentUser.uid,
+      createdAt: serverTimestamp()
+    });
+    document.getElementById("contributorPostContent").value = "";
+  });
+</script>
+</body>
+</html>
