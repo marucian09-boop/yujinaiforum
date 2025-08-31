@@ -11,6 +11,7 @@
   header .auth-controls { display: flex; align-items: center; gap: 10px; }
   button { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; }
   #signInBtn { background-color: #4285F4; color: white; }
+  #showSignupFormBtn { background-color: #6c63ff; color: white; }
   #signOutBtn { background-color: #d9534f; color: white; }
   main { max-width: 800px; margin: 20px auto; padding: 0 15px; }
   section { background: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
@@ -35,6 +36,10 @@
   .section-nav a:hover { background-color: #3367d6; }
   body.dark .section-nav { background-color: #1f1f1f; }
   body.dark .section-nav a { background-color: #2196F3; }
+  /* Signup form */
+  #signupForm { display:none; padding: 15px; background: #fff; border-radius: 5px; max-width: 400px; margin: 15px auto; }
+  body.dark #signupForm { background: #1f1f1f; }
+  #signupForm input { width: 100%; margin-bottom: 8px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
 </style>
 </head>
 <body>
@@ -44,6 +49,7 @@
   <div class="auth-controls">
     <span id="userEmail"></span>
     <button id="signInBtn" type="button">Sign in with Google</button>
+    <button id="showSignupFormBtn" type="button">Sign up with Email</button>
     <button id="signOutBtn" type="button" style="display:none;">Sign out</button>
     <label class="switch">
       <input type="checkbox" id="darkModeToggle">
@@ -61,21 +67,21 @@
   <a href="contributor.html">Contributor Section</a>
 </nav>
 
+<!-- Signup form (hidden by default) -->
+<div id="signupForm">
+  <h3>Create Account</h3>
+  <input type="text" id="usernameInput" placeholder="Username">
+  <input type="email" id="signupEmail" placeholder="Email">
+  <input type="password" id="signupPassword" placeholder="Password">
+  <button id="signupBtn">Sign Up</button>
+</div>
+
 <main>
   <section id="homePage">
     <h2>Home Page</h2>
     <textarea id="postContent" placeholder="Write something..."></textarea><br>
     <button id="createPostBtn" disabled>Create Post</button>
     <div id="postList"></div>
-  </section>
-
-  <!-- Email sign-up form -->
-  <section>
-    <h2>Sign Up with Email</h2>
-    <input type="text" id="usernameInput" placeholder="Username"><br>
-    <input type="email" id="signupEmail" placeholder="Email"><br>
-    <input type="password" id="signupPassword" placeholder="Password"><br>
-    <button id="signupBtn">Sign Up</button>
   </section>
 </main>
 
@@ -101,6 +107,9 @@
   const provider = new GoogleAuthProvider();
 
   const signInBtn = document.getElementById("signInBtn");
+  const showSignupFormBtn = document.getElementById("showSignupFormBtn");
+  const signupForm = document.getElementById("signupForm");
+  const signupBtn = document.getElementById("signupBtn");
   const signOutBtn = document.getElementById("signOutBtn");
   const darkModeToggle = document.getElementById("darkModeToggle");
 
@@ -120,38 +129,17 @@
     catch (err) { console.error(err); }
   });
 
+  // Toggle signup form
+  showSignupFormBtn.addEventListener("click", () => {
+    signupForm.style.display = signupForm.style.display === "none" ? "block" : "none";
+  });
+
   // Email sign-up
-  document.getElementById("signupBtn").addEventListener("click", async () => {
-    const email = document.getElementById("signupEmail").value;
-    const password = document.getElementById("signupPassword").value;
-    const username = document.getElementById("usernameInput").value;
-    try {
-      const userCred = await createUserWithEmailAndPassword(auth, email, password);
-      await setDoc(doc(db, "users", userCred.user.uid), {
-        username,
-        email,
-        role: "newbie",
-        banned: false,
-        createdAt: serverTimestamp(),
-        postCount: 0
-      });
-      alert("Account created!");
-    } catch (err) {
-      alert(err.message);
-    }
-  });
+  signupBtn.addEventListener("click", async () => {
+    const email = document.getElementById("signupEmail").value.trim();
+    const password = document.getElementById("signupPassword").value.trim();
+    const username = document.getElementById("usernameInput").value.trim();
 
-  // Auth state
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      signInBtn.style.display = "none";
-      signOutBtn.style.display = "inline-block";
-      document.getElementById("createPostBtn").disabled = false;
-    } else {
-      signInBtn.style.display = "inline-block";
-      signOutBtn.style.display = "none";
-      document.getElementById("createPostBtn").disabled = true;
-    }
-  });
-
-  signOutBtn.addEventListener("click", () => signOut
+    if (!email || !password || !username) {
+      alert("Please fill in all fields.");
+      return
