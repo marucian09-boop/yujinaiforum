@@ -95,6 +95,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center space-x-4 h-12">
                 <a href="./index.html" class="px-3 py-2 text-sm font-medium text-white bg-indigo-600 dark:bg-indigo-500 rounded-md">Home</a>
+                <a href="#" id="messagesBtn" class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">Messages</a>
                 <a href="./contributor.html" class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">Contributor Section</a>
             </div>
         </div>
@@ -135,7 +136,10 @@
         <!-- Post Creation Section -->
         <section id="post-creation" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
             <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Create a New Post</h2>
-            <textarea id="postContent" placeholder="What's on your mind?" class="w-full h-28 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400 dark:placeholder-gray-500" disabled></textarea>
+            <div class="space-y-4">
+                 <input type="text" id="postTitle" placeholder="Post Title" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <textarea id="postContent" placeholder="What's on your mind?" class="w-full h-28 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400 dark:placeholder-gray-500" disabled></textarea>
+            </div>
             <button id="createPostBtn" class="mt-4 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all" disabled>Create Post</button>
             <p id="auth-prompt" class="text-xs text-red-500 mt-2">Please sign in to create a post.</p>
         </section>
@@ -147,6 +151,34 @@
     </main>
     
     <!-- Modals -->
+    <div id="postViewModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-2xl relative">
+            <button id="closePostViewModal" class="absolute top-3 right-3 text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
+            <h3 id="postViewTitle" class="text-xl font-bold text-gray-900 dark:text-white mb-2"></h3>
+            <div id="postViewMeta" class="text-xs text-gray-500 dark:text-gray-400 mb-4"></div>
+            <p id="postViewContent" class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap"></p>
+        </div>
+    </div>
+    
+    <div id="messagingModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-lg h-3/4 flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Direct Messages</h3>
+                <button id="closeMessagingModal" class="text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
+            </div>
+            <div class="relative mb-2">
+                <input type="text" id="messageRecipientSearch" placeholder="Type a username to message..." class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md">
+                <div id="messageRecipientResults" class="absolute w-full bg-white dark:bg-gray-600 border dark:border-gray-500 rounded-md mt-1 z-10" style="display: none;"></div>
+            </div>
+            <p id="messagingWith" class="text-sm font-medium mb-2" style="display: none;">Chat with: <span class="font-bold text-indigo-600 dark:text-indigo-400"></span></p>
+            <div id="messageHistory" class="flex-grow overflow-y-auto bg-gray-50 dark:bg-gray-900 p-2 rounded-md mb-2"></div>
+            <div class="flex">
+                <input type="text" id="messageInput" placeholder="Type your message..." class="flex-grow px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-l-md">
+                <button id="sendMessageBtn" class="px-4 py-2 text-white bg-indigo-600 rounded-r-md hover:bg-indigo-700">Send</button>
+            </div>
+        </div>
+    </div>
+
     <div id="signInModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-sm">
             <div class="flex justify-between items-start mb-4">
@@ -242,19 +274,17 @@
     const userNameEl = document.getElementById("userName");
     const userRoleEl = document.getElementById("userRole");
 
-    // New Auth UI Elements
+    // Auth UI Elements
     const signInLink = document.getElementById("signInLink");
     const createAccountBtn = document.getElementById("createAccountBtn");
     const createAccountDropdown = document.getElementById("createAccountDropdown");
     const signUpWithGoogleBtn = document.getElementById("signUpWithGoogleBtn");
     const signUpWithEmailBtn = document.getElementById("signUpWithEmailBtn");
-    
-    // Sign In Modal Elements
     const signInModal = document.getElementById("signInModal");
     const closeSignInModal = document.getElementById("closeSignInModal");
     const signInWithGoogleBtnModal = document.getElementById("signInWithGoogleBtnModal");
     const signInWithEmailBtnModal = document.getElementById("signInWithEmailBtnModal");
-
+    
     // Signup Form Elements
     const signupForm = document.getElementById("signupForm");
     const signupBtn = document.getElementById("signupBtn");
@@ -266,9 +296,27 @@
     const eyeSlashIcon = document.getElementById("eyeSlashIcon");
     const passwordError = document.getElementById("passwordError");
 
+    // Post Elements
+    const postViewModal = document.getElementById('postViewModal');
+    const closePostViewModal = document.getElementById('closePostViewModal');
+
+    // Messaging Elements
+    const messagesBtn = document.getElementById('messagesBtn');
+    const messagingModal = document.getElementById('messagingModal');
+    const closeMessagingModal = document.getElementById('closeMessagingModal');
+    const messageRecipientSearch = document.getElementById('messageRecipientSearch');
+    const messageRecipientResults = document.getElementById('messageRecipientResults');
+    const messagingWith = document.getElementById('messagingWith');
+    const messageHistory = document.getElementById('messageHistory');
+    const messageInput = document.getElementById('messageInput');
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
+
+
     let currentUserRole = null;
     let usersDataCache = {};
     let postDocsCache = [];
+    let currentRecipient = null;
+    let messageListenerUnsubscribe = null;
     
     // --- Custom Alert Modal ---
     const alertModal = document.getElementById('alertModal');
@@ -312,7 +360,7 @@
         }
     });
 
-    // --- NEW Authentication UI Logic ---
+    // --- Authentication UI Logic ---
     const googleSignInHandler = async () => {
         try {
             const result = await signInWithPopup(auth, provider);
@@ -589,7 +637,7 @@
                     ${adminControls}
                 </div>
                 <div class="text-xs text-gray-500 dark:text-gray-400">${timestamp}</div>
-                <p class="text-gray-800 dark:text-gray-200 mt-2">${post.content}</p>
+                <h4 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400 mt-2 hover:underline cursor-pointer view-post-btn" data-post-id="${postId}">${post.title}</h4>
             `;
             postList.appendChild(postEl);
         });
@@ -628,30 +676,47 @@
     
     // --- Post Creation & Admin Actions---
     document.getElementById('createPostBtn').addEventListener('click', async () => {
+        const title = document.getElementById("postTitle").value.trim();
         const content = document.getElementById("postContent").value.trim();
         const user = auth.currentUser;
-        if (content && user) {
+        if (title && content && user) {
             const userDocRef = doc(db, "users", user.uid);
             const userDocSnap = await getDoc(userDocRef);
             if (userDocSnap.exists() && !userDocSnap.data().banned) {
                 const postsColRef = collection(db, "posts");
                 await addDoc(postsColRef, {
+                    title: title,
                     content: content,
                     authorId: user.uid,
-                    authorName: userDocSnap.data().displayName,
                     createdAt: serverTimestamp(),
                 });
+                document.getElementById("postTitle").value = '';
                 document.getElementById("postContent").value = '';
             } else if (userDocSnap.exists() && userDocSnap.data().banned) {
                 showAlert("Your account is banned and you cannot create posts.");
             }
+        } else {
+             showAlert("Please provide a title and content for your post.");
         }
     });
 
     postList.addEventListener('click', e => {
+        const viewBtn = e.target.closest('.view-post-btn');
         const deleteBtn = e.target.closest('.delete-post-btn');
         const manageBtn = e.target.closest('.manage-user-btn');
 
+        if (viewBtn) {
+            const postId = viewBtn.dataset.postId;
+            const postDoc = postDocsCache.find(doc => doc.id === postId);
+            if(postDoc) {
+                const post = postDoc.data();
+                const author = usersDataCache[post.authorId];
+                document.getElementById('postViewTitle').textContent = post.title;
+                document.getElementById('postViewContent').textContent = post.content;
+                document.getElementById('postViewMeta').textContent = `Posted by ${author.displayName} on ${post.createdAt.toDate().toLocaleString()}`;
+                postViewModal.style.display = 'flex';
+            }
+        }
         if (deleteBtn) {
             const postId = deleteBtn.dataset.postId;
             if (confirm('Are you sure you want to delete this post permanently?')) {
@@ -666,6 +731,7 @@
             openAdminModal(userId, userName);
         }
     });
+    closePostViewModal.addEventListener('click', () => postViewModal.style.display = 'none');
 
     const adminModal = document.getElementById('adminModal');
     let targetUserId = null;
@@ -690,19 +756,127 @@
         showAlert('User has been unbanned.');
         adminModal.style.display = 'none';
     };
+    
+    // --- Messaging Logic ---
+    async function sendMessage(recipientId, content) {
+        const user = auth.currentUser;
+        if (!user || !recipientId || !content) return;
+
+        const conversationId = [user.uid, recipientId].sort().join('_');
+        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
+        
+        await addDoc(messagesRef, {
+            senderId: user.uid,
+            recipientId: recipientId,
+            content: content,
+            createdAt: serverTimestamp()
+        });
+    }
+
     document.getElementById('sendWarningBtn').onclick = async () => {
         if (!targetUserId) return;
         const message = document.getElementById('warningMessage').value.trim();
-        if(message){
-            await updateDoc(doc(db, "users", targetUserId), { 
+        if (message) {
+            const warningContent = "OFFICIAL WARNING: " + message;
+            await sendMessage(targetUserId, warningContent);
+            
+            // Also save to user's private warnings array for admin reference
+            await updateDoc(doc(db, "users", targetUserId), {
                 warnings: arrayUnion({ message: message, date: serverTimestamp() })
             });
-            showAlert('Warning has been sent.');
+
+            showAlert('Warning has been sent as a direct message.');
             adminModal.style.display = 'none';
         } else {
             showAlert('Warning message cannot be empty.');
         }
     };
+
+    messagesBtn.addEventListener('click', () => {
+        if(auth.currentUser){
+            messagingModal.style.display = 'flex';
+        } else {
+            showAlert('Please sign in to view messages.');
+        }
+    });
+    closeMessagingModal.addEventListener('click', () => {
+         messagingModal.style.display = 'none';
+         if(messageListenerUnsubscribe) messageListenerUnsubscribe();
+         currentRecipient = null;
+         messagingWith.style.display = 'none';
+         messageRecipientSearch.value = '';
+    });
+
+    messageRecipientSearch.addEventListener('input', async (e) => {
+        const searchTerm = e.target.value.trim();
+        messageRecipientResults.innerHTML = '';
+        messageRecipientResults.style.display = 'none';
+
+        if(searchTerm.length < 2) return;
+
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where('displayName', '>=', searchTerm), where('displayName', '<=', searchTerm + '\uf8ff'));
+        const querySnapshot = await getDocs(q);
+        
+        querySnapshot.forEach(doc => {
+            if(doc.id === auth.currentUser.uid) return;
+            const user = doc.data();
+            const resultEl = document.createElement('div');
+            resultEl.textContent = user.displayName;
+            resultEl.className = 'p-2 hover:bg-gray-100 dark:hover:bg-gray-500 cursor-pointer';
+            resultEl.dataset.userId = doc.id;
+            resultEl.dataset.userName = user.displayName;
+            messageRecipientResults.appendChild(resultEl);
+        });
+
+        if(!querySnapshot.empty) {
+            messageRecipientResults.style.display = 'block';
+        }
+    });
+
+    messageRecipientResults.addEventListener('click', (e) => {
+        const target = e.target;
+        if(target.dataset.userId) {
+            currentRecipient = { id: target.dataset.userId, name: target.dataset.userName };
+            messagingWith.querySelector('span').textContent = currentRecipient.name;
+            messagingWith.style.display = 'block';
+            messageRecipientSearch.value = '';
+            messageRecipientResults.style.display = 'none';
+            loadMessageHistory();
+        }
+    });
+
+    function loadMessageHistory(){
+        if(messageListenerUnsubscribe) messageListenerUnsubscribe();
+        if(!currentRecipient) return;
+
+        const conversationId = [auth.currentUser.uid, currentRecipient.id].sort().join('_');
+        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
+        const q = query(messagesRef, orderBy('createdAt'));
+
+        messageListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+            messageHistory.innerHTML = '';
+            snapshot.forEach(doc => {
+                const msg = doc.data();
+                const msgEl = document.createElement('div');
+                const isSender = msg.senderId === auth.currentUser.uid;
+                
+                msgEl.className = `p-2 rounded-lg my-1 max-w-xs ${isSender ? 'bg-indigo-500 text-white self-end text-right' : 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 self-start text-left'}`;
+                msgEl.textContent = msg.content;
+                messageHistory.appendChild(msgEl);
+            });
+            messageHistory.scrollTop = messageHistory.scrollHeight;
+        });
+    }
+
+    sendMessageBtn.addEventListener('click', () => {
+        const content = messageInput.value.trim();
+        if(content && currentRecipient) {
+            sendMessage(currentRecipient.id, content);
+            messageInput.value = '';
+        }
+    });
+
 
 </script>
 </body>
