@@ -215,8 +215,16 @@
         const password = document.getElementById("signupPassword").value;
         const username = document.getElementById("signupUsername").value.trim();
         
+        // Password validation regex: 7-16 chars, letters, numbers, special chars
+        const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,16}$/;
+
         if (!email || !password || !username) {
             alert("Please fill out all fields.");
+            return;
+        }
+
+        if (!passwordRegex.test(password)) {
+            alert("Password must be 7-16 characters long and include at least one letter, one number, and one special character (@$!%*?&).");
             return;
         }
 
