@@ -277,7 +277,7 @@
 <script type="module">
     // Firebase imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInWithEmailAndPassword, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, onSnapshot, addDoc, query, orderBy, where, getDocs, updateDoc, deleteDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
@@ -575,16 +575,25 @@
             const userDocRef = doc(db, "users", user.uid);
             const userDocSnap = await getDoc(userDocRef);
 
-            authContainer.style.display = 'none';
-            signOutBtn.style.display = 'block';
-            userInfoContainer.style.display = 'flex';
-            document.getElementById("postContent").disabled = false;
-            document.getElementById("createPostBtn").disabled = false;
-            document.getElementById("auth-prompt").style.display = 'none';
+            // Handle UI for both real and anonymous users first
             setupPresence(user);
             attachFirestoreListeners();
+            
+            if (user.isAnonymous) {
+                authContainer.style.display = 'flex';
+                signOutBtn.style.display = 'none';
+                userInfoContainer.style.display = 'none';
+                document.getElementById("postContent").disabled = true;
+                document.getElementById("createPostBtn").disabled = true;
+                document.getElementById("auth-prompt").style.display = 'block';
+            } else if (userDocSnap.exists()) {
+                authContainer.style.display = 'none';
+                signOutBtn.style.display = 'block';
+                userInfoContainer.style.display = 'flex';
+                document.getElementById("postContent").disabled = false;
+                document.getElementById("createPostBtn").disabled = false;
+                document.getElementById("auth-prompt").style.display = 'none';
 
-            if (userDocSnap.exists()) {
                 const userData = userDocSnap.data();
                 
                 if (user.email === 'yujinbussinessmatter@gmail.com' && userData.role !== 'admin') {
@@ -593,7 +602,6 @@
                 }
 
                 currentUserRole = userData.role || 'newbie';
-
                 userNameEl.textContent = userData.displayName || user.email;
 
                 if (userData.banned) {
@@ -609,11 +617,13 @@
                     }
                 }
             } else {
+                // This state is for a newly signed-up user before their doc is created
                 userNameEl.textContent = user.email;
                 userRoleEl.textContent = '...';
                 userRoleEl.classList.add('bg-gray-500');
             }
         } else {
+            // No user at all, sign in anonymously
             authContainer.style.display = 'flex';
             signOutBtn.style.display = 'none';
             userInfoContainer.style.display = 'none';
@@ -625,10 +635,24 @@
             if(window.firestoreUnsubscribes) {
                 window.firestoreUnsubscribes.forEach(unsub => unsub());
             }
+            signInAnonymously(auth).catch(error => {
+                console.error("Anonymous sign-in failed:", error);
+            });
         }
     });
     
-    function setupPresence(user) { /* ... same as before ... */ }
+    function setupPresence(user) {
+        if (!user) return;
+        const myConnectionsRef = ref(rtdb, `status/${user.uid}`);
+        const connectedRef = ref(rtdb, '.info/connected');
+
+        onValue(connectedRef, (snap) => {
+            if (snap.val() === true) {
+                set(myConnectionsRef, { online: true, last_changed: rtdbServerTimestamp() });
+                onDisconnect(myConnectionsRef).remove();
+            }
+        });
+    }
     
     function renderPosts() {
         postList.innerHTML = '';
