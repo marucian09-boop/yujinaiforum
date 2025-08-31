@@ -58,9 +58,21 @@
                         <span id="userRole" class="px-2 py-0.5 text-xs font-semibold text-white rounded-full"></span>
                     </div>
                     <!-- Auth Buttons -->
-                    <div id="auth-container" class="flex items-center space-x-2">
-                        <button id="signInBtn" type="button" class="px-3 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">Sign in with Google</button>
-                        <button id="showSignupFormBtn" type="button" class="px-3 py-2 text-sm font-semibold text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-all">Sign up</button>
+                    <div id="auth-container" class="flex items-center space-x-4">
+                        <!-- Sign In link -->
+                        <div class="text-right">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Have an account?</p>
+                            <button id="signInLink" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">Sign in</button>
+                        </div>
+    
+                        <!-- Create Account Dropdown -->
+                        <div class="relative" id="createAccountDropdownContainer">
+                            <button id="createAccountBtn" type="button" class="px-3 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">Create an account</button>
+                            <div id="createAccountDropdown" class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg py-1 z-50" style="display: none;">
+                                <a href="#" id="signUpWithGoogleBtn" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">Sign up with Google</a>
+                                <a href="#" id="signUpWithEmailBtn" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">Sign up via email</a>
+                            </div>
+                        </div>
                     </div>
                      <button id="signOutBtn" type="button" style="display:none;" class="px-3 py-2 text-sm font-semibold text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all">Sign out</button>
                     <!-- Dark Mode Toggle -->
@@ -198,10 +210,6 @@
     const provider = new GoogleAuthProvider();
 
     // UI Elements
-    const signInBtn = document.getElementById("signInBtn");
-    const showSignupFormBtn = document.getElementById("showSignupFormBtn");
-    const signupForm = document.getElementById("signupForm");
-    const signupBtn = document.getElementById("signupBtn");
     const signOutBtn = document.getElementById("signOutBtn");
     const darkModeToggle = document.getElementById("darkModeToggle");
     const postList = document.getElementById("postList");
@@ -209,6 +217,17 @@
     const userInfoContainer = document.getElementById("userInfoContainer");
     const userNameEl = document.getElementById("userName");
     const userRoleEl = document.getElementById("userRole");
+
+    // New Auth UI Elements
+    const signInLink = document.getElementById("signInLink");
+    const createAccountBtn = document.getElementById("createAccountBtn");
+    const createAccountDropdown = document.getElementById("createAccountDropdown");
+    const signUpWithGoogleBtn = document.getElementById("signUpWithGoogleBtn");
+    const signUpWithEmailBtn = document.getElementById("signUpWithEmailBtn");
+    
+    // Signup Form Elements
+    const signupForm = document.getElementById("signupForm");
+    const signupBtn = document.getElementById("signupBtn");
     const signupUsernameInput = document.getElementById("signupUsername");
     const signupUsernameError = document.getElementById("signupUsernameError");
     const signupPasswordInput = document.getElementById("signupPassword");
@@ -261,19 +280,44 @@
         }
     });
 
-    // --- Authentication ---
-    signInBtn.addEventListener("click", async () => {
+    // --- NEW Authentication UI Logic ---
+    const googleSignInHandler = async () => {
         try {
             const result = await signInWithPopup(auth, provider);
             await handleUser(result.user);
         } catch (error) {
             console.error("Google sign-in error:", error);
         }
-    });
-    showSignupFormBtn.addEventListener("click", () => {
-        signupForm.style.display = signupForm.style.display === 'none' ? 'block' : 'none';
+    };
+
+    signInLink.addEventListener("click", googleSignInHandler);
+    
+    signUpWithGoogleBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        googleSignInHandler();
+        createAccountDropdown.style.display = 'none';
     });
 
+    signUpWithEmailBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        signupForm.style.display = 'block';
+        createAccountDropdown.style.display = 'none';
+    });
+    
+    // Dropdown toggle logic
+    createAccountBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        createAccountDropdown.style.display = createAccountDropdown.style.display === 'none' ? 'block' : 'none';
+    });
+
+    window.addEventListener("click", (event) => {
+        if (!document.getElementById('createAccountDropdownContainer').contains(event.target)) {
+            createAccountDropdown.style.display = 'none';
+        }
+    });
+
+
+    // --- Email/Password Signup Logic ---
     signupBtn.addEventListener("click", async () => {
         const email = document.getElementById("signupEmail").value;
         const password = signupPasswordInput.value;
@@ -396,12 +440,10 @@
                     default: userRoleEl.classList.add('bg-blue-500'); break;
                 }
             } else if (user.isAnonymous) {
-                 // Hide user info if anonymous and no DB record, which shouldn't happen with current logic but is a safe fallback
                 userInfoContainer.style.display = 'none';
                 authContainer.style.display = 'flex';
                 signOutBtn.style.display = 'none';
             } else {
-                // New user signed in but doc doesn't exist yet, show temporary state
                 userNameEl.textContent = user.email;
                 userRoleEl.textContent = '...';
                 userRoleEl.classList.add('bg-gray-500');
@@ -560,4 +602,5 @@
 </script>
 </body>
 </html>
+
 
