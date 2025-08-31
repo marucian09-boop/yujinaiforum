@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Community Forum</title>
+<title>Community Forum - Home</title>
 <style>
   body { font-family: Arial, sans-serif; margin: 0; background-color: #f5f5f5; color: #000; }
   header { background-color: #333; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
@@ -17,7 +17,7 @@
   section h2 { color: #222; }
   body.dark section h2 { color: #fff; }
   textarea { width: 100%; height: 80px; margin-top: 10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; resize: vertical; }
-  #createPostBtn, #createContributorPostBtn { background-color: #28a745; color: white; margin-top: 10px; }
+  #createPostBtn { background-color: #28a745; color: white; margin-top: 10px; }
   .stats { margin-top: 10px; font-size: 0.9rem; color: #ddd; }
   /* Dark mode */
   body.dark { background-color: #121212; color: white; }
@@ -29,17 +29,12 @@
   .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
   input:checked + .slider { background-color: #2196F3; }
   input:checked + .slider:before { transform: translateX(26px); }
-  /* Modal overlay */
-  #accountModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center; }
-  #accountModal.active { display: flex; }
-  /* Modal box */
-  #accountModal .modal-content { background: white; padding: 20px; max-width: 400px; width: 90%; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-  /* Navigation bar */
+  /* Nav bar */
   .section-nav { display: flex; gap: 10px; padding: 10px 20px; background-color: #eee; }
-  .section-nav button { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; background-color: #4285F4; color: white; font-weight: bold; }
-  .section-nav button:hover { background-color: #3367d6; }
+  .section-nav a { padding: 6px 12px; border-radius: 4px; background-color: #4285F4; color: white; text-decoration: none; font-weight: bold; }
+  .section-nav a:hover { background-color: #3367d6; }
   body.dark .section-nav { background-color: #1f1f1f; }
-  body.dark .section-nav button { background-color: #2196F3; }
+  body.dark .section-nav a { background-color: #2196F3; }
 </style>
 </head>
 <body>
@@ -61,45 +56,33 @@
   </div>
 </header>
 
-<!-- Navigation bar -->
 <nav class="section-nav">
-  <button onclick="scrollToSection('mainPage')">Home</button>
-  <button onclick="scrollToSection('contributorSection')">Contributor Section</button>
+  <a href="index.html">Home</a>
+  <a href="contributor.html">Contributor Section</a>
 </nav>
 
 <main>
-  <section id="mainPage">
-    <h2>Main Page</h2>
+  <section id="homePage">
+    <h2>Home Page</h2>
     <textarea id="postContent" placeholder="Write something..."></textarea><br>
     <button id="createPostBtn" disabled>Create Post</button>
     <div id="postList"></div>
   </section>
 
-  <section id="contributorSection">
-    <h2>Contributor Section</h2>
-    <textarea id="contributorPostContent" placeholder="Write something for contributors..."></textarea><br>
-    <button id="createContributorPostBtn" disabled>Create Contributor Post</button>
-    <div id="contributorPostList"></div>
+  <!-- Email sign-up form -->
+  <section>
+    <h2>Sign Up with Email</h2>
+    <input type="text" id="usernameInput" placeholder="Username"><br>
+    <input type="email" id="signupEmail" placeholder="Email"><br>
+    <input type="password" id="signupPassword" placeholder="Password"><br>
+    <button id="signupBtn">Sign Up</button>
   </section>
 </main>
 
-<!-- Account creation modal -->
-<div id="accountModal">
-  <div class="modal-content">
-    <h3>Create Account</h3>
-    <label for="usernameInput">Username</label>
-    <input type="text" id="usernameInput" placeholder="Username">
-    <div class="modal-actions">
-      <button id="saveAccountBtn">Save</button>
-      <button id="cancelAccountBtn" type="button">Cancel</button>
-    </div>
-  </div>
-</div>
-
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+  import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4",
@@ -120,11 +103,6 @@
   const signInBtn = document.getElementById("signInBtn");
   const signOutBtn = document.getElementById("signOutBtn");
   const darkModeToggle = document.getElementById("darkModeToggle");
-  const accountModal = document.getElementById("accountModal");
-  const usernameInput = document.getElementById("usernameInput");
-  const saveAccountBtn = document.getElementById("saveAccountBtn");
-  const cancelAccountBtn = document.getElementById("cancelAccountBtn");
-  const userEmailEl = document.getElementById("userEmail");
 
   // Dark mode
   if (localStorage.getItem("darkMode") === "true") {
@@ -132,9 +110,48 @@
     darkModeToggle.checked = true;
   }
   darkModeToggle.addEventListener("change", (e) => {
-    if (e.target.checked) {
-      document.body.classList.add("dark");
-      localStorage.setItem("darkMode", "true");
+    document.body.classList.toggle("dark", e.target.checked);
+    localStorage.setItem("darkMode", e.target.checked);
+  });
+
+  // Google sign-in
+  signInBtn.addEventListener("click", async () => {
+    try { await signInWithPopup(auth, provider); }
+    catch (err) { console.error(err); }
+  });
+
+  // Email sign-up
+  document.getElementById("signupBtn").addEventListener("click", async () => {
+    const email = document.getElementById("signupEmail").value;
+    const password = document.getElementById("signupPassword").value;
+    const username = document.getElementById("usernameInput").value;
+    try {
+      const userCred = await createUserWithEmailAndPassword(auth, email, password);
+      await setDoc(doc(db, "users", userCred.user.uid), {
+        username,
+        email,
+        role: "newbie",
+        banned: false,
+        createdAt: serverTimestamp(),
+        postCount: 0
+      });
+      alert("Account created!");
+    } catch (err) {
+      alert(err.message);
+    }
+  });
+
+  // Auth state
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      signInBtn.style.display = "none";
+      signOutBtn.style.display = "inline-block";
+      document.getElementById("createPostBtn").disabled = false;
     } else {
-      document.body.classList.remove("dark");
-      localStorage.setItem("darkMode
+      signInBtn.style.display = "inline-block";
+      signOutBtn.style.display = "none";
+      document.getElementById("createPostBtn").disabled = true;
+    }
+  });
+
+  signOutBtn.addEventListener("click", () => signOut
