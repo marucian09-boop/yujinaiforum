@@ -31,6 +31,7 @@
 
     /* Custom styles for dark mode compatibility */
     .dark .bg-gray-100 { background-color: #1f2937; }
+    .dark .bg-gray-200 { background-color: #374151; }
     .dark .text-gray-900 { color: #f9fafb; }
     .dark .text-gray-500 { color: #d1d5db; }
     .dark .text-gray-800 { color: #e5e7eb; }
@@ -73,6 +74,16 @@
         </div>
     </header>
 
+    <!-- Navigation -->
+    <nav class="bg-gray-200 dark:bg-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center space-x-4 h-12">
+                <a href="./index.html" class="px-3 py-2 text-sm font-medium text-white bg-indigo-600 dark:bg-indigo-500 rounded-md">Home</a>
+                <a href="./contributor.html" class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">Contributor Section</a>
+            </div>
+        </div>
+    </nav>
+
     <!-- Main Content -->
     <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
          <!-- Signup Form (hidden by default) -->
@@ -88,7 +99,7 @@
         <!-- Post Creation Section -->
         <section id="post-creation" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
             <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Create a New Post</h2>
-            <textarea id="postContent" placeholder="What's on your mind?" class="w-full h-28 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400 dark:placeholder-gray-500" disabled></textarea>
+            <textarea id="postContent" placeholder="What's on your mind?" class="w-full h-28 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400" disabled></textarea>
             <button id="createPostBtn" class="mt-4 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all" disabled>Create Post</button>
             <p id="auth-prompt" class="text-xs text-red-500 mt-2">Please sign in to create a post.</p>
         </section>
