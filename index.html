@@ -310,7 +310,7 @@
 
         if (!userDoc.exists()) {
             const isAdmin = user.email === 'yujinbussinessmatter@gmail.com';
-            const newUserRole = isAdmin ? 'admin' : 'member';
+            const newUserRole = isAdmin ? 'admin' : 'newbie';
 
             if (chosenUsername) {
                 await setDoc(userRef, {
@@ -365,7 +365,14 @@
 
             if (userDocSnap.exists()) {
                 const userData = userDocSnap.data();
-                currentUserRole = userData.role || 'member';
+                
+                // Self-correction for admin role
+                if (user.email === 'yujinbussinessmatter@gmail.com' && userData.role !== 'admin') {
+                    await updateDoc(userDocRef, { role: 'admin' });
+                    userData.role = 'admin'; // Update local data to prevent re-render flicker
+                }
+
+                currentUserRole = userData.role || 'newbie';
 
                 userNameEl.textContent = userData.displayName || user.email;
                 userRoleEl.textContent = currentUserRole;
