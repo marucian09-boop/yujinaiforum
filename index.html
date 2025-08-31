@@ -166,15 +166,25 @@
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white">Direct Messages</h3>
                 <button id="closeMessagingModal" class="text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
             </div>
-            <div class="relative mb-2">
-                <input type="text" id="messageRecipientSearch" placeholder="Type a username to message..." class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md">
-                <div id="messageRecipientResults" class="absolute w-full bg-white dark:bg-gray-600 border dark:border-gray-500 rounded-md mt-1 z-10" style="display: none;"></div>
+
+            <!-- Inbox View -->
+            <div id="inboxView">
+                <div class="relative mb-2">
+                    <input type="text" id="messageRecipientSearch" placeholder="Search for user to start a new chat..." class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md">
+                    <div id="messageRecipientResults" class="absolute w-full bg-white dark:bg-gray-600 border dark:border-gray-500 rounded-md mt-1 z-10" style="display: none;"></div>
+                </div>
+                <div id="inboxList" class="flex-grow overflow-y-auto"></div>
             </div>
-            <p id="messagingWith" class="text-sm font-medium mb-2" style="display: none;">Chat with: <span class="font-bold text-indigo-600 dark:text-indigo-400"></span></p>
-            <div id="messageHistory" class="flex-grow overflow-y-auto bg-gray-50 dark:bg-gray-900 p-2 rounded-md mb-2"></div>
-            <div class="flex">
-                <input type="text" id="messageInput" placeholder="Type your message..." class="flex-grow px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-l-md">
-                <button id="sendMessageBtn" class="px-4 py-2 text-white bg-indigo-600 rounded-r-md hover:bg-indigo-700">Send</button>
+
+            <!-- Chat View -->
+            <div id="chatView" class="h-full flex-col" style="display: none;">
+                <button id="backToInboxBtn" class="mb-2 text-sm text-indigo-600 dark:text-indigo-400 hover:underline">&larr; Back to Inbox</button>
+                <p id="messagingWith" class="text-sm font-medium mb-2">Chat with: <span class="font-bold"></span></p>
+                <div id="messageHistory" class="flex-grow overflow-y-auto bg-gray-50 dark:bg-gray-900 p-2 rounded-md mb-2 flex flex-col"></div>
+                <div class="flex">
+                    <input type="text" id="messageInput" placeholder="Type your message..." class="flex-grow px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-l-md">
+                    <button id="sendMessageBtn" class="px-4 py-2 text-white bg-indigo-600 rounded-r-md hover:bg-indigo-700">Send</button>
+                </div>
             </div>
         </div>
     </div>
@@ -304,8 +314,12 @@
     const messagesBtn = document.getElementById('messagesBtn');
     const messagingModal = document.getElementById('messagingModal');
     const closeMessagingModal = document.getElementById('closeMessagingModal');
+    const inboxView = document.getElementById('inboxView');
+    const chatView = document.getElementById('chatView');
+    const backToInboxBtn = document.getElementById('backToInboxBtn');
     const messageRecipientSearch = document.getElementById('messageRecipientSearch');
     const messageRecipientResults = document.getElementById('messageRecipientResults');
+    const inboxList = document.getElementById('inboxList');
     const messagingWith = document.getElementById('messagingWith');
     const messageHistory = document.getElementById('messageHistory');
     const messageInput = document.getElementById('messageInput');
@@ -727,8 +741,10 @@
         }
         if (manageBtn) {
             const userId = manageBtn.dataset.authorId;
-            const userName = manageBtn.dataset.authorName;
-            openAdminModal(userId, userName);
+            const userName = usersDataCache[userId]?.displayName;
+            if(userName) {
+                 openAdminModal(userId, userName);
+            }
         }
     });
     closePostViewModal.addEventListener('click', () => postViewModal.style.display = 'none');
@@ -769,6 +785,12 @@
         const messagesRef = collection(db, `conversations/${conversationId}/messages`);
         
         try {
+            await setDoc(doc(db, 'conversations', conversationId), {
+                participants: [user.uid, recipientId],
+                lastMessage: content,
+                lastMessageTimestamp: serverTimestamp()
+            }, { merge: true });
+
             await addDoc(messagesRef, {
                 senderId: user.uid,
                 recipientId: recipientId,
@@ -778,7 +800,7 @@
              return Promise.resolve();
         } catch (error) {
             console.error("Error sending message:", error);
-            showAlert(`Message failed to send: ${error.message}`);
+            showAlert(`Message failed to send. Please check your Firestore rules.`);
             return Promise.reject(error);
         }
     }
@@ -791,7 +813,6 @@
             
             try {
                 await sendMessage(targetUserId, warningContent);
-                 // Also save to user's private warnings array for admin reference
                 await updateDoc(doc(db, "users", targetUserId), {
                     warnings: arrayUnion({ message: message, date: serverTimestamp() })
                 });
@@ -799,9 +820,7 @@
                 showAlert('Warning has been sent as a direct message.');
                 adminModal.style.display = 'none';
 
-            } catch(e) {
-                // showAlert is already called in sendMessage on failure
-            }
+            } catch(e) { /* showAlert is handled in sendMessage */ }
         } else {
             showAlert('Warning message cannot be empty.');
         }
@@ -810,6 +829,9 @@
     messagesBtn.addEventListener('click', () => {
         if(auth.currentUser){
             messagingModal.style.display = 'flex';
+            inboxView.style.display = 'block';
+            chatView.style.display = 'none';
+            loadInbox();
         } else {
             showAlert('Please sign in to view messages.');
         }
@@ -818,8 +840,14 @@
          messagingModal.style.display = 'none';
          if(messageListenerUnsubscribe) messageListenerUnsubscribe();
          currentRecipient = null;
-         messagingWith.style.display = 'none';
          messageRecipientSearch.value = '';
+    });
+    backToInboxBtn.addEventListener('click', () => {
+        inboxView.style.display = 'block';
+        chatView.style.display = 'none';
+        if(messageListenerUnsubscribe) messageListenerUnsubscribe();
+        currentRecipient = null;
+        loadInbox();
     });
 
     messageRecipientSearch.addEventListener('input', async (e) => {
@@ -848,18 +876,64 @@
             messageRecipientResults.style.display = 'block';
         }
     });
+    
+    function openChatWithUser(userId, userName) {
+        currentRecipient = { id: userId, name: userName };
+        messagingWith.querySelector('span').textContent = currentRecipient.name;
+        inboxView.style.display = 'none';
+        chatView.style.display = 'flex';
+        loadMessageHistory();
+    }
 
     messageRecipientResults.addEventListener('click', (e) => {
         const target = e.target;
         if(target.dataset.userId) {
-            currentRecipient = { id: target.dataset.userId, name: target.dataset.userName };
-            messagingWith.querySelector('span').textContent = currentRecipient.name;
-            messagingWith.style.display = 'block';
+            openChatWithUser(target.dataset.userId, target.dataset.userName);
             messageRecipientSearch.value = '';
             messageRecipientResults.style.display = 'none';
-            loadMessageHistory();
         }
     });
+    
+    inboxList.addEventListener('click', (e) => {
+        const target = e.target.closest('.inbox-item');
+        if(target && target.dataset.userId){
+            openChatWithUser(target.dataset.userId, target.dataset.userName);
+        }
+    });
+
+    async function loadInbox() {
+        if(!auth.currentUser) return;
+        const convosRef = collection(db, 'conversations');
+        const q = query(convosRef, where('participants', 'array-contains', auth.currentUser.uid), orderBy('lastMessageTimestamp', 'desc'));
+
+        onSnapshot(q, (snapshot) => {
+            inboxList.innerHTML = '';
+            if(snapshot.empty){
+                inboxList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 p-4">No conversations yet. Start one by searching for a user.</p>`;
+                return;
+            }
+            snapshot.forEach(doc => {
+                const convo = doc.data();
+                const otherUserId = convo.participants.find(id => id !== auth.currentUser.uid);
+                const otherUserData = usersDataCache[otherUserId];
+
+                if(otherUserData) {
+                    const convoEl = document.createElement('div');
+                    convoEl.className = 'inbox-item p-3 border-b dark:border-gray-600 flex justify-between items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700';
+                    convoEl.dataset.userId = otherUserId;
+                    convoEl.dataset.userName = otherUserData.displayName;
+
+                    convoEl.innerHTML = `
+                        <div>
+                            <p class="font-bold text-gray-800 dark:text-gray-200">${otherUserData.displayName}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 truncate">${convo.lastMessage || ''}</p>
+                        </div>
+                    `;
+                    inboxList.appendChild(convoEl);
+                }
+            });
+        });
+    }
 
     function loadMessageHistory(){
         if(messageListenerUnsubscribe) messageListenerUnsubscribe();
@@ -876,7 +950,7 @@
                 const msgEl = document.createElement('div');
                 const isSender = msg.senderId === auth.currentUser.uid;
                 
-                msgEl.className = `p-2 rounded-lg my-1 max-w-xs ${isSender ? 'bg-indigo-500 text-white self-end text-right' : 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 self-start text-left'}`;
+                msgEl.className = `p-2 rounded-lg my-1 max-w-xs ${isSender ? 'bg-indigo-500 text-white ml-auto' : 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 mr-auto'}`;
                 msgEl.textContent = msg.content;
                 messageHistory.appendChild(msgEl);
             });
@@ -891,9 +965,7 @@
                 await sendMessage(currentRecipient.id, content);
                 messageInput.value = '';
                 showAlert('Message sent successfully!');
-            } catch(e) {
-                // showAlert is already called in sendMessage on failure
-            }
+            } catch(e) { /* showAlert is handled in sendMessage */ }
         }
     });
 
@@ -901,4 +973,6 @@
 </script>
 </body>
 </html>
+" selected in the canvas.
+Add the option to attach and view an image when posting, which should be displayed below the post's content and visible in both the post list and the detailed view modal.
 
