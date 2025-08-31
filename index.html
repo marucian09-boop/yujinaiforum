@@ -173,7 +173,7 @@
 <script type="module">
     // Firebase imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, onSnapshot, addDoc, query, orderBy, where, getDocs, updateDoc, deleteDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
@@ -350,7 +350,7 @@
     
     // --- Auth State Observer ---
     onAuthStateChanged(auth, async (user) => {
-        if (user && !user.isAnonymous) {
+        if (user) {
             const userDocRef = doc(db, "users", user.uid);
             const userDocSnap = await getDoc(userDocRef);
 
@@ -403,8 +403,6 @@
         }
     });
     
-    signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
-
     function setupPresence(user) { /* ... same as before ... */ }
 
     function attachFirestoreListeners() {
@@ -537,11 +535,5 @@
             showAlert('Warning has been sent.');
             adminModal.style.display = 'none';
         } else {
-            showAlert('Warning message cannot be empty.');
-        }
-    };
-
-</script>
-</body>
-</html>
+            showAlert('Warning
 
