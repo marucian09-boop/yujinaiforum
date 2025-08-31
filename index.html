@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Ensure UTF-8 is declared first -->
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Community Forum</title>
 
   <!-- Favicon setup -->
@@ -112,68 +114,4 @@
   });
 
   signOutBtn.addEventListener("click", async () => {
-    await signOut(auth);
-  });
-
-  async function ensureUserProfile(user) {
-    const userRef = doc(db, "users", user.uid);
-    const snap = await getDoc(userRef);
-    if (!snap.exists()) {
-      const username = prompt("Choose a username:");
-      await setDoc(userRef, {
-        email: user.email,
-        username: username || "Unnamed",
-        role: "member",
-        banned: false,
-        createdAt: serverTimestamp()
-      });
-    }
-  }
-
-  async function updateTotalMembers() {
-    const snapshot = await getDocs(collection(db, "users"));
-    totalMembersEl.textContent = snapshot.size;
-  }
-
-  function trackPresence(user) {
-    const myRef = ref(rtdb, "onlineUsers/" + user.uid);
-    set(myRef, { email: user.email || "Guest", lastActive: Date.now() });
-    onDisconnect(myRef).remove();
-  }
-
-  onValue(ref(rtdb, "onlineUsers"), (snapshot) => {
-    onlineVisitorsEl.textContent = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
-  });
-
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      await ensureUserProfile(user);
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      currentUserData = userDoc.data();
-      userEmailEl.textContent = `${currentUserData.username} (${user.email})`;
-      signInBtn.style.display = "none";
-      signOutBtn.style.display = "inline-block";
-      createPostBtn.disabled = currentUserData.banned;
-      if (currentUserData.banned) alert("You are banned from posting.");
-      trackPresence(user);
-      updateTotalMembers();
-    } else {
-      currentUserData = null;
-      userEmailEl.textContent = "";
-      signInBtn.style.display = "inline-block";
-      signOutBtn.style.display = "none";
-      createPostBtn.disabled = true;
-    }
-  });
-
-  createPostBtn.addEventListener("click", async () => {
-    if (!auth.currentUser || currentUserData.banned) return;
-    const content = postContentEl.value.trim();
-    if (content.length === 0 || content.length > 2000) {
-      alert("Post must be between 1 and 2000 characters.");
-      return;
-    }
-    await addDoc(collection(db, "posts"), {
-      content,
-      authorId: auth.currentUser.uid,
-      author
+    await signOut
