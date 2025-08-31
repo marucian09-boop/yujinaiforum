@@ -760,17 +760,27 @@
     // --- Messaging Logic ---
     async function sendMessage(recipientId, content) {
         const user = auth.currentUser;
-        if (!user || !recipientId || !content) return;
+        if (!user || !recipientId || !content) {
+            showAlert('Message failed to send. Missing information.');
+            return Promise.reject('Missing information');
+        }
 
         const conversationId = [user.uid, recipientId].sort().join('_');
         const messagesRef = collection(db, `conversations/${conversationId}/messages`);
         
-        await addDoc(messagesRef, {
-            senderId: user.uid,
-            recipientId: recipientId,
-            content: content,
-            createdAt: serverTimestamp()
-        });
+        try {
+            await addDoc(messagesRef, {
+                senderId: user.uid,
+                recipientId: recipientId,
+                content: content,
+                createdAt: serverTimestamp()
+            });
+             return Promise.resolve();
+        } catch (error) {
+            console.error("Error sending message:", error);
+            showAlert(`Message failed to send: ${error.message}`);
+            return Promise.reject(error);
+        }
     }
 
     document.getElementById('sendWarningBtn').onclick = async () => {
@@ -778,15 +788,20 @@
         const message = document.getElementById('warningMessage').value.trim();
         if (message) {
             const warningContent = "OFFICIAL WARNING: " + message;
-            await sendMessage(targetUserId, warningContent);
             
-            // Also save to user's private warnings array for admin reference
-            await updateDoc(doc(db, "users", targetUserId), {
-                warnings: arrayUnion({ message: message, date: serverTimestamp() })
-            });
+            try {
+                await sendMessage(targetUserId, warningContent);
+                 // Also save to user's private warnings array for admin reference
+                await updateDoc(doc(db, "users", targetUserId), {
+                    warnings: arrayUnion({ message: message, date: serverTimestamp() })
+                });
 
-            showAlert('Warning has been sent as a direct message.');
-            adminModal.style.display = 'none';
+                showAlert('Warning has been sent as a direct message.');
+                adminModal.style.display = 'none';
+
+            } catch(e) {
+                // showAlert is already called in sendMessage on failure
+            }
         } else {
             showAlert('Warning message cannot be empty.');
         }
@@ -869,11 +884,16 @@
         });
     }
 
-    sendMessageBtn.addEventListener('click', () => {
+    sendMessageBtn.addEventListener('click', async () => {
         const content = messageInput.value.trim();
         if(content && currentRecipient) {
-            sendMessage(currentRecipient.id, content);
-            messageInput.value = '';
+            try {
+                await sendMessage(currentRecipient.id, content);
+                messageInput.value = '';
+                showAlert('Message sent successfully!');
+            } catch(e) {
+                // showAlert is already called in sendMessage on failure
+            }
         }
     });
 
