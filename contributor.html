@@ -51,7 +51,10 @@
                     <h1 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">Community Forum</h1>
                 </div>
                 <div class="flex items-center space-x-4">
-                     <span id="userEmail" class="text-sm font-medium text-gray-600 dark:text-gray-300"></span>
+                    <div id="userInfoContainer" class="flex items-center space-x-2">
+                        <span id="userName" class="text-sm font-medium text-gray-800 dark:text-gray-200"></span>
+                        <span id="userRole" class="px-2 py-0.5 text-xs font-semibold text-white rounded-full"></span>
+                    </div>
                     <!-- Dark Mode Toggle -->
                     <label class="switch">
                         <input type="checkbox" id="darkModeToggle">
@@ -97,7 +100,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -116,7 +119,8 @@
     const db = getFirestore(app);
 
     const darkModeToggle = document.getElementById("darkModeToggle");
-    const userEmailEl = document.getElementById("userEmail");
+    const userNameEl = document.getElementById("userName");
+    const userRoleEl = document.getElementById("userRole");
     const contributorContent = document.getElementById("contributor-content");
     const loadingState = document.getElementById("loading-state");
     const createBtn = document.getElementById("createContributorPostBtn");
@@ -142,33 +146,50 @@
     // --- Authentication & Authorization ---
     onAuthStateChanged(auth, async (user) => {
         if (user && !user.isAnonymous) {
-            userEmailEl.textContent = `Welcome, ${user.displayName || user.email}`;
             const userDocRef = doc(db, "users", user.uid);
             const userDocSnap = await getDoc(userDocRef);
 
-            if (userDocSnap.exists() && ["admin", "contributor"].includes(userDocSnap.data().role)) {
-                // User is authorized
-                loadingState.style.display = 'none';
-                contributorContent.style.display = 'block';
-                createBtn.disabled = false;
-                postContent.disabled = false;
-                loadContributorPosts();
+            if (userDocSnap.exists()) {
+                const userData = userDocSnap.data();
+                const userRole = userData.role || 'member';
+
+                // Display user info and role with color coding
+                userNameEl.textContent = user.displayName || user.email;
+                userRoleEl.textContent = userRole;
+                userRoleEl.classList.remove('bg-violet-500', 'bg-green-500', 'bg-blue-500');
+
+                switch (userRole) {
+                    case 'admin':
+                        userRoleEl.classList.add('bg-violet-500');
+                        break;
+                    case 'contributor':
+                        userRoleEl.classList.add('bg-green-500');
+                        break;
+                    default: // For 'member' or 'newbie'
+                        userRoleEl.classList.add('bg-blue-500');
+                        break;
+                }
+                
+                // Authorize access to the page content
+                if (["admin", "contributor"].includes(userRole)) {
+                    loadingState.style.display = 'none';
+                    contributorContent.style.display = 'block';
+                    createBtn.disabled = false;
+                    postContent.disabled = false;
+                    loadContributorPosts();
+                } else {
+                    console.log("Access denied. User is not a contributor.");
+                    alert("Access denied. This page is for contributors and admins only.");
+                    window.location.href = window.location.href.replace("contributor.html", "index.html");
+                }
             } else {
-                // User is not a contributor or admin
-                console.log("Access denied. User is not a contributor.");
-                window.location.href = window.location.href.replace("contributor.html", "index.html");
+                 console.log("Access denied. User record not found in database.");
+                 window.location.href = window.location.href.replace("contributor.html", "index.html");
             }
         } else {
-            // User is not signed in
             console.log("Access denied. User not signed in.");
             window.location.href = window.location.href.replace("contributor.html", "index.html");
         }
-    });
-    
-    // Initial Auth
-    signInAnonymously(auth).catch(error => {
-        // This is a fallback, but the onAuthStateChanged logic will redirect non-signed-in users.
-        console.error("Anonymous sign-in attempt on restricted page:", error);
     });
 
     // --- Post Management ---
