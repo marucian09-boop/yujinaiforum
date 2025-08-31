@@ -97,7 +97,16 @@
   import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, getDocs, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
   import { getDatabase, ref, onDisconnect, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
 
-  const firebaseConfig = { /* your config here */ };
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID",
+    databaseURL: "YOUR_DB_URL"
+  };
+
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
@@ -121,6 +130,9 @@
   const usernameInput = document.getElementById("usernameInput");
   const passwordInput = document.getElementById("passwordInput");
   const saveAccountBtn = document.getElementById("saveAccountBtn");
+  const darkModeToggle = document.getElementById("darkModeToggle");
 
-  // Dark mode
-  const
+  // Dark mode load & toggle
+  if (localStorage.getItem("darkMode") === "true") {
+    document.body.classList.add("dark");
+    darkModeToggle.checked =
