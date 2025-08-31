@@ -4,135 +4,216 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Community Forum - Contributor Section</title>
+<script src="https://cdn.tailwindcss.com"></script>
 <style>
-  body { font-family: Arial, sans-serif; margin: 0; background-color: #f5f5f5; color: #000; }
-  header { background-color: #333; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-  header h1 { margin: 0; font-size: 1.5rem; }
-  main { max-width: 800px; margin: 20px auto; padding: 0 15px; }
-  section { background: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-  section h2 { color: #222; }
-  body.dark section h2 { color: #fff; }
-  textarea { width: 100%; height: 80px; margin-top: 10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; resize: vertical; }
-  #createContributorPostBtn { background-color: #28a745; color: white; margin-top: 10px; }
-  /* Dark mode */
-  body.dark { background-color: #121212; color: white; }
-  body.dark header { background-color: #1f1f1f; }
-  /* Toggle switch */
-  .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-  .switch input { opacity: 0; width: 0; height: 0; }
-  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
-  .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-  input:checked + .slider { background-color: #2196F3; }
-  input:checked + .slider:before { transform: translateX(26px); }
-  /* Nav bar */
-  .section-nav { display: flex; gap: 10px; padding: 10px 20px; background-color: #eee; }
-  .section-nav a { padding: 6px 12px; border-radius: 4px; background-color: #4285F4; color: white; text-decoration: none; font-weight: bold; }
-  .section-nav a:hover { background-color: #3367d6; }
-  body.dark .section-nav { background-color: #1f1f1f; }
-  body.dark .section-nav a { background-color: #2196F3; }
+    /* Inter Font */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body {
+        font-family: 'Inter', sans-serif;
+        transition: background-color 0.3s, color 0.3s;
+    }
+    /* Simple fade-in animation for elements */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+
+    /* Toggle switch styles */
+    .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #4f46e5; }
+    input:checked + .slider:before { transform: translateX(26px); }
+
+    /* Custom styles for dark mode compatibility */
+    .dark .bg-gray-100 { background-color: #1f2937; }
+    .dark .bg-gray-200 { background-color: #374151; }
+    .dark .text-gray-900 { color: #f9fafb; }
+    .dark .text-gray-500 { color: #d1d5db; }
+    .dark .text-gray-800 { color: #e5e7eb; }
+    .dark .border-gray-300 { border-color: #4b5563; }
+    .dark .ring-indigo-500 { ring-color: #818cf8; }
+    .dark .placeholder-gray-400::placeholder { color: #9ca3af; }
 </style>
 </head>
-<body>
+<body class="bg-gray-100">
 
-<header>
-  <h1>Community Forum</h1>
-  <label class="switch">
-    <input type="checkbox" id="darkModeToggle">
-    <span class="slider"></span>
-  </label>
-</header>
+<div id="app-container">
+    <!-- Header -->
+    <header class="bg-white dark:bg-gray-800 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">Community Forum</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                     <span id="userEmail" class="text-sm font-medium text-gray-600 dark:text-gray-300"></span>
+                    <!-- Dark Mode Toggle -->
+                    <label class="switch">
+                        <input type="checkbox" id="darkModeToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </header>
 
-<nav class="section-nav">
-  <a href="index.html">Home</a>
-  <a href="contributor.html">Contributor Section</a>
-</nav>
+    <!-- Navigation -->
+    <nav class="bg-gray-200 dark:bg-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center space-x-4 h-12">
+                <a href="./index.html" class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">Home</a>
+                <a href="./contributor.html" class="px-3 py-2 text-sm font-medium text-white bg-indigo-600 dark:bg-indigo-500 rounded-md">Contributor Section</a>
+            </div>
+        </div>
+    </nav>
 
-<main>
-  <section id="contributorSection">
-    <h2>Contributor Section</h2>
-    <textarea id="contributorPostContent" placeholder="Write something for contributors..."></textarea><br>
-    <button id="createContributorPostBtn" disabled>Create Contributor Post</button>
-    <div id="contributorPostList"></div>
-  </section>
-</main>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div id="loading-state" class="text-center text-gray-500">
+            <p>Verifying access...</p>
+        </div>
+
+        <div id="contributor-content" style="display: none;" class="fade-in">
+             <!-- Post Creation Section -->
+            <section id="post-creation" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Create a Contributor Post</h2>
+                <textarea id="contributorPostContent" placeholder="Share something with fellow contributors..." class="w-full h-28 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400" disabled></textarea>
+                <button id="createContributorPostBtn" class="mt-4 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all" disabled>Create Post</button>
+            </section>
+
+            <!-- Post List -->
+            <div id="contributorPostList" class="mt-8 space-y-4">
+                <!-- Posts will be dynamically inserted here -->
+            </div>
+        </div>
+    </main>
+</div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-  import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4",
-    authDomain: "forum-3dec5.firebaseapp.com",
-    databaseURL: "https://forum-3dec5-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "forum-3dec5",
-    storageBucket: "forum-3dec5.firebasestorage.app",
-    messagingSenderId: "519284298976",
-    appId: "1:519284298976:web:8bb5e94a44f202802c2c85",
-    measurementId: "G-SXS8FRTT03"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4",
+      authDomain: "forum-3dec5.firebaseapp.com",
+      databaseURL: "https://forum-3dec5-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "forum-3dec5",
+      storageBucket: "forum-3dec5.firebasestorage.app",
+      messagingSenderId: "519284298976",
+      appId: "1:519284298976:web:8bb5e94a44f202802c2c85",
+      measurementId: "G-SXS8FRTT03"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-  const darkModeToggle = document.getElementById("darkModeToggle");
+    const darkModeToggle = document.getElementById("darkModeToggle");
+    const userEmailEl = document.getElementById("userEmail");
+    const contributorContent = document.getElementById("contributor-content");
+    const loadingState = document.getElementById("loading-state");
+    const createBtn = document.getElementById("createContributorPostBtn");
+    const postContent = document.getElementById("contributorPostContent");
+    const postList = document.getElementById("contributorPostList");
 
-  // Dark mode
-  if (localStorage.getItem("darkMode") === "true") {
-    document.body.classList.add("dark");
-    darkModeToggle.checked = true;
-  }
-  darkModeToggle.addEventListener("change", (e) => {
-    document.body.classList.toggle("dark", e.target.checked);
-    localStorage.setItem("darkMode", e.target.checked);
-  });
-
-  // Role check
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      alert("You must be signed in to view this page.");
-      window.location.href = "index.html";
-      return;
+    // --- Dark Mode ---
+    function applyDarkMode(isDark) {
+        document.documentElement.classList.toggle('dark', isDark);
+        localStorage.setItem("darkMode", isDark);
     }
-    const snap = await getDoc(doc(db, "users", user.uid));
-    if (!snap.exists() || !["admin", "contributor"].includes(snap.data().role)) {
-      alert("Access denied. Contributors and Admins only.");
-      window.location.href = "index.html";
-      return;
+
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedMode = localStorage.getItem("darkMode");
+    const initialDarkMode = savedMode !== null ? savedMode === 'true' : prefersDark;
+    darkModeToggle.checked = initialDarkMode;
+    applyDarkMode(initialDarkMode);
+
+    darkModeToggle.addEventListener("change", (e) => {
+        applyDarkMode(e.target.checked);
+    });
+
+    // --- Authentication & Authorization ---
+    onAuthStateChanged(auth, async (user) => {
+        if (user && !user.isAnonymous) {
+            userEmailEl.textContent = `Welcome, ${user.displayName || user.email}`;
+            const userDocRef = doc(db, "users", user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+
+            if (userDocSnap.exists() && ["admin", "contributor"].includes(userDocSnap.data().role)) {
+                // User is authorized
+                loadingState.style.display = 'none';
+                contributorContent.style.display = 'block';
+                createBtn.disabled = false;
+                postContent.disabled = false;
+                loadContributorPosts();
+            } else {
+                // User is not a contributor or admin
+                console.log("Access denied. User is not a contributor.");
+                window.location.href = "./index.html";
+            }
+        } else {
+            // User is not signed in
+            console.log("Access denied. User not signed in.");
+            window.location.href = "./index.html";
+        }
+    });
+    
+    // Initial Auth
+    signInAnonymously(auth).catch(error => {
+        // This is a fallback, but the onAuthStateChanged logic will redirect non-signed-in users.
+        console.error("Anonymous sign-in attempt on restricted page:", error);
+    });
+
+    // --- Post Management ---
+    function loadContributorPosts() {
+        const postsRef = collection(db, "contributorPosts");
+        const q = query(postsRef, orderBy("createdAt", "desc"));
+        onSnapshot(q, (snapshot) => {
+            postList.innerHTML = "";
+            snapshot.forEach((docSnap) => {
+                const post = docSnap.data();
+                const postEl = document.createElement("div");
+                postEl.className = 'bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md fade-in';
+                const timestamp = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now';
+                
+                postEl.innerHTML = `
+                    <div class="flex items-center mb-2">
+                        <div class="font-bold text-gray-900 dark:text-white">${post.authorName}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 ml-auto">${timestamp}</div>
+                    </div>
+                    <p class="text-gray-800 dark:text-gray-200">${post.content}</p>
+                `;
+                postList.appendChild(postEl);
+            });
+        });
     }
-    // If allowed, enable post creation
-    document.getElementById("createContributorPostBtn").disabled = false;
-    loadContributorPosts();
-  });
 
-  // Load posts
-  function loadContributorPosts() {
-    const q = query(collection(db, "contributorPosts"), orderBy("createdAt", "desc"));
-    onSnapshot(q, (snapshot) => {
-      const list = document.getElementById("contributorPostList");
-      list.innerHTML = "";
-      snapshot.forEach((docSnap) => {
-        const post = docSnap.data();
-        const div = document.createElement("div");
-        div.textContent = `${post.author}: ${post.content}`;
-        list.appendChild(div);
-      });
+    createBtn.addEventListener("click", async () => {
+        const content = postContent.value.trim();
+        const user = auth.currentUser;
+        if (!content || !user) return;
+        
+        try {
+            await addDoc(collection(db, "contributorPosts"), {
+                content: content,
+                authorName: user.displayName || user.email,
+                authorId: user.uid,
+                createdAt: serverTimestamp()
+            });
+            postContent.value = "";
+        } catch (error) {
+            console.error("Error creating contributor post:", error);
+            alert("Could not create post. Please try again.");
+        }
     });
-  }
-
-  // Create post
-  document.getElementById("createContributorPostBtn").addEventListener("click", async () => {
-    const content = document.getElementById("contributorPostContent").value.trim();
-    if (!content) return;
-    await addDoc(collection(db, "contributorPosts"), {
-      content,
-      author: auth.currentUser.email,
-      authorId: auth.currentUser.uid,
-      createdAt: serverTimestamp()
-    });
-    document.getElementById("contributorPostContent").value = "";
-  });
 </script>
 </body>
 </html>
+
