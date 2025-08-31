@@ -95,6 +95,7 @@
         <div id="signupForm" style="display:none;" class="mb-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md fade-in">
             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Create an Account</h3>
             <div class="space-y-4">
+                <input type="text" id="signupUsername" placeholder="Username" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <input type="email" id="signupEmail" placeholder="Email address" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <input type="password" id="signupPassword" placeholder="Password" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <button id="signupBtn" class="w-full px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all">Sign Up</button>
@@ -114,13 +115,26 @@
             <!-- Posts will be dynamically inserted here -->
         </div>
     </main>
+    
+    <!-- Username Modal for new Google Users -->
+    <div id="usernameModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-sm">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Choose a Username</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">This will be your public name in the forum.</p>
+            <div class="space-y-4">
+                <input type="text" id="modalUsernameInput" placeholder="Enter a unique username" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <p id="usernameError" class="text-xs text-red-500" style="display: none;"></p>
+                <button id="submitUsernameBtn" class="w-full px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">Confirm Username</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script type="module">
     // Firebase imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, onSnapshot, addDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, onSnapshot, addDoc, query, orderBy, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
     // Your web app's Firebase configuration
@@ -199,14 +213,27 @@
     signupBtn.addEventListener("click", async () => {
         const email = document.getElementById("signupEmail").value;
         const password = document.getElementById("signupPassword").value;
-        if (!email || !password) {
-            alert("Please enter both email and password.");
+        const username = document.getElementById("signupUsername").value.trim();
+        
+        if (!email || !password || !username) {
+            alert("Please fill out all fields.");
             return;
         }
+
+        // Check for username uniqueness
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("displayName", "==", username));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            alert("Username is already taken. Please choose another one.");
+            return;
+        }
+
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            await handleUser(userCredential.user);
-            signupForm.style.display = 'none'; // Hide form on success
+            await handleUser(userCredential.user, username);
+            signupForm.style.display = 'none';
         } catch (error) {
             console.error("Email signup error:", error);
             alert(`Error: ${error.message}`);
@@ -216,19 +243,58 @@
     signOutBtn.addEventListener("click", () => signOut(auth));
 
     // --- User Management ---
-    async function handleUser(user) {
+    async function handleUser(user, chosenUsername = null) {
         if (!user) return;
         const userRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userRef);
+
         if (!userDoc.exists()) {
-            await setDoc(userRef, {
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName || user.email.split('@')[0],
-                createdAt: serverTimestamp(),
-                role: "member", // Default role
-                banned: false
-            });
+            if (chosenUsername) { // Coming from email signup
+                await setDoc(userRef, {
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: chosenUsername,
+                    createdAt: serverTimestamp(),
+                    role: "member",
+                    banned: false
+                });
+            } else { // Coming from Google sign-in
+                const usernameModal = document.getElementById("usernameModal");
+                usernameModal.style.display = 'flex';
+
+                document.getElementById("submitUsernameBtn").onclick = async () => {
+                    const modalUsernameInput = document.getElementById("modalUsernameInput");
+                    const usernameError = document.getElementById("usernameError");
+                    const newUsername = modalUsernameInput.value.trim();
+
+                    if (!newUsername) {
+                        usernameError.textContent = "Username cannot be empty.";
+                        usernameError.style.display = "block";
+                        return;
+                    }
+
+                    const usersRef = collection(db, "users");
+                    const q = query(usersRef, where("displayName", "==", newUsername));
+                    const querySnapshot = await getDocs(q);
+
+                    if (!querySnapshot.empty) {
+                        usernameError.textContent = "This username is already taken.";
+                        usernameError.style.display = "block";
+                    } else {
+                        await setDoc(userRef, {
+                            uid: user.uid,
+                            email: user.email,
+                            displayName: newUsername,
+                            createdAt: serverTimestamp(),
+                            role: "member",
+                            banned: false
+                        });
+                        usernameModal.style.display = 'none';
+                        modalUsernameInput.value = '';
+                        usernameError.style.display = 'none';
+                    }
+                };
+            }
         }
     }
     
@@ -260,7 +326,7 @@
                     const userData = userDocSnap.data();
                     const userRole = userData.role || 'member';
 
-                    userNameEl.textContent = user.displayName || user.email;
+                    userNameEl.textContent = userData.displayName || user.email;
                     userRoleEl.textContent = userRole;
                     userRoleEl.classList.remove('bg-violet-500', 'bg-green-500', 'bg-blue-500');
 
@@ -276,9 +342,10 @@
                             break;
                     }
                 } else {
-                     userNameEl.textContent = user.displayName || user.email;
-                     userRoleEl.textContent = 'member';
-                     userRoleEl.classList.add('bg-blue-500');
+                     // This can happen briefly if a new user is signing up
+                     userNameEl.textContent = user.email; // Show email temporarily
+                     userRoleEl.textContent = 'new';
+                     userRoleEl.classList.add('bg-gray-500');
                 }
 
             } else {
@@ -372,14 +439,20 @@
         const user = auth.currentUser;
         if (content && user && !user.isAnonymous) {
             try {
-                const postsColRef = collection(db, "posts");
-                await addDoc(postsColRef, {
-                    content: content,
-                    authorId: user.uid,
-                    authorName: user.displayName || user.email,
-                    createdAt: serverTimestamp(),
-                });
-                postContent.value = ''; // Clear textarea
+                const userDocRef = doc(db, "users", user.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists()) {
+                    const postsColRef = collection(db, "posts");
+                    await addDoc(postsColRef, {
+                        content: content,
+                        authorId: user.uid,
+                        authorName: userDocSnap.data().displayName,
+                        createdAt: serverTimestamp(),
+                    });
+                    postContent.value = ''; // Clear textarea
+                } else {
+                    alert("Could not find your user data to create post.");
+                }
             } catch (error) {
                 console.error("Error creating post:", error);
                 alert("Failed to create post. Your account may be banned or there was a server error.");
