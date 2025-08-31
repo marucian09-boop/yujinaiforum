@@ -38,6 +38,16 @@
     .dark .border-gray-300 { border-color: #4b5563; }
     .dark .ring-indigo-500 { ring-color: #818cf8; }
     .dark .placeholder-gray-400::placeholder { color: #9ca3af; }
+    
+    [contenteditable=true]:empty:before {
+        content: attr(placeholder);
+        pointer-events: none;
+        display: block; /* For Firefox */
+        color: #9ca3af;
+    }
+    .dark [contenteditable=true]:empty:before {
+        color: #6b7280;
+    }
 
 </style>
 </head>
@@ -181,9 +191,15 @@
                 <button id="backToInboxBtn" class="mb-2 text-sm text-indigo-600 dark:text-indigo-400 hover:underline">&larr; Back to Inbox</button>
                 <p id="messagingWith" class="text-sm font-medium mb-2">Chat with: <span class="font-bold"></span></p>
                 <div id="messageHistory" class="flex-grow overflow-y-auto bg-gray-50 dark:bg-gray-900 p-2 rounded-md mb-2 flex flex-col"></div>
+                <div class="flex items-center space-x-2 p-1 border-t dark:border-gray-600">
+                    <button data-command="bold" class="px-2 py-1 text-sm font-bold border rounded rich-text-btn">B</button>
+                    <button data-command="italic" class="px-2 py-1 text-sm italic border rounded rich-text-btn">I</button>
+                    <button data-command="strikeThrough" class="px-2 py-1 text-sm line-through border rounded rich-text-btn">S</button>
+                    <input type="color" data-command="foreColor" value="#000000" class="h-8 w-8 p-0 border-none cursor-pointer rich-text-btn" title="Text Color">
+                </div>
                 <div class="flex">
-                    <input type="text" id="messageInput" placeholder="Type your message..." class="flex-grow px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-l-md">
-                    <button id="sendMessageBtn" class="px-4 py-2 text-white bg-indigo-600 rounded-r-md hover:bg-indigo-700">Send</button>
+                    <div id="messageInput" contenteditable="true" placeholder="Type your message..." class="flex-grow p-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-l-md h-24 overflow-y-auto"></div>
+                    <button id="sendMessageBtn" class="px-4 py-2 text-white bg-indigo-600 rounded-r-md hover:bg-indigo-700 self-end">Send</button>
                 </div>
             </div>
         </div>
@@ -230,15 +246,14 @@
              <div class="space-y-4">
                  <div>
                      <label for="warningMessage" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Send Warning</label>
-                     <div class="flex items-center space-x-2 my-2">
-                        <button id="warningBoldBtn" class="px-2 py-1 text-sm font-bold border rounded">B</button>
-                        <button id="warningItalicBtn" class="px-2 py-1 text-sm italic border rounded">I</button>
-                        <button id="warningStrikeBtn" class="px-2 py-1 text-sm line-through border rounded">S</button>
-                        <input type="color" id="warningColor" value="#000000" class="h-8 w-8 p-0 border-none cursor-pointer" title="Text Color">
-                        <input type="color" id="warningBgColor" value="#FFFFFF" class="h-8 w-8 p-0 border-none cursor-pointer" title="Background Color">
+                     <div class="flex items-center space-x-2 my-2 p-1 border-b dark:border-gray-600">
+                        <button data-command="bold" class="px-2 py-1 text-sm font-bold border rounded rich-text-btn">B</button>
+                        <button data-command="italic" class="px-2 py-1 text-sm italic border rounded rich-text-btn">I</button>
+                        <button data-command="strikeThrough" class="px-2 py-1 text-sm line-through border rounded rich-text-btn">S</button>
+                        <input type="color" data-command="foreColor" value="#000000" class="h-8 w-8 p-0 border-none cursor-pointer rich-text-btn" title="Text Color">
+                        <input type="color" data-command="hiliteColor" value="#FFFFFF" class="h-8 w-8 p-0 border-none cursor-pointer rich-text-btn" title="Background Color">
                      </div>
-                     <textarea id="warningMessage" placeholder="Enter warning message..." rows="3" class="mt-1 w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-                      <div id="warningPreview" class="p-2 mt-2 rounded border dark:border-gray-600">Preview Text</div>
+                     <div id="warningMessage" contenteditable="true" placeholder="Enter warning message..." class="mt-1 w-full p-2 h-24 overflow-y-auto text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
                      <button id="sendWarningBtn" class="mt-2 w-full px-4 py-2 text-sm font-semibold text-white bg-yellow-500 rounded-md hover:bg-yellow-600 transition-all">Send Warning</button>
                  </div>
                  <div class="flex space-x-4">
@@ -332,16 +347,9 @@
     const messageHistory = document.getElementById('messageHistory');
     const messageInput = document.getElementById('messageInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
-    
-    // Admin Warning Formatting
-    const warningBoldBtn = document.getElementById('warningBoldBtn');
-    const warningItalicBtn = document.getElementById('warningItalicBtn');
-    const warningStrikeBtn = document.getElementById('warningStrikeBtn');
-    const warningColor = document.getElementById('warningColor');
-    const warningBgColor = document.getElementById('warningBgColor');
+    const adminModal = document.getElementById('adminModal');
     const warningMessage = document.getElementById('warningMessage');
-    const warningPreview = document.getElementById('warningPreview');
-
+    
 
     let currentUserRole = null;
     let usersDataCache = {};
@@ -766,13 +774,12 @@
     });
     closePostViewModal.addEventListener('click', () => postViewModal.style.display = 'none');
 
-    const adminModal = document.getElementById('adminModal');
     let targetUserId = null;
 
     function openAdminModal(userId, userName) {
         targetUserId = userId;
         document.getElementById('adminModalUsername').textContent = userName;
-        document.getElementById('warningMessage').value = '';
+        warningMessage.innerHTML = '';
         adminModal.style.display = 'flex';
     }
     document.getElementById('closeAdminModal').onclick = () => adminModal.style.display = 'none';
@@ -790,12 +797,51 @@
         adminModal.style.display = 'none';
     };
     
+    // --- Rich Text Editor Logic ---
+    function applyStyle(editor, command, value = null) {
+        editor.focus();
+        document.execCommand(command, false, value);
+    }
+
+    adminModal.querySelectorAll('.rich-text-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const command = e.currentTarget.dataset.command;
+            let value = e.currentTarget.type === 'color' ? e.currentTarget.value : null;
+            applyStyle(warningMessage, command, value);
+            e.preventDefault();
+        });
+        if (btn.type === 'color') {
+            btn.addEventListener('input', (e) => {
+                applyStyle(warningMessage, e.currentTarget.dataset.command, e.currentTarget.value);
+            });
+        }
+    });
+
+    chatView.querySelectorAll('.rich-text-btn').forEach(btn => {
+         btn.addEventListener('click', (e) => {
+            const command = e.currentTarget.dataset.command;
+            let value = e.currentTarget.type === 'color' ? e.currentTarget.value : null;
+            applyStyle(messageInput, command, value);
+            e.preventDefault();
+        });
+        if (btn.type === 'color') {
+            btn.addEventListener('input', (e) => {
+                applyStyle(messageInput, e.currentTarget.dataset.command, e.currentTarget.value);
+            });
+        }
+    });
+    
+    
     // --- Messaging Logic ---
-    async function sendMessage(recipientId, content) {
+    async function sendMessage(recipientId, contentHTML) {
         const user = auth.currentUser;
-        if (!user || !recipientId || !content) {
-            showAlert('Message failed to send. Missing information.');
-            return Promise.reject('Missing information');
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = contentHTML;
+        const lastMessageText = tempDiv.textContent || tempDiv.innerText || '';
+
+        if (!user || !recipientId || !lastMessageText) {
+            showAlert('Message failed to send. Content is empty.');
+            return Promise.reject('Empty content');
         }
 
         const conversationId = [user.uid, recipientId].sort().join('_');
@@ -804,14 +850,14 @@
         try {
             await setDoc(doc(db, 'conversations', conversationId), {
                 participants: [user.uid, recipientId],
-                lastMessage: content,
+                lastMessage: lastMessageText,
                 lastMessageTimestamp: serverTimestamp()
             }, { merge: true });
 
             await addDoc(messagesRef, {
                 senderId: user.uid,
                 recipientId: recipientId,
-                content: content,
+                content: contentHTML,
                 createdAt: serverTimestamp()
             });
              return Promise.resolve();
@@ -824,14 +870,16 @@
 
     document.getElementById('sendWarningBtn').onclick = async () => {
         if (!targetUserId) return;
-        const message = document.getElementById('warningMessage').value.trim();
-        if (message) {
-            const warningContent = "OFFICIAL WARNING: " + message;
+        const messageHTML = warningMessage.innerHTML;
+        const messageText = warningMessage.textContent.trim();
+
+        if (messageText) {
+            const warningContent = "<strong>OFFICIAL WARNING:</strong> " + messageHTML;
             
             try {
                 await sendMessage(targetUserId, warningContent);
                 await updateDoc(doc(db, "users", targetUserId), {
-                    warnings: arrayUnion({ message: message, date: serverTimestamp() })
+                    warnings: arrayUnion({ message: messageText, date: serverTimestamp() })
                 });
 
                 showAlert('Warning has been sent as a direct message.');
@@ -939,11 +987,13 @@
                     convoEl.className = 'inbox-item p-3 border-b dark:border-gray-600 flex justify-between items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700';
                     convoEl.dataset.userId = otherUserId;
                     convoEl.dataset.userName = otherUserData.displayName;
+                    
+                    const lastMessage = convo.lastMessage || '';
 
                     convoEl.innerHTML = `
                         <div>
                             <p class="font-bold text-gray-800 dark:text-gray-200">${otherUserData.displayName}</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 truncate">${convo.lastMessage || ''}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 truncate">${lastMessage}</p>
                         </div>
                     `;
                     inboxList.appendChild(convoEl);
@@ -967,8 +1017,10 @@
                 const msgEl = document.createElement('div');
                 const isSender = msg.senderId === auth.currentUser.uid;
                 
-                msgEl.className = `p-2 rounded-lg my-1 max-w-xs ${isSender ? 'bg-indigo-500 text-white ml-auto' : 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 mr-auto'}`;
-                msgEl.textContent = msg.content;
+                msgEl.className = `p-2 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-indigo-500 text-white ml-auto' : 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 mr-auto'}`;
+                
+                msgEl.innerHTML = msg.content;
+
                 messageHistory.appendChild(msgEl);
             });
             messageHistory.scrollTop = messageHistory.scrollHeight;
@@ -976,12 +1028,12 @@
     }
 
     sendMessageBtn.addEventListener('click', async () => {
-        const content = messageInput.value.trim();
-        if(content && currentRecipient) {
+        const contentHTML = messageInput.innerHTML;
+        if(messageInput.textContent.trim() && currentRecipient) {
             try {
-                await sendMessage(currentRecipient.id, content);
-                messageInput.value = '';
-                showAlert('Message sent successfully!');
+                await sendMessage(currentRecipient.id, contentHTML);
+                messageInput.innerHTML = '';
+                // No alert on success for a smoother chat experience
             } catch(e) { /* showAlert is handled in sendMessage */ }
         }
     });
