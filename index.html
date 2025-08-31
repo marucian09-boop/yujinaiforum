@@ -98,13 +98,14 @@
   import { getDatabase, ref, onDisconnect, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
 
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID",
-    databaseURL: "YOUR_DB_URL"
+    apiKey: "AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4",
+    authDomain: "forum-3dec5.firebaseapp.com",
+    databaseURL: "https://forum-3dec5-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "forum-3dec5",
+    storageBucket: "forum-3dec5.firebasestorage.app",
+    messagingSenderId: "519284298976",
+    appId: "1:519284298976:web:8bb5e94a44f202802c2c85",
+    measurementId: "G-SXS8FRTT03"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -123,16 +124,4 @@
   const postListEl = document.getElementById("postList");
   const createContributorPostBtn = document.getElementById("createContributorPostBtn");
   const contributorPostContentEl = document.getElementById("contributorPostContent");
-  const contributorPostListEl = document.getElementById("contributorPostList");
-  const totalMembersEl = document.getElementById("totalMembers");
-  const onlineVisitorsEl = document.getElementById("onlineVisitors");
-  const accountModal = document.getElementById("accountModal");
-  const usernameInput = document.getElementById("usernameInput");
-  const passwordInput = document.getElementById("passwordInput");
-  const saveAccountBtn = document.getElementById("saveAccountBtn");
-  const darkModeToggle = document.getElementById("darkModeToggle");
-
-  // Dark mode load & toggle
-  if (localStorage.getItem("darkMode") === "true") {
-    document.body.classList.add("dark");
-    darkModeToggle.checked =
+  const contributorPostListEl = document
