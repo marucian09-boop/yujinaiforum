@@ -88,7 +88,8 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-  import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+  import { getFirestore, doc, setDoc, serverTimestamp, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+  import { getDatabase, ref, onValue, onDisconnect, set } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4",
@@ -104,6 +105,7 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+  const rtdb = getDatabase(app);
   const provider = new GoogleAuthProvider();
 
   const signInBtn = document.getElementById("signInBtn");
@@ -112,6 +114,8 @@
   const signupBtn = document.getElementById("signupBtn");
   const signOutBtn = document.getElementById("signOutBtn");
   const darkModeToggle = document.getElementById("darkModeToggle");
+  const totalMembersEl = document.getElementById("totalMembers");
+  const onlineVisitorsEl = document.getElementById("onlineVisitors");
 
   // Dark mode
   if (localStorage.getItem("darkMode") === "true") {
@@ -125,21 +129,11 @@
 
   // Google sign-in
   signInBtn.addEventListener("click", async () => {
-    try { await signInWithPopup(auth, provider); }
-    catch (err) { console.error(err); }
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      alert("Google sign-in failed: " + err.message);
+    }
   });
 
   // Toggle signup form
-  showSignupFormBtn.addEventListener("click", () => {
-    signupForm.style.display = signupForm.style.display === "none" ? "block" : "none";
-  });
-
-  // Email sign-up
-  signupBtn.addEventListener("click", async () => {
-    const email = document.getElementById("signupEmail").value.trim();
-    const password = document.getElementById("signupPassword").value.trim();
-    const username = document.getElementById("usernameInput").value.trim();
-
-    if (!email || !password || !username) {
-      alert("Please fill in all fields.");
-      return
