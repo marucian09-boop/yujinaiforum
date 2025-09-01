@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Community Forum - Contributor Section</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234f46e5'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E">
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
     /* Inter Font */
@@ -38,6 +39,22 @@
     .dark .border-gray-300 { border-color: #4b5563; }
     .dark .ring-indigo-500 { ring-color: #818cf8; }
     .dark .placeholder-gray-400::placeholder { color: #9ca3af; }
+    
+    [contenteditable=true]:empty:before {
+        content: attr(placeholder);
+        pointer-events: none;
+        display: block; /* For Firefox */
+        color: #9ca3af;
+    }
+    .dark [contenteditable=true]:empty:before {
+        color: #6b7280;
+    }
+    
+    .dark .rich-text-btn {
+        color: #e5e7eb;
+        border-color: #4b5563;
+    }
+
 </style>
 </head>
 <body class="bg-gray-100">
@@ -51,7 +68,7 @@
                     <h1 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">Community Forum</h1>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <div id="userInfoContainer" class="flex items-center space-x-2">
+                    <div id="userInfoContainer" class="flex items-center space-x-2" style="display: none;">
                         <span id="userName" class="text-sm font-medium text-gray-800 dark:text-gray-200"></span>
                         <span id="userRole" class="px-2 py-0.5 text-xs font-semibold text-white rounded-full"></span>
                     </div>
@@ -83,10 +100,13 @@
         </div>
 
         <div id="contributor-content" style="display: none;" class="fade-in">
-             <!-- Post Creation Section -->
+            <!-- Post Creation Section -->
             <section id="post-creation" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
                 <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Create a Contributor Post</h2>
-                <textarea id="contributorPostContent" placeholder="Share something with fellow contributors..." class="w-full h-28 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400" disabled></textarea>
+                <div class="space-y-4">
+                    <input type="text" id="contributorPostTitle" placeholder="Post Title" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <textarea id="contributorPostContent" placeholder="Share something with fellow contributors..." class="w-full h-28 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400" disabled></textarea>
+                </div>
                 <button id="createContributorPostBtn" class="mt-4 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all" disabled>Create Post</button>
             </section>
 
@@ -96,12 +116,29 @@
             </div>
         </div>
     </main>
+
+    <!-- Modals -->
+    <div id="postViewModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-2xl relative">
+            <button id="closePostViewModal" class="absolute top-3 right-3 text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
+            <h3 id="postViewTitle" class="text-xl font-bold text-gray-900 dark:text-white mb-2"></h3>
+            <div id="postViewMeta" class="text-xs text-gray-500 dark:text-gray-400 mb-4"></div>
+            <p id="postViewContent" class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap"></p>
+        </div>
+    </div>
+    
+     <div id="alertModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-sm text-center">
+            <p id="alertMessage" class="text-gray-800 dark:text-gray-200 mb-4"></p>
+            <button id="closeAlertModal" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700">OK</button>
+        </div>
+    </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4",
@@ -124,8 +161,24 @@
     const contributorContent = document.getElementById("contributor-content");
     const loadingState = document.getElementById("loading-state");
     const createBtn = document.getElementById("createContributorPostBtn");
-    const postContent = document.getElementById("contributorPostContent");
+    const postTitleInput = document.getElementById("contributorPostTitle");
+    const postContentInput = document.getElementById("contributorPostContent");
     const postList = document.getElementById("contributorPostList");
+    const postViewModal = document.getElementById('postViewModal');
+    const closePostViewModal = document.getElementById('closePostViewModal');
+     const alertModal = document.getElementById('alertModal');
+    const alertMessage = document.getElementById('alertMessage');
+    const closeAlertModal = document.getElementById('closeAlertModal');
+
+    let currentUserRole = null;
+    let usersDataCache = {};
+    let postDocsCache = [];
+
+    function showAlert(message) {
+        alertMessage.textContent = message;
+        alertModal.style.display = 'flex';
+    }
+    closeAlertModal.onclick = () => alertModal.style.display = 'none';
 
     // --- Dark Mode ---
     function applyDarkMode(isDark) {
@@ -148,92 +201,153 @@
         if (user && !user.isAnonymous) {
             const userDocRef = doc(db, "users", user.uid);
             const userDocSnap = await getDoc(userDocRef);
+            
+            // Fetch all users to get author names for posts
+            const usersColRef = collection(db, "users");
+            onSnapshot(usersColRef, (snapshot) => {
+                snapshot.forEach(doc => {
+                    usersDataCache[doc.id] = doc.data();
+                });
+            });
 
             if (userDocSnap.exists()) {
                 const userData = userDocSnap.data();
-                const userRole = userData.role || 'member';
+                currentUserRole = userData.role || 'newbie';
 
-                // Display user info and role with color coding
-                userNameEl.textContent = user.displayName || user.email;
-                userRoleEl.textContent = userRole;
-                userRoleEl.classList.remove('bg-violet-500', 'bg-green-500', 'bg-blue-500');
-
-                switch (userRole) {
-                    case 'admin':
-                        userRoleEl.classList.add('bg-violet-500');
-                        break;
-                    case 'contributor':
-                        userRoleEl.classList.add('bg-green-500');
-                        break;
-                    default: // For 'member' or 'newbie'
-                        userRoleEl.classList.add('bg-blue-500');
-                        break;
+                document.getElementById('userInfoContainer').style.display = 'flex';
+                userNameEl.textContent = userData.displayName || user.email;
+                userRoleEl.textContent = currentUserRole;
+                userRoleEl.className = 'px-2 py-0.5 text-xs font-semibold text-white rounded-full';
+                switch (currentUserRole) {
+                    case 'admin': userRoleEl.classList.add('bg-violet-500'); break;
+                    case 'contributor': userRoleEl.classList.add('bg-green-500'); break;
+                    default: userRoleEl.classList.add('bg-blue-500'); break;
                 }
                 
-                // Authorize access to the page content
-                if (["admin", "contributor"].includes(userRole)) {
+                if (["admin", "contributor"].includes(currentUserRole)) {
                     loadingState.style.display = 'none';
                     contributorContent.style.display = 'block';
                     createBtn.disabled = false;
-                    postContent.disabled = false;
+                    postContentInput.disabled = false;
                     loadContributorPosts();
                 } else {
-                    console.log("Access denied. User is not a contributor.");
-                    alert("Access denied. This page is for contributors and admins only.");
-                    window.location.href = window.location.href.replace("contributor.html", "index.html");
+                    redirectToHome("Access denied. Contributors and Admins only.");
                 }
             } else {
-                 console.log("Access denied. User record not found in database.");
-                 window.location.href = window.location.href.replace("contributor.html", "index.html");
+                 redirectToHome("User data not found.");
             }
         } else {
-            console.log("Access denied. User not signed in.");
-            window.location.href = window.location.href.replace("contributor.html", "index.html");
+            redirectToHome("You must be signed in to view this page.");
         }
     });
+
+    function redirectToHome(message) {
+        console.log(message);
+        alert(message);
+        window.location.href = window.location.href.replace("contributor.html", "index.html");
+    }
 
     // --- Post Management ---
     function loadContributorPosts() {
         const postsRef = collection(db, "contributorPosts");
         const q = query(postsRef, orderBy("createdAt", "desc"));
         onSnapshot(q, (snapshot) => {
-            postList.innerHTML = "";
-            snapshot.forEach((docSnap) => {
-                const post = docSnap.data();
-                const postEl = document.createElement("div");
-                postEl.className = 'bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md fade-in';
-                const timestamp = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now';
-                
-                postEl.innerHTML = `
-                    <div class="flex items-center mb-2">
-                        <div class="font-bold text-gray-900 dark:text-white">${post.authorName}</div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400 ml-auto">${timestamp}</div>
+            postDocsCache = snapshot.docs;
+            renderContributorPosts();
+        });
+    }
+    
+    function renderContributorPosts() {
+        postList.innerHTML = "";
+        postDocsCache.forEach((docSnap) => {
+            const post = docSnap.data();
+            const postId = docSnap.id;
+            const authorData = usersDataCache[post.authorId] || { displayName: 'Unknown' };
+
+            const postEl = document.createElement("div");
+            postEl.className = 'bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md fade-in';
+            const timestamp = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now';
+            
+            let adminControls = '';
+            if (currentUserRole === 'admin') {
+                 adminControls = `
+                    <div class="ml-auto">
+                        <button data-post-id="${postId}" class="delete-post-btn p-1 text-gray-400 hover:text-red-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>`;
+            }
+            
+            postEl.innerHTML = `
+                <div class="flex items-start">
+                    <div>
+                        <div class="font-bold text-gray-900 dark:text-white">${authorData.displayName}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">${timestamp}</div>
                     </div>
-                    <p class="text-gray-800 dark:text-gray-200">${post.content}</p>
-                `;
-                postList.appendChild(postEl);
-            });
+                    ${adminControls}
+                </div>
+                <h4 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400 mt-2 hover:underline cursor-pointer view-post-btn" data-post-id="${postId}">${post.title}</h4>
+            `;
+            postList.appendChild(postEl);
         });
     }
 
     createBtn.addEventListener("click", async () => {
-        const content = postContent.value.trim();
+        const title = postTitleInput.value.trim();
+        const content = postContentInput.value.trim();
         const user = auth.currentUser;
-        if (!content || !user) return;
+        if (!title || !content || !user) {
+            showAlert("Please provide a title and content for your post.");
+            return;
+        }
         
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        const authorName = userDocSnap.exists() ? userDocSnap.data().displayName : user.email;
+
         try {
             await addDoc(collection(db, "contributorPosts"), {
+                title: title,
                 content: content,
-                authorName: user.displayName || user.email,
+                authorName: authorName,
                 authorId: user.uid,
                 createdAt: serverTimestamp()
             });
-            postContent.value = "";
+            postTitleInput.value = "";
+            postContentInput.value = "";
         } catch (error) {
             console.error("Error creating contributor post:", error);
-            alert("Could not create post. Please try again.");
+            showAlert("Could not create post. Please try again.");
         }
     });
+    
+    postList.addEventListener('click', e => {
+        const viewBtn = e.target.closest('.view-post-btn');
+        const deleteBtn = e.target.closest('.delete-post-btn');
+
+        if (viewBtn) {
+            const postId = viewBtn.dataset.postId;
+            const postDoc = postDocsCache.find(doc => doc.id === postId);
+            if (postDoc) {
+                const post = postDoc.data();
+                const author = usersDataCache[post.authorId];
+                document.getElementById('postViewTitle').textContent = post.title;
+                document.getElementById('postViewContent').textContent = post.content;
+                document.getElementById('postViewMeta').textContent = `Posted by ${author.displayName} on ${post.createdAt.toDate().toLocaleString()}`;
+                postViewModal.style.display = 'flex';
+            }
+        }
+        if (deleteBtn) {
+            const postId = deleteBtn.dataset.postId;
+            if (confirm('Are you sure you want to delete this post permanently?')) {
+                deleteDoc(doc(db, "contributorPosts", postId)).then(() => {
+                    showAlert('Post deleted successfully.');
+                }).catch(err => console.error("Error deleting post:", err));
+            }
+        }
+    });
+
+    closePostViewModal.addEventListener('click', () => postViewModal.style.display = 'none');
 </script>
 </body>
 </html>
