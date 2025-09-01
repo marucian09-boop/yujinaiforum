@@ -54,7 +54,6 @@
         color: #e5e7eb;
         border-color: #4b5563;
     }
-
 </style>
 </head>
 <body class="bg-gray-100">
@@ -110,15 +109,40 @@
                 </div>
                 <button id="createContributorPostBtn" class="mt-4 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">Create Post</button>
             </section>
+            
+            <!-- Pinned Posts Section -->
+            <section id="pinned-posts-section" class="mt-8" style="display: none;">
+                <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                     <svg class="h-5 w-5 text-indigo-500 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    Pinned Posts
+                </h3>
+                <div id="pinnedPostList" class="space-y-4">
+                    <!-- Pinned posts will be dynamically inserted here -->
+                </div>
+                <hr class="my-6 border-gray-300 dark:border-gray-600">
+            </section>
 
             <!-- Post List -->
-            <div id="contributorPostList" class="mt-8 space-y-4">
+            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2 mt-8">All Contributor Posts</h3>
+            <div id="contributorPostList" class="mt-4 space-y-4">
                 <!-- Posts will be dynamically inserted here -->
             </div>
         </div>
     </main>
 
     <!-- Modals -->
+    <div id="confirmModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-sm text-center">
+            <p id="confirmMessage" class="text-gray-800 dark:text-gray-200 mb-4"></p>
+            <div class="flex justify-center space-x-4">
+                <button id="confirmBtn" class="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700">Confirm</button>
+                <button id="cancelBtn" class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <div id="userProfileModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-md">
             <div class="flex justify-between items-start mb-4">
@@ -133,7 +157,7 @@
                         <input type="text" id="newUsernameInput" placeholder="New username" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <button id="changeUsernameBtn" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-r-md hover:bg-indigo-700">Save</button>
                     </div>
-                     <p id="changeUsernameError" class="text-xs text-red-500 mt-1" style="display: none;"></p>
+                      <p id="changeUsernameError" class="text-xs text-red-500 mt-1" style="display: none;"></p>
                 </div>
                 <button id="closeAccountBtn" class="w-full px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 transition-all">Close My Account</button>
             </div>
@@ -148,7 +172,7 @@
         </div>
     </div>
     
-     <div id="alertModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+      <div id="alertModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-sm text-center">
             <p id="alertMessage" class="text-gray-800 dark:text-gray-200 mb-4"></p>
             <button id="closeAlertModal" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700">OK</button>
@@ -207,17 +231,18 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, where, getDocs, updateDoc, arrayUnion, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, where, getDocs, updateDoc, arrayUnion, writeBatch, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+    // IMPORTANT: Replace with your actual Firebase project configuration for security.
     const firebaseConfig = {
-      apiKey: "AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4",
-      authDomain: "forum-3dec5.firebaseapp.com",
-      databaseURL: "https://forum-3dec5-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "forum-3dec5",
-      storageBucket: "forum-3dec5.firebasestorage.app",
-      messagingSenderId: "519284298976",
-      appId: "1:519284298976:web:8bb5e94a44f202802c2c85",
-      measurementId: "G-SXS8FRTT03"
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        databaseURL: "YOUR_DATABASE_URL",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID",
+        measurementId: "YOUR_MEASUREMENT_ID"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -233,11 +258,17 @@
     const postTitleInput = document.getElementById("contributorPostTitle");
     const postContentInput = document.getElementById("contributorPostContent");
     const postList = document.getElementById("contributorPostList");
+    const pinnedPostList = document.getElementById("pinnedPostList");
+    const pinnedPostsSection = document.getElementById("pinned-posts-section");
     const postViewModal = document.getElementById('postViewModal');
     const closePostViewModal = document.getElementById('closePostViewModal');
     const alertModal = document.getElementById('alertModal');
     const alertMessage = document.getElementById('alertMessage');
     const closeAlertModal = document.getElementById('closeAlertModal');
+    const confirmModal = document.getElementById('confirmModal');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmBtn = document.getElementById('confirmBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
     const messagesBtn = document.getElementById('messagesBtn');
     const messagingModal = document.getElementById('messagingModal');
     const closeMessagingModal = document.getElementById('closeMessagingModal');
@@ -261,13 +292,29 @@
     let currentConversation = null;
     let messageListenerUnsubscribe = null;
     let currentUserData = null;
+    let confirmCallback = null;
 
-
+    // --- Custom Modals ---
     function showAlert(message) {
         alertMessage.textContent = message;
         alertModal.style.display = 'flex';
     }
     closeAlertModal.onclick = () => alertModal.style.display = 'none';
+
+    function showConfirmation(message, callback) {
+        confirmMessage.textContent = message;
+        confirmModal.style.display = 'flex';
+        confirmCallback = callback;
+    }
+    confirmBtn.onclick = () => {
+        if (confirmCallback) confirmCallback();
+        confirmModal.style.display = 'none';
+        confirmCallback = null;
+    };
+    cancelBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+        confirmCallback = null;
+    };
 
     // --- Dark Mode ---
     function applyDarkMode(isDark) {
@@ -291,12 +338,13 @@
             const userDocRef = doc(db, "users", user.uid);
             const userDocSnap = await getDoc(userDocRef);
             
+            // Cache all user data for author lookups
             const usersColRef = collection(db, "users");
             onSnapshot(usersColRef, (snapshot) => {
                 snapshot.forEach(doc => {
                     usersDataCache[doc.id] = doc.data();
                 });
-                renderContributorPosts();
+                renderContributorPosts(); // Re-render posts if user data updates (e.g., name change)
             });
 
             if (userDocSnap.exists()) {
@@ -330,8 +378,11 @@
 
     function redirectToHome(message) {
         console.log(message);
-        alert(message);
-        window.location.href = window.location.href.replace("contributor.html", "index.html");
+        showAlert(message); // Using custom alert
+        // Delay redirect to allow user to see the message
+        setTimeout(() => {
+            window.location.href = window.location.href.replace("contributor.html", "index.html");
+        }, 2000);
     }
 
     // --- Post Management ---
@@ -344,37 +395,81 @@
         });
     }
     
-    function renderContributorPosts() {
-        postList.innerHTML = "";
-        postDocsCache.forEach((docSnap) => {
-            const post = docSnap.data();
-            const postId = docSnap.id;
-            const authorData = usersDataCache[post.authorId] || { displayName: 'Unknown' };
+    function createPostElement(docSnap, pinnedCount) {
+        const post = docSnap.data();
+        const postId = docSnap.id;
+        const authorData = usersDataCache[post.authorId] || { displayName: 'Unknown' };
 
-            const postEl = document.createElement("div");
-            postEl.className = 'bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md fade-in';
-            const timestamp = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now';
-            
-            let adminControls = '';
-            if (currentUserRole === 'admin') {
-                 adminControls = `
-                    <div class="ml-auto">
-                        <button data-post-id="${postId}" class="delete-post-btn p-1 text-gray-400 hover:text-red-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                        </button>
-                    </div>`;
-            }
-            
-            postEl.innerHTML = `
-                <div class="flex items-start">
-                    <div>
-                        <div class="font-bold text-gray-900 dark:text-white">${authorData.displayName}</div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400">${timestamp}</div>
-                    </div>
-                    ${adminControls}
-                </div>
-                <h4 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400 mt-2 hover:underline cursor-pointer view-post-btn" data-post-id="${postId}">${post.title}</h4>
+        const postEl = document.createElement("div");
+        postEl.className = 'bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md fade-in flex items-start space-x-4';
+        const timestamp = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now';
+        
+        const isPinned = post.isPinned === true;
+
+        let adminControls = '';
+        if (currentUserRole === 'admin') {
+            const canPin = pinnedCount < 3;
+            const pinButtonDisabled = !isPinned && !canPin ? 'disabled' : '';
+            const pinButtonTitle = !isPinned && !canPin ? 'Maximum number of pinned posts reached' : (isPinned ? 'Unpin Post' : 'Pin Post');
+
+            const pinButtonHTML = `
+                <button data-post-id="${postId}" class="${isPinned ? 'unpin-post-btn' : 'pin-post-btn'} p-1 text-gray-400 hover:text-indigo-500 ${pinButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''}" title="${pinButtonTitle}" ${pinButtonDisabled}>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        ${isPinned 
+                            ? `<path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />` 
+                            : `<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />`
+                        }
+                    </svg>
+                </button>
             `;
+            const deleteButtonHTML = `
+                <button data-post-id="${postId}" class="delete-post-btn p-1 text-gray-400 hover:text-red-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                </button>
+            `;
+            adminControls = `<div class="flex flex-col">${pinButtonHTML}${deleteButtonHTML}</div>`;
+        }
+        
+        const pinIconHTML = isPinned ? `
+            <svg class="h-5 w-5 text-indigo-500 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+        ` : '';
+        
+        postEl.innerHTML = `
+            <div class="flex-grow">
+                <div class="font-bold text-gray-900 dark:text-white">${authorData.displayName}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">${timestamp}</div>
+                 <div class="flex items-center mt-2">
+                    ${pinIconHTML}
+                    <h4 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer view-post-btn" data-post-id="${postId}">${post.title}</h4>
+                </div>
+            </div>
+            <div class="flex-shrink-0">${adminControls}</div>
+        `;
+        return postEl;
+    }
+
+
+    function renderContributorPosts() {
+        pinnedPostList.innerHTML = "";
+        postList.innerHTML = "";
+
+        const pinnedDocs = postDocsCache.filter(doc => doc.data().isPinned);
+        const regularDocs = postDocsCache.filter(doc => !doc.data().isPinned);
+        
+        if (pinnedDocs.length > 0) {
+            pinnedPostsSection.style.display = 'block';
+            pinnedDocs.forEach(docSnap => {
+                const postEl = createPostElement(docSnap, pinnedDocs.length);
+                pinnedPostList.appendChild(postEl);
+            });
+        } else {
+            pinnedPostsSection.style.display = 'none';
+        }
+
+        regularDocs.forEach(docSnap => {
+            const postEl = createPostElement(docSnap, pinnedDocs.length);
             postList.appendChild(postEl);
         });
     }
@@ -396,7 +491,8 @@
                 content: content,
                 authorName: authorName,
                 authorId: user.uid,
-                createdAt: serverTimestamp()
+                createdAt: serverTimestamp(),
+                isPinned: false // Default value for new posts
             });
             postTitleInput.value = "";
             postContentInput.value = "";
@@ -406,29 +502,53 @@
         }
     });
     
-    postList.addEventListener('click', e => {
+    document.querySelector('main').addEventListener('click', async e => {
         const viewBtn = e.target.closest('.view-post-btn');
         const deleteBtn = e.target.closest('.delete-post-btn');
+        const pinBtn = e.target.closest('.pin-post-btn');
+        const unpinBtn = e.target.closest('.unpin-post-btn');
 
         if (viewBtn) {
             const postId = viewBtn.dataset.postId;
             const postDoc = postDocsCache.find(doc => doc.id === postId);
             if (postDoc) {
                 const post = postDoc.data();
-                const author = usersDataCache[post.authorId];
+                const author = usersDataCache[post.authorId] || { displayName: "Unknown" };
                 document.getElementById('postViewTitle').textContent = post.title;
                 document.getElementById('postViewContent').textContent = post.content;
-                document.getElementById('postViewMeta').textContent = `Posted by ${author.displayName} on ${post.createdAt.toDate().toLocaleString()}`;
+                const dateString = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'N/A';
+                document.getElementById('postViewMeta').textContent = `Posted by ${author.displayName} on ${dateString}`;
                 postViewModal.style.display = 'flex';
             }
         }
         if (deleteBtn) {
             const postId = deleteBtn.dataset.postId;
-            if (confirm('Are you sure you want to delete this post permanently?')) {
+            showConfirmation('Are you sure you want to delete this post permanently?', () => {
                 deleteDoc(doc(db, "contributorPosts", postId)).then(() => {
                     showAlert('Post deleted successfully.');
-                }).catch(err => console.error("Error deleting post:", err));
+                }).catch(err => {
+                    console.error("Error deleting post:", err);
+                    showAlert('Error deleting post.');
+                });
+            });
+        }
+        if (pinBtn) {
+            const postId = pinBtn.dataset.postId;
+            const postsRef = collection(db, "contributorPosts");
+            const q = query(postsRef, where("isPinned", "==", true));
+            const pinnedSnapshot = await getDocs(q);
+            if (pinnedSnapshot.size < 3) {
+                await updateDoc(doc(db, "contributorPosts", postId), { isPinned: true });
+                showAlert('Post pinned.');
+            } else {
+                showAlert('You can only pin a maximum of 3 posts.');
             }
+        }
+
+        if (unpinBtn) {
+            const postId = unpinBtn.dataset.postId;
+            await updateDoc(doc(db, "contributorPosts", postId), { isPinned: false });
+            showAlert('Post unpinned.');
         }
     });
 
@@ -599,8 +719,8 @@
         const deleteBtn = e.target.closest('.delete-conversation-btn');
         
         if(chatBtn) {
-             const item = chatBtn.closest('.inbox-item');
-             openChatWithUser(item.dataset.userId, item.dataset.userName, item.dataset.title);
+           const item = chatBtn.closest('.inbox-item');
+           openChatWithUser(item.dataset.userId, item.dataset.userName, item.dataset.title);
         }
 
         if (deleteBtn) {
@@ -608,7 +728,7 @@
             const item = deleteBtn.closest('.inbox-item');
             const otherUserId = item.dataset.userId;
             const title = item.dataset.title;
-            if (confirm(`Are you sure you want to hide this conversation with ${item.dataset.userName}? The other user will still see it.`)) {
+            showConfirmation(`Are you sure you want to hide this conversation with ${item.dataset.userName}? The other user will still see it.`, async () => {
                 const conversationId = [auth.currentUser.uid, otherUserId].sort().join('_') + `_${title}`;
                 const conversationRef = doc(db, 'conversations', conversationId);
                 
@@ -616,7 +736,7 @@
                     hiddenFor: arrayUnion(auth.currentUser.uid)
                 });
                 showAlert('Conversation hidden.');
-            }
+            });
         }
     });
 
@@ -656,7 +776,7 @@
                          <div class="text-xs text-gray-400 text-right pl-2">
                             <p>${timestamp}</p>
                             <button class="text-red-500 hover:text-red-700 mt-1 delete-conversation-btn">
-                               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
                             </button>
                         </div>
                     `;
@@ -717,4 +837,3 @@
 </script>
 </body>
 </html>
-
