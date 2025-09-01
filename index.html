@@ -251,12 +251,12 @@
                         <button data-command="italic" class="px-2 py-1 text-sm italic border rounded rich-text-btn">I</button>
                         <button data-command="strikeThrough" class="px-2 py-1 text-sm line-through border rounded rich-text-btn">S</button>
                         <div class="flex items-center space-x-1">
-                            <label for="warningColor" class="text-xs">Text:</label>
-                            <input type="color" id="warningColor" data-command="foreColor" value="#000000" class="h-6 w-6 p-0 border-none cursor-pointer rich-text-btn" title="Text Color">
+                            <label for="warningColorPalette" class="text-xs">Text:</label>
+                             <div id="warningColorPalette" class="flex space-x-1"></div>
                         </div>
                         <div class="flex items-center space-x-1">
-                            <label for="warningBgColor" class="text-xs">BG:</label>
-                            <input type="color" id="warningBgColor" data-command="hiliteColor" value="#FFFFFF" class="h-6 w-6 p-0 border-none cursor-pointer rich-text-btn" title="Background Color">
+                            <label for="warningBgColorPalette" class="text-xs">BG:</label>
+                            <div id="warningBgColorPalette" class="flex space-x-1"></div>
                         </div>
                      </div>
                      <div id="warningMessage" contenteditable="true" placeholder="Enter warning message..." class="mt-1 w-full p-2 h-24 overflow-y-auto text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
@@ -832,27 +832,62 @@
         editor.focus();
         document.execCommand(command, false, value);
     }
+    
+    const colors = ['#000000', '#EF4444', '#F97316', '#EAB308', '#22C55E', '#3B82F6', '#8B5CF6', '#FFFFFF', '#DC2626', '#EA580C', '#D97706', '#16A34A', '#2563EB', '#7C3AED'];
+    
+    function createPalette(paletteContainer, command) {
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'w-5 h-5 rounded border border-gray-400 flex items-center justify-center text-red-500 rich-text-btn';
+        removeBtn.innerHTML = '&#10005;';
+        removeBtn.title = "Remove Color";
+        removeBtn.dataset.command = command;
+        removeBtn.dataset.remove = "true";
+        paletteContainer.appendChild(removeBtn);
+
+        colors.forEach(color => {
+            const swatch = document.createElement('button');
+            swatch.className = 'w-5 h-5 rounded border border-gray-400 rich-text-btn';
+            swatch.style.backgroundColor = color;
+            swatch.dataset.command = command;
+            swatch.dataset.value = color;
+            paletteContainer.appendChild(swatch);
+        });
+    }
+
+    createPalette(document.getElementById('warningColorPalette'), 'foreColor');
+    createPalette(document.getElementById('warningBgColorPalette'), 'hiliteColor');
 
     adminModal.querySelectorAll('.rich-text-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            const command = e.currentTarget.dataset.command;
-            let value = e.currentTarget.type === 'color' ? e.currentTarget.value : null;
-            applyStyle(warningMessage, command, value);
             e.preventDefault();
+            const command = e.currentTarget.dataset.command;
+            
+            if (e.currentTarget.dataset.remove === 'true') {
+                if (command === 'foreColor') {
+                    const defaultColor = document.documentElement.classList.contains('dark') ? '#f9fafb' : '#1f2937';
+                    applyStyle(warningMessage, command, defaultColor);
+                } else if (command === 'hiliteColor') {
+                     const defaultBg = document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF';
+                    applyStyle(warningMessage, command, defaultBg);
+                }
+            } else if (e.currentTarget.dataset.value) {
+                applyStyle(warningMessage, command, e.currentTarget.dataset.value);
+            } else {
+                 applyStyle(warningMessage, command);
+            }
         });
-        if (btn.type === 'color') {
-            btn.addEventListener('input', (e) => {
-                applyStyle(warningMessage, e.currentTarget.dataset.command, e.currentTarget.value);
-            });
-        }
     });
 
     chatView.querySelectorAll('.rich-text-btn').forEach(btn => {
          btn.addEventListener('click', (e) => {
+            e.preventDefault();
             const command = e.currentTarget.dataset.command;
             let value = e.currentTarget.type === 'color' ? e.currentTarget.value : null;
-            applyStyle(messageInput, command, value);
-            e.preventDefault();
+            if (command && !value) {
+                 applyStyle(messageInput, command);
+            } else if (command && value) {
+                applyStyle(messageInput, command, value);
+            }
         });
         if (btn.type === 'color') {
             btn.addEventListener('input', (e) => {
