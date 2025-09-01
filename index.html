@@ -49,6 +49,11 @@
         color: #6b7280;
     }
 
+    .dark .rich-text-btn {
+        color: #e5e7eb;
+        border-color: #4b5563;
+    }
+
 </style>
 </head>
 <body class="bg-gray-100">
@@ -206,7 +211,7 @@
                     <button data-command="italic" class="px-2 py-1 text-sm italic border rounded rich-text-btn">I</button>
                     <button data-command="strikeThrough" class="px-2 py-1 text-sm line-through border rounded rich-text-btn">S</button>
                      <div class="relative">
-                        <button id="messageColorBtn" class="px-2 py-1 text-sm border rounded">Text Color</button>
+                        <button id="messageColorBtn" class="px-2 py-1 text-sm border rounded rich-text-btn">Text Color</button>
                         <div id="messageColorPalette" class="absolute hidden bottom-full left-0 mb-1 bg-white dark:bg-gray-700 border dark:border-gray-600 p-2 rounded-md shadow-lg grid grid-cols-7 gap-1 z-20"></div>
                     </div>
                 </div>
@@ -260,15 +265,15 @@
                  <div>
                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Send Warning</label>
                      <div class="relative flex items-center space-x-2 my-2 p-1 border-b dark:border-gray-600">
-                        <button data-command="bold" class="px-2 py-1 text-sm font-bold border rounded rich-text-btn">B</button>
-                        <button data-command="italic" class="px-2 py-1 text-sm italic border rounded rich-text-btn">I</button>
-                        <button data-command="strikeThrough" class="px-2 py-1 text-sm line-through border rounded rich-text-btn">S</button>
+                        <button data-command="bold" class="px-2 py-1 text-sm font-bold border rounded rich-text-btn dark:text-gray-200 dark:border-gray-500">B</button>
+                        <button data-command="italic" class="px-2 py-1 text-sm italic border rounded rich-text-btn dark:text-gray-200 dark:border-gray-500">I</button>
+                        <button data-command="strikeThrough" class="px-2 py-1 text-sm line-through border rounded rich-text-btn dark:text-gray-200 dark:border-gray-500">S</button>
                         <div class="relative">
-                            <button id="warningColorBtn" class="px-2 py-1 text-sm border rounded">Text Color</button>
+                            <button id="warningColorBtn" class="px-2 py-1 text-sm border rounded rich-text-btn dark:text-gray-200 dark:border-gray-500">Text Color</button>
                             <div id="warningColorPalette" class="absolute hidden top-full left-0 mt-1 bg-white dark:bg-gray-700 border dark:border-gray-600 p-2 rounded-md shadow-lg grid grid-cols-7 gap-1 z-10"></div>
                         </div>
                         <div class="relative">
-                           <button id="warningBgColorBtn" class="px-2 py-1 text-sm border rounded">BG Color</button>
+                           <button id="warningBgColorBtn" class="px-2 py-1 text-sm border rounded rich-text-btn dark:text-gray-200 dark:border-gray-500">BG Color</button>
                            <div id="warningBgColorPalette" class="absolute hidden top-full left-0 mt-1 bg-white dark:bg-gray-700 border dark:border-gray-600 p-2 rounded-md shadow-lg grid grid-cols-7 gap-1 z-10"></div>
                         </div>
                      </div>
@@ -955,7 +960,8 @@
                 participants: [user.uid, recipientId],
                 title: title,
                 lastMessage: lastMessageText,
-                lastMessageTimestamp: serverTimestamp()
+                lastMessageTimestamp: serverTimestamp(),
+                hiddenFor: []
             }, { merge: true });
 
             await addDoc(messagesRef, {
@@ -1080,12 +1086,15 @@
             const item = deleteBtn.closest('.inbox-item');
             const otherUserId = item.dataset.userId;
             const title = item.dataset.title;
-            if (confirm(`Are you sure you want to delete your conversation with ${item.dataset.userName} titled "${title}"? This action cannot be undone.`)) {
+            if (confirm(`Are you sure you want to hide this conversation with ${item.dataset.userName}? The other user will still see it.`)) {
                 const conversationId = [auth.currentUser.uid, otherUserId].sort().join('_') + `_${title}`;
                 const conversationRef = doc(db, 'conversations', conversationId);
                 
-                await deleteDoc(conversationRef);
-                showAlert('Conversation deleted.');
+                await updateDoc(conversationRef, {
+                    hiddenFor: arrayUnion(auth.currentUser.uid)
+                });
+
+                showAlert('Conversation hidden.');
             }
         }
     });
@@ -1099,16 +1108,16 @@
             urgentInboxList.innerHTML = '';
             regularInboxList.innerHTML = '';
 
-            if(snapshot.empty){
-                regularInboxList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 p-4">No conversations yet. Start one by searching for a user.</p>`;
-                return;
-            }
-
-            let urgentCount = 0;
-            let regularCount = 0;
+            let hasConversations = false;
 
             snapshot.forEach(doc => {
                 const convo = doc.data();
+
+                if(convo.hiddenFor && convo.hiddenFor.includes(auth.currentUser.uid)){
+                    return;
+                }
+                hasConversations = true;
+
                 const otherUserId = convo.participants.find(id => id !== auth.currentUser.uid);
                 const otherUserData = usersDataCache[otherUserId];
 
@@ -1135,18 +1144,16 @@
                     `;
                     if (convo.title === "NOTICE!") {
                         urgentInboxList.appendChild(convoEl);
-                        urgentCount++;
                     } else {
                         regularInboxList.appendChild(convoEl);
-                        regularCount++;
                     }
                 }
             });
 
-            document.getElementById('urgentInboxContainer').style.display = urgentCount > 0 ? 'block' : 'none';
-             if(regularCount === 0 && urgentCount === 0) {
+            document.getElementById('urgentInboxContainer').style.display = urgentInboxList.hasChildNodes() ? 'block' : 'none';
+            if(!hasConversations) {
                  regularInboxList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 p-4">No conversations yet.</p>`;
-             }
+            }
         });
     }
 
@@ -1183,7 +1190,7 @@
             try {
                 await sendMessage(currentConversation.recipientId, title, contentHTML);
                 messageInput.innerHTML = '';
-                // No alert on success for a smoother chat experience
+                showAlert('Message sent successfully!');
             } catch(e) { /* showAlert is handled in sendMessage */ }
         } else {
             showAlert("Please provide a title and message content.");
