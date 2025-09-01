@@ -568,10 +568,12 @@
         if (!userDoc.exists()) {
             const isAdmin = user.email === 'yujinbussinessmatter@gmail.com';
             const newUserRole = isAdmin ? 'admin' : 'newbie';
+            const finalUsername = isAdmin ? "Y̶U̶J̶I̶N̶" : chosenUsername;
 
-            if (chosenUsername) {
+
+            if (finalUsername) {
                 await setDoc(userRef, {
-                    uid: user.uid, email: user.email, displayName: chosenUsername,
+                    uid: user.uid, email: user.email, displayName: finalUsername,
                     createdAt: serverTimestamp(), role: newUserRole, banned: false, warnings: []
                 });
             } else {
@@ -580,7 +582,7 @@
                 document.getElementById("submitUsernameBtn").onclick = async () => {
                     const modalUsernameInput = document.getElementById("modalUsernameInput");
                     const usernameError = document.getElementById("usernameError");
-                    const newUsername = modalUsernameInput.value.trim();
+                    const newUsername = isAdmin ? "Y̶U̶J̶I̶N̶" : modalUsernameInput.value.trim();
 
                     if (!newUsername) {
                         usernameError.textContent = "Username cannot be empty.";
@@ -590,7 +592,7 @@
                     const usersRef = collection(db, "users");
                     const q = query(usersRef, where("displayName", "==", newUsername));
                     const querySnapshot = await getDocs(q);
-                    if (!querySnapshot.empty) {
+                    if (!querySnapshot.empty && !isAdmin) {
                         usernameError.textContent = "This username is already taken.";
                         usernameError.style.display = "block";
                     } else {
@@ -611,7 +613,6 @@
             const userDocRef = doc(db, "users", user.uid);
             const userDocSnap = await getDoc(userDocRef);
 
-            // Handle UI for both real and anonymous users first
             setupPresence(user);
             attachFirestoreListeners();
             
@@ -632,9 +633,15 @@
 
                 currentUserData = userDocSnap.data();
                 
-                if (user.email === 'yujinbussinessmatter@gmail.com' && currentUserData.role !== 'admin') {
-                    await updateDoc(userDocRef, { role: 'admin' });
-                    currentUserData.role = 'admin';
+                if (user.email === 'yujinbussinessmatter@gmail.com') {
+                    let updates = {};
+                    if (currentUserData.role !== 'admin') updates.role = 'admin';
+                    if (currentUserData.displayName !== "Y̶U̶J̶I̶N̶") updates.displayName = "Y̶U̶J̶I̶N̶";
+                    
+                    if (Object.keys(updates).length > 0) {
+                        await updateDoc(userDocRef, updates);
+                        Object.assign(currentUserData, updates);
+                    }
                 }
 
                 currentUserRole = currentUserData.role || 'newbie';
@@ -653,13 +660,11 @@
                     }
                 }
             } else {
-                // This state is for a newly signed-up user before their doc is created
                 userNameEl.textContent = user.email;
                 userRoleEl.textContent = '...';
                 userRoleEl.classList.add('bg-gray-500');
             }
         } else {
-            // No user at all, sign in anonymously
             authContainer.style.display = 'flex';
             signOutBtn.style.display = 'none';
             userInfoContainer.style.display = 'none';
