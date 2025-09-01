@@ -69,7 +69,7 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     <!-- User Info Display -->
-                    <div id="userInfoContainer" class="flex items-center space-x-2" style="display: none;">
+                    <div id="userInfoContainer" class="flex items-center space-x-2 cursor-pointer" style="display: none;">
                         <span id="userName" class="text-sm font-medium text-gray-800 dark:text-gray-200"></span>
                         <span id="userRole" class="px-2 py-0.5 text-xs font-semibold text-white rounded-full"></span>
                     </div>
@@ -167,6 +167,27 @@
     </main>
     
     <!-- Modals -->
+    <div id="userProfileModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-md">
+            <div class="flex justify-between items-start mb-4">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">User Profile</h3>
+                <button id="closeUserProfileModal" class="text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <p class="text-gray-800 dark:text-gray-200">Total Posts: <span id="profilePostCount" class="font-bold">0</span></p>
+                <div id="changeUsernameSection" style="display: none;">
+                    <label for="newUsernameInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Change Username</label>
+                    <div class="flex mt-1">
+                        <input type="text" id="newUsernameInput" placeholder="New username" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <button id="changeUsernameBtn" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-r-md hover:bg-indigo-700">Save</button>
+                    </div>
+                     <p id="changeUsernameError" class="text-xs text-red-500 mt-1" style="display: none;"></p>
+                </div>
+                <button id="closeAccountBtn" class="w-full px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 transition-all">Close My Account</button>
+            </div>
+        </div>
+    </div>
+
     <div id="postViewModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-2xl relative">
             <button id="closePostViewModal" class="absolute top-3 right-3 text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
@@ -302,8 +323,8 @@
 <script type="module">
     // Firebase imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInWithEmailAndPassword, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, onSnapshot, addDoc, query, orderBy, where, getDocs, updateDoc, deleteDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInWithEmailAndPassword, signInAnonymously, deleteUser } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, onSnapshot, addDoc, query, orderBy, where, getDocs, updateDoc, deleteDoc, arrayUnion, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
     const firebaseConfig = {
@@ -377,6 +398,16 @@
     const adminModal = document.getElementById('adminModal');
     const warningMessage = document.getElementById('warningMessage');
     
+    // User Profile Modal
+    const userProfileModal = document.getElementById('userProfileModal');
+    const closeUserProfileModal = document.getElementById('closeUserProfileModal');
+    const profilePostCount = document.getElementById('profilePostCount');
+    const changeUsernameSection = document.getElementById('changeUsernameSection');
+    const newUsernameInput = document.getElementById('newUsernameInput');
+    const changeUsernameBtn = document.getElementById('changeUsernameBtn');
+    const changeUsernameError = document.getElementById('changeUsernameError');
+    const closeAccountBtn = document.getElementById('closeAccountBtn');
+
 
     let currentUserRole = null;
     let usersDataCache = {};
