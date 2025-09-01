@@ -245,13 +245,19 @@
              <p id="adminModalUsername" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-4"></p>
              <div class="space-y-4">
                  <div>
-                     <label for="warningMessage" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Send Warning</label>
+                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Send Warning</label>
                      <div class="flex items-center space-x-2 my-2 p-1 border-b dark:border-gray-600">
                         <button data-command="bold" class="px-2 py-1 text-sm font-bold border rounded rich-text-btn">B</button>
                         <button data-command="italic" class="px-2 py-1 text-sm italic border rounded rich-text-btn">I</button>
                         <button data-command="strikeThrough" class="px-2 py-1 text-sm line-through border rounded rich-text-btn">S</button>
-                        <input type="color" data-command="foreColor" value="#000000" class="h-8 w-8 p-0 border-none cursor-pointer rich-text-btn" title="Text Color">
-                        <input type="color" data-command="hiliteColor" value="#FFFFFF" class="h-8 w-8 p-0 border-none cursor-pointer rich-text-btn" title="Background Color">
+                        <div class="flex items-center space-x-1">
+                            <label for="warningColor" class="text-xs">Text:</label>
+                            <input type="color" id="warningColor" data-command="foreColor" value="#000000" class="h-6 w-6 p-0 border-none cursor-pointer rich-text-btn" title="Text Color">
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <label for="warningBgColor" class="text-xs">BG:</label>
+                            <input type="color" id="warningBgColor" data-command="hiliteColor" value="#FFFFFF" class="h-6 w-6 p-0 border-none cursor-pointer rich-text-btn" title="Background Color">
+                        </div>
                      </div>
                      <div id="warningMessage" contenteditable="true" placeholder="Enter warning message..." class="mt-1 w-full p-2 h-24 overflow-y-auto text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
                      <button id="sendWarningBtn" class="mt-2 w-full px-4 py-2 text-sm font-semibold text-white bg-yellow-500 rounded-md hover:bg-yellow-600 transition-all">Send Warning</button>
