@@ -363,7 +363,7 @@
     const messageRecipientResults = document.getElementById('messageRecipientResults');
     const urgentInboxList = document.getElementById('urgentInboxList');
     const regularInboxList = document.getElementById('regularInboxList');
-    const messagingWith = document.getElementById('messagingWith');
+    const chatHeader = document.getElementById('chatHeader');
     const chatTitleInput = document.getElementById('chatTitleInput');
     const messageHistory = document.getElementById('messageHistory');
     const messageInput = document.getElementById('messageInput');
@@ -1049,7 +1049,7 @@
     
     function openChatWithUser(userId, userName, title = '') {
         currentConversation = { recipientId: userId, recipientName: userName, title: title };
-        messagingWith.querySelector('span').textContent = currentConversation.recipientName;
+        chatHeader.querySelector('span').textContent = currentConversation.recipientName;
         chatTitleInput.value = title;
         chatTitleInput.disabled = !!title; // Disable title input if it's an existing conversation
         inboxView.style.display = 'none';
