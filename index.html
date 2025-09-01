@@ -167,7 +167,7 @@
     </main>
     
     <!-- Modals -->
-    <div id="userProfileModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+     <div id="userProfileModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-md">
             <div class="flex justify-between items-start mb-4">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white">User Profile</h3>
@@ -1234,6 +1234,132 @@
         }
     });
 
+    userInfoContainer.addEventListener('click', async () => {
+        const user = auth.currentUser;
+        if (!user || user.isAnonymous) return;
+
+        const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid));
+        const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid));
+
+        const postSnap = await getDocs(postsQuery);
+        const contributorSnap = await getDocs(contributorPostsQuery);
+        
+        profilePostCount.textContent = postSnap.size + contributorSnap.size;
+
+        if (currentUserRole === 'admin' || currentUserRole === 'contributor') {
+            const thirtyDaysInMillis = 30 * 24 * 60 * 60 * 1000;
+            const lastChange = currentUserData.lastUsernameChange?.toMillis();
+            const now = Date.now();
+
+            if (lastChange && (now - lastChange < thirtyDaysInMillis)) {
+                const daysRemaining = Math.ceil((thirtyDaysInMillis - (now - lastChange)) / (1000 * 60 * 60 * 24));
+                changeUsernameBtn.disabled = true;
+                newUsernameInput.disabled = true;
+                changeUsernameError.textContent = `You can change your username again in ${daysRemaining} days.`;
+                changeUsernameError.style.display = 'block';
+            } else {
+                 changeUsernameBtn.disabled = false;
+                 newUsernameInput.disabled = false;
+                 changeUsernameError.style.display = 'none';
+            }
+            changeUsernameSection.style.display = 'block';
+        } else {
+            changeUsernameSection.style.display = 'none';
+        }
+
+        userProfileModal.style.display = 'flex';
+    });
+
+    closeUserProfileModal.addEventListener('click', () => {
+        userProfileModal.style.display = 'none';
+    });
+
+    changeUsernameBtn.addEventListener('click', async () => {
+        const newUsername = newUsernameInput.value.trim();
+        const user = auth.currentUser;
+        changeUsernameError.style.display = 'none';
+
+        if (!newUsername) {
+            changeUsernameError.textContent = "New username cannot be empty.";
+            changeUsernameError.style.display = 'block';
+            return;
+        }
+
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("displayName", "==", newUsername));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            changeUsernameError.textContent = "This username is already taken.";
+            changeUsernameError.style.display = 'block';
+            return;
+        }
+
+        const batch = writeBatch(db);
+        const userRef = doc(db, "users", user.uid);
+        batch.update(userRef, { 
+            displayName: newUsername,
+            lastUsernameChange: serverTimestamp()
+        });
+
+        const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid));
+        const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid));
+
+        const postSnap = await getDocs(postsQuery);
+        postSnap.forEach(postDoc => {
+            batch.update(postDoc.ref, { authorName: newUsername });
+        });
+
+        const contributorSnap = await getDocs(contributorPostsQuery);
+        contributorSnap.forEach(postDoc => {
+            batch.update(postDoc.ref, { authorName: newUsername });
+        });
+
+        try {
+            await batch.commit();
+            showAlert("Username updated successfully!");
+            userProfileModal.style.display = 'none';
+        } catch (error) {
+            console.error("Error updating username:", error);
+            showAlert("Failed to update username. Please try again.");
+        }
+    });
+
+    closeAccountBtn.addEventListener('click', async () => {
+        const user = auth.currentUser;
+        if (!user || user.isAnonymous) return;
+
+        if (confirm("Are you sure you want to close your account? This action will rename all your posts to '[Deleted User]' and permanently ban you from posting. This cannot be undone.")) {
+            const batch = writeBatch(db);
+            const userRef = doc(db, "users", user.uid);
+            batch.update(userRef, { displayName: "[Deleted User]", banned: true });
+
+            const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid));
+            const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid));
+
+            const postSnap = await getDocs(postsQuery);
+            postSnap.forEach(postDoc => {
+                batch.update(postDoc.ref, { authorName: "[Deleted User]" });
+            });
+
+            const contributorSnap = await getDocs(contributorPostsQuery);
+            contributorSnap.forEach(postDoc => {
+                batch.update(postDoc.ref, { authorName: "[Deleted User]" });
+            });
+
+            try {
+                await batch.commit();
+                // We don't delete the user from auth so they can't re-register the email
+                // but we sign them out.
+                await signOut(auth);
+                showAlert("Your account has been closed.");
+                userProfileModal.style.display = 'none';
+            } catch (error) {
+                console.error("Error closing account:", error);
+                showAlert("Failed to close account. Please try again.");
+            }
+        }
+    });
 
 </script>
 </body>
