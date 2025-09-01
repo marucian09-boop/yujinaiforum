@@ -246,17 +246,17 @@
              <div class="space-y-4">
                  <div>
                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Send Warning</label>
-                     <div class="flex items-center space-x-2 my-2 p-1 border-b dark:border-gray-600">
+                     <div class="relative flex items-center space-x-2 my-2 p-1 border-b dark:border-gray-600">
                         <button data-command="bold" class="px-2 py-1 text-sm font-bold border rounded rich-text-btn">B</button>
                         <button data-command="italic" class="px-2 py-1 text-sm italic border rounded rich-text-btn">I</button>
                         <button data-command="strikeThrough" class="px-2 py-1 text-sm line-through border rounded rich-text-btn">S</button>
-                        <div class="flex items-center space-x-1">
-                            <label for="warningColorPalette" class="text-xs">Text:</label>
-                             <div id="warningColorPalette" class="flex space-x-1"></div>
+                        <div class="relative">
+                            <button id="warningColorBtn" class="px-2 py-1 text-sm border rounded">Text Color</button>
+                            <div id="warningColorPalette" class="absolute hidden top-full left-0 mt-1 bg-white dark:bg-gray-700 border dark:border-gray-600 p-2 rounded-md shadow-lg grid grid-cols-7 gap-1"></div>
                         </div>
-                        <div class="flex items-center space-x-1">
-                            <label for="warningBgColorPalette" class="text-xs">BG:</label>
-                            <div id="warningBgColorPalette" class="flex space-x-1"></div>
+                        <div class="relative">
+                           <button id="warningBgColorBtn" class="px-2 py-1 text-sm border rounded">BG Color</button>
+                           <div id="warningBgColorPalette" class="absolute hidden top-full left-0 mt-1 bg-white dark:bg-gray-700 border dark:border-gray-600 p-2 rounded-md shadow-lg grid grid-cols-7 gap-1"></div>
                         </div>
                      </div>
                      <div id="warningMessage" contenteditable="true" placeholder="Enter warning message..." class="mt-1 w-full p-2 h-24 overflow-y-auto text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
@@ -835,45 +835,61 @@
     
     const colors = ['#000000', '#EF4444', '#F97316', '#EAB308', '#22C55E', '#3B82F6', '#8B5CF6', '#FFFFFF', '#DC2626', '#EA580C', '#D97706', '#16A34A', '#2563EB', '#7C3AED'];
     
-    function createPalette(paletteContainer, command) {
+    function createPalette(paletteContainer, command, editor) {
+        paletteContainer.innerHTML = ''; // Clear previous
         const removeBtn = document.createElement('button');
-        removeBtn.className = 'w-5 h-5 rounded border border-gray-400 flex items-center justify-center text-red-500 rich-text-btn';
+        removeBtn.className = 'w-5 h-5 rounded border border-gray-400 flex items-center justify-center text-red-500';
         removeBtn.innerHTML = '&#10005;';
         removeBtn.title = "Remove Color";
-        removeBtn.dataset.command = command;
-        removeBtn.dataset.remove = "true";
+        removeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (command === 'foreColor') {
+                const defaultColor = document.documentElement.classList.contains('dark') ? '#f9fafb' : '#1f2937';
+                applyStyle(editor, command, defaultColor);
+            } else if (command === 'hiliteColor') {
+                 const defaultBg = 'transparent';
+                applyStyle(editor, command, defaultBg);
+            }
+            paletteContainer.style.display = 'none';
+        });
         paletteContainer.appendChild(removeBtn);
 
         colors.forEach(color => {
             const swatch = document.createElement('button');
-            swatch.className = 'w-5 h-5 rounded border border-gray-400 rich-text-btn';
+            swatch.className = 'w-5 h-5 rounded border border-gray-400';
             swatch.style.backgroundColor = color;
-            swatch.dataset.command = command;
-            swatch.dataset.value = color;
+            swatch.addEventListener('click', (e) => {
+                 e.preventDefault();
+                 applyStyle(editor, command, color);
+                 paletteContainer.style.display = 'none';
+            });
             paletteContainer.appendChild(swatch);
         });
     }
+    
+    document.getElementById('warningColorBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const palette = document.getElementById('warningColorPalette');
+        createPalette(palette, 'foreColor', warningMessage);
+        palette.style.display = palette.style.display === 'none' ? 'grid' : 'none';
+        document.getElementById('warningBgColorPalette').style.display = 'none';
+    });
+    
+    document.getElementById('warningBgColorBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const palette = document.getElementById('warningBgColorPalette');
+        createPalette(palette, 'hiliteColor', warningMessage);
+        palette.style.display = palette.style.display === 'none' ? 'grid' : 'none';
+        document.getElementById('warningColorPalette').style.display = 'none';
+    });
 
-    createPalette(document.getElementById('warningColorPalette'), 'foreColor');
-    createPalette(document.getElementById('warningBgColorPalette'), 'hiliteColor');
 
     adminModal.querySelectorAll('.rich-text-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             const command = e.currentTarget.dataset.command;
-            
-            if (e.currentTarget.dataset.remove === 'true') {
-                if (command === 'foreColor') {
-                    const defaultColor = document.documentElement.classList.contains('dark') ? '#f9fafb' : '#1f2937';
-                    applyStyle(warningMessage, command, defaultColor);
-                } else if (command === 'hiliteColor') {
-                     const defaultBg = document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF';
-                    applyStyle(warningMessage, command, defaultBg);
-                }
-            } else if (e.currentTarget.dataset.value) {
-                applyStyle(warningMessage, command, e.currentTarget.dataset.value);
-            } else {
-                 applyStyle(warningMessage, command);
+            if(command){
+                applyStyle(warningMessage, command);
             }
         });
     });
@@ -1053,12 +1069,17 @@
                     convoEl.dataset.userId = otherUserId;
                     convoEl.dataset.userName = otherUserData.displayName;
                     
+                    const timestamp = convo.lastMessageTimestamp ? convo.lastMessageTimestamp.toDate().toLocaleString() : '';
                     const lastMessage = convo.lastMessage || '';
 
                     convoEl.innerHTML = `
-                        <div>
+                        <div class="flex-grow">
                             <p class="font-bold text-gray-800 dark:text-gray-200">${otherUserData.displayName}</p>
                             <p class="text-sm text-gray-500 dark:text-gray-400 truncate">${lastMessage}</p>
+                        </div>
+                         <div class="text-xs text-gray-400 text-right">
+                            <p>${timestamp}</p>
+                            <button class="text-red-500 hover:text-red-700 mt-1 delete-conversation-btn">Delete</button>
                         </div>
                     `;
                     inboxList.appendChild(convoEl);
