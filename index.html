@@ -191,11 +191,14 @@
                 <button id="backToInboxBtn" class="mb-2 text-sm text-indigo-600 dark:text-indigo-400 hover:underline">&larr; Back to Inbox</button>
                 <p id="messagingWith" class="text-sm font-medium mb-2">Chat with: <span class="font-bold"></span></p>
                 <div id="messageHistory" class="flex-grow overflow-y-auto bg-gray-50 dark:bg-gray-900 p-2 rounded-md mb-2 flex flex-col"></div>
-                <div class="flex items-center space-x-2 p-1 border-t dark:border-gray-600">
+                <div class="relative flex items-center space-x-2 p-1 border-t dark:border-gray-600">
                     <button data-command="bold" class="px-2 py-1 text-sm font-bold border rounded rich-text-btn">B</button>
                     <button data-command="italic" class="px-2 py-1 text-sm italic border rounded rich-text-btn">I</button>
                     <button data-command="strikeThrough" class="px-2 py-1 text-sm line-through border rounded rich-text-btn">S</button>
-                    <input type="color" data-command="foreColor" value="#000000" class="h-8 w-8 p-0 border-none cursor-pointer rich-text-btn" title="Text Color">
+                    <div class="relative">
+                        <button id="messageColorBtn" class="px-2 py-1 text-sm border rounded">Text Color</button>
+                        <div id="messageColorPalette" class="absolute hidden bottom-full left-0 mb-1 bg-white dark:bg-gray-700 border dark:border-gray-600 p-2 rounded-md shadow-lg grid grid-cols-7 gap-1"></div>
+                    </div>
                 </div>
                 <div class="flex">
                     <div id="messageInput" contenteditable="true" placeholder="Type your message..." class="flex-grow p-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-l-md h-24 overflow-y-auto"></div>
@@ -252,11 +255,11 @@
                         <button data-command="strikeThrough" class="px-2 py-1 text-sm line-through border rounded rich-text-btn">S</button>
                         <div class="relative">
                             <button id="warningColorBtn" class="px-2 py-1 text-sm border rounded">Text Color</button>
-                            <div id="warningColorPalette" class="absolute hidden top-full left-0 mt-1 bg-white dark:bg-gray-700 border dark:border-gray-600 p-2 rounded-md shadow-lg grid grid-cols-7 gap-1"></div>
+                            <div id="warningColorPalette" class="absolute hidden top-full left-0 mt-1 bg-white dark:bg-gray-700 border dark:border-gray-600 p-2 rounded-md shadow-lg grid grid-cols-7 gap-1 z-10"></div>
                         </div>
                         <div class="relative">
                            <button id="warningBgColorBtn" class="px-2 py-1 text-sm border rounded">BG Color</button>
-                           <div id="warningBgColorPalette" class="absolute hidden top-full left-0 mt-1 bg-white dark:bg-gray-700 border dark:border-gray-600 p-2 rounded-md shadow-lg grid grid-cols-7 gap-1"></div>
+                           <div id="warningBgColorPalette" class="absolute hidden top-full left-0 mt-1 bg-white dark:bg-gray-700 border dark:border-gray-600 p-2 rounded-md shadow-lg grid grid-cols-7 gap-1 z-10"></div>
                         </div>
                      </div>
                      <div id="warningMessage" contenteditable="true" placeholder="Enter warning message..." class="mt-1 w-full p-2 h-24 overflow-y-auto text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
