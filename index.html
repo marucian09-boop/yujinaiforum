@@ -450,6 +450,12 @@
         if (!document.getElementById('createAccountDropdownContainer').contains(event.target)) {
             createAccountDropdown.style.display = 'none';
         }
+         const colorPalettes = document.querySelectorAll('[id$="ColorPalette"]');
+        colorPalettes.forEach(palette => {
+            if (!palette.previousElementSibling.contains(event.target) && !palette.contains(event.target)) {
+                palette.style.display = 'none';
+            }
+        });
     });
 
 
@@ -897,22 +903,21 @@
         });
     });
 
+    document.getElementById('messageColorBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const palette = document.getElementById('messageColorPalette');
+        createPalette(palette, 'foreColor', messageInput);
+        palette.style.display = palette.style.display === 'none' ? 'grid' : 'none';
+    });
+
     chatView.querySelectorAll('.rich-text-btn').forEach(btn => {
          btn.addEventListener('click', (e) => {
             e.preventDefault();
             const command = e.currentTarget.dataset.command;
-            let value = e.currentTarget.type === 'color' ? e.currentTarget.value : null;
-            if (command && !value) {
-                 applyStyle(messageInput, command);
-            } else if (command && value) {
-                applyStyle(messageInput, command, value);
+            if(command){
+                applyStyle(messageInput, command);
             }
         });
-        if (btn.type === 'color') {
-            btn.addEventListener('input', (e) => {
-                applyStyle(messageInput, e.currentTarget.dataset.command, e.currentTarget.value);
-            });
-        }
     });
     
     
@@ -976,7 +981,7 @@
     };
 
     messagesBtn.addEventListener('click', () => {
-        if(auth.currentUser){
+        if(auth.currentUser && !auth.currentUser.isAnonymous){
             messagingModal.style.display = 'flex';
             inboxView.style.display = 'block';
             chatView.style.display = 'none';
@@ -1043,10 +1048,28 @@
         }
     });
     
-    inboxList.addEventListener('click', (e) => {
-        const target = e.target.closest('.inbox-item');
-        if(target && target.dataset.userId){
-            openChatWithUser(target.dataset.userId, target.dataset.userName);
+    inboxList.addEventListener('click', async (e) => {
+        const chatBtn = e.target.closest('.inbox-item-content');
+        const deleteBtn = e.target.closest('.delete-conversation-btn');
+        
+        if(chatBtn) {
+             const item = chatBtn.closest('.inbox-item');
+             openChatWithUser(item.dataset.userId, item.dataset.userName);
+        }
+
+        if (deleteBtn) {
+            e.stopPropagation();
+            const item = deleteBtn.closest('.inbox-item');
+            const otherUserId = item.dataset.userId;
+            if (confirm(`Are you sure you want to delete your conversation with ${item.dataset.userName}? This action cannot be undone.`)) {
+                const conversationId = [auth.currentUser.uid, otherUserId].sort().join('_');
+                const conversationRef = doc(db, 'conversations', conversationId);
+                // Note: This deletes the conversation log for both users.
+                // A more complex system would be needed for "delete for me" functionality.
+                await deleteDoc(conversationRef);
+                showAlert('Conversation deleted.');
+                loadInbox(); // Refresh inbox view
+            }
         }
     });
 
@@ -1068,7 +1091,7 @@
 
                 if(otherUserData) {
                     const convoEl = document.createElement('div');
-                    convoEl.className = 'inbox-item p-3 border-b dark:border-gray-600 flex justify-between items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700';
+                    convoEl.className = 'inbox-item p-3 border-b dark:border-gray-600 flex justify-between items-center';
                     convoEl.dataset.userId = otherUserId;
                     convoEl.dataset.userName = otherUserData.displayName;
                     
@@ -1076,13 +1099,15 @@
                     const lastMessage = convo.lastMessage || '';
 
                     convoEl.innerHTML = `
-                        <div class="flex-grow">
+                        <div class="flex-grow cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 inbox-item-content p-2 rounded-md">
                             <p class="font-bold text-gray-800 dark:text-gray-200">${otherUserData.displayName}</p>
                             <p class="text-sm text-gray-500 dark:text-gray-400 truncate">${lastMessage}</p>
                         </div>
-                         <div class="text-xs text-gray-400 text-right">
+                         <div class="text-xs text-gray-400 text-right pl-2">
                             <p>${timestamp}</p>
-                            <button class="text-red-500 hover:text-red-700 mt-1 delete-conversation-btn">Delete</button>
+                            <button class="text-red-500 hover:text-red-700 mt-1 delete-conversation-btn">
+                               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                            </button>
                         </div>
                     `;
                     inboxList.appendChild(convoEl);
@@ -1122,7 +1147,7 @@
             try {
                 await sendMessage(currentRecipient.id, contentHTML);
                 messageInput.innerHTML = '';
-                // No alert on success for a smoother chat experience
+                showAlert('Message sent successfully!');
             } catch(e) { /* showAlert is handled in sendMessage */ }
         }
     });
