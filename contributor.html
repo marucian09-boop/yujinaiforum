@@ -87,6 +87,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center space-x-4 h-12">
                 <a href="./index.html" class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">Home</a>
+                <a href="#" id="messagesBtn" class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">Messages</a>
                 <a href="./contributor.html" class="px-3 py-2 text-sm font-medium text-white bg-indigo-600 dark:bg-indigo-500 rounded-md">Contributor Section</a>
             </div>
         </div>
@@ -133,12 +134,60 @@
             <button id="closeAlertModal" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700">OK</button>
         </div>
     </div>
+
+    <div id="messagingModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-lg h-3/4 flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Direct Messages</h3>
+                <button id="closeMessagingModal" class="text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
+            </div>
+
+            <!-- Inbox View -->
+            <div id="inboxView">
+                <div class="relative mb-2">
+                    <input type="text" id="messageRecipientSearch" placeholder="Search for user to start a new chat..." class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md">
+                    <div id="messageRecipientResults" class="absolute w-full bg-white dark:bg-gray-600 border dark:border-gray-500 rounded-md mt-1 z-10" style="display: none;"></div>
+                </div>
+                <div id="urgentInboxContainer">
+                    <h4 class="text-sm font-bold text-red-600 dark:text-red-400 my-2">URGENT</h4>
+                    <div id="urgentInboxList"></div>
+                </div>
+                <div id="regularInboxContainer" class="mt-4">
+                     <h4 class="text-sm font-bold text-gray-600 dark:text-gray-300 my-2">Conversations</h4>
+                    <div id="regularInboxList" class="flex-grow overflow-y-auto"></div>
+                </div>
+            </div>
+
+            <!-- Chat View -->
+            <div id="chatView" class="h-full flex-col" style="display: none;">
+                <button id="backToInboxBtn" class="mb-2 text-sm text-indigo-600 dark:text-indigo-400 hover:underline">&larr; Back to Inbox</button>
+                <div id="chatHeader" class="mb-2">
+                    <p id="messagingWith" class="text-sm">Chat with: <span class="font-bold"></span></p>
+                    <input type="text" id="chatTitleInput" placeholder="Message Title" class="w-full px-3 py-1 mt-1 text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-300 rounded-md">
+                </div>
+                <div id="messageHistory" class="flex-grow overflow-y-auto bg-gray-50 dark:bg-gray-900 p-2 rounded-md mb-2 flex flex-col"></div>
+                <div class="relative flex items-center space-x-2 p-1 border-t dark:border-gray-600">
+                    <button data-command="bold" class="px-2 py-1 text-sm font-bold border rounded rich-text-btn">B</button>
+                    <button data-command="italic" class="px-2 py-1 text-sm italic border rounded rich-text-btn">I</button>
+                    <button data-command="strikeThrough" class="px-2 py-1 text-sm line-through border rounded rich-text-btn">S</button>
+                     <div class="relative">
+                        <button id="messageColorBtn" class="px-2 py-1 text-sm border rounded rich-text-btn">Text Color</button>
+                        <div id="messageColorPalette" class="absolute hidden bottom-full left-0 mb-1 bg-white dark:bg-gray-700 border dark:border-gray-600 p-2 rounded-md shadow-lg grid grid-cols-7 gap-1 z-20"></div>
+                    </div>
+                </div>
+                <div class="flex">
+                    <div id="messageInput" contenteditable="true" placeholder="Type your message..." class="flex-grow p-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-l-md h-24 overflow-y-auto"></div>
+                    <button id="sendMessageBtn" class="px-4 py-2 text-white bg-indigo-600 rounded-r-md hover:bg-indigo-700 self-end">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, where, getDocs, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4",
@@ -166,13 +215,31 @@
     const postList = document.getElementById("contributorPostList");
     const postViewModal = document.getElementById('postViewModal');
     const closePostViewModal = document.getElementById('closePostViewModal');
-     const alertModal = document.getElementById('alertModal');
+    const alertModal = document.getElementById('alertModal');
     const alertMessage = document.getElementById('alertMessage');
     const closeAlertModal = document.getElementById('closeAlertModal');
+    const messagesBtn = document.getElementById('messagesBtn');
+    const messagingModal = document.getElementById('messagingModal');
+    const closeMessagingModal = document.getElementById('closeMessagingModal');
+    const inboxView = document.getElementById('inboxView');
+    const chatView = document.getElementById('chatView');
+    const backToInboxBtn = document.getElementById('backToInboxBtn');
+    const messageRecipientSearch = document.getElementById('messageRecipientSearch');
+    const messageRecipientResults = document.getElementById('messageRecipientResults');
+    const urgentInboxList = document.getElementById('urgentInboxList');
+    const regularInboxList = document.getElementById('regularInboxList');
+    const chatHeader = document.getElementById('chatHeader');
+    const chatTitleInput = document.getElementById('chatTitleInput');
+    const messageHistory = document.getElementById('messageHistory');
+    const messageInput = document.getElementById('messageInput');
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
+
 
     let currentUserRole = null;
     let usersDataCache = {};
     let postDocsCache = [];
+    let currentConversation = null;
+    let messageListenerUnsubscribe = null;
 
     function showAlert(message) {
         alertMessage.textContent = message;
@@ -202,12 +269,12 @@
             const userDocRef = doc(db, "users", user.uid);
             const userDocSnap = await getDoc(userDocRef);
             
-            // Fetch all users to get author names for posts
             const usersColRef = collection(db, "users");
             onSnapshot(usersColRef, (snapshot) => {
                 snapshot.forEach(doc => {
                     usersDataCache[doc.id] = doc.data();
                 });
+                renderContributorPosts();
             });
 
             if (userDocSnap.exists()) {
@@ -348,6 +415,287 @@
     });
 
     closePostViewModal.addEventListener('click', () => postViewModal.style.display = 'none');
+    
+    // --- Rich Text Editor Logic for Messaging ---
+    function applyStyle(editor, command, value = null) {
+        editor.focus();
+        document.execCommand(command, false, value);
+    }
+    
+    const colors = ['#000000', '#EF4444', '#F97316', '#EAB308', '#22C55E', '#3B82F6', '#8B5CF6', '#FFFFFF', '#DC2626', '#EA580C', '#D97706', '#16A34A', '#2563EB', '#7C3AED'];
+    
+    function createPalette(paletteContainer, command, editor) {
+        paletteContainer.innerHTML = '';
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'w-5 h-5 rounded border border-gray-400 flex items-center justify-center text-red-500';
+        removeBtn.innerHTML = '&#10005;';
+        removeBtn.title = "Remove Color";
+        removeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const defaultColor = document.documentElement.classList.contains('dark') ? '#f9fafb' : '#1f2937';
+            applyStyle(editor, command, defaultColor);
+            paletteContainer.style.display = 'none';
+        });
+        paletteContainer.appendChild(removeBtn);
+
+        colors.forEach(color => {
+            const swatch = document.createElement('button');
+            swatch.className = 'w-5 h-5 rounded border border-gray-400';
+            swatch.style.backgroundColor = color;
+            swatch.addEventListener('click', (e) => {
+                 e.preventDefault();
+                 applyStyle(editor, command, color);
+                 paletteContainer.style.display = 'none';
+            });
+            paletteContainer.appendChild(swatch);
+        });
+    }
+
+    document.getElementById('messageColorBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const palette = document.getElementById('messageColorPalette');
+        createPalette(palette, 'foreColor', messageInput);
+        palette.style.display = palette.style.display === 'none' ? 'grid' : 'none';
+    });
+
+    chatView.querySelectorAll('.rich-text-btn').forEach(btn => {
+         btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const command = e.currentTarget.dataset.command;
+            if(command){
+                applyStyle(messageInput, command);
+            }
+        });
+    });
+
+    // --- Messaging Logic ---
+    async function sendMessage(recipientId, title, contentHTML) {
+        const user = auth.currentUser;
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = contentHTML;
+        const lastMessageText = tempDiv.textContent || tempDiv.innerText || '';
+
+        if (!user || !recipientId || !lastMessageText || !title) {
+            showAlert('Message failed to send. Title and content are required.');
+            return Promise.reject('Missing information');
+        }
+
+        const conversationId = [user.uid, recipientId].sort().join('_') + `_${title}`;
+        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
+        
+        try {
+            await setDoc(doc(db, 'conversations', conversationId), {
+                participants: [user.uid, recipientId],
+                title: title,
+                lastMessage: lastMessageText,
+                lastMessageTimestamp: serverTimestamp(),
+                hiddenFor: []
+            }, { merge: true });
+
+            await addDoc(messagesRef, {
+                senderId: user.uid,
+                recipientId: recipientId,
+                content: contentHTML,
+                createdAt: serverTimestamp()
+            });
+             return Promise.resolve();
+        } catch (error) {
+            console.error("Error sending message:", error);
+            showAlert(`Message failed to send. Please check your Firestore rules.`);
+            return Promise.reject(error);
+        }
+    }
+
+    messagesBtn.addEventListener('click', () => {
+        if(auth.currentUser && !auth.currentUser.isAnonymous){
+            messagingModal.style.display = 'flex';
+            inboxView.style.display = 'block';
+            chatView.style.display = 'none';
+            loadInbox();
+        } else {
+            showAlert('Please sign in to view messages.');
+        }
+    });
+    closeMessagingModal.addEventListener('click', () => {
+         messagingModal.style.display = 'none';
+         if(messageListenerUnsubscribe) messageListenerUnsubscribe();
+         currentConversation = null;
+         messageRecipientSearch.value = '';
+    });
+    backToInboxBtn.addEventListener('click', () => {
+        inboxView.style.display = 'block';
+        chatView.style.display = 'none';
+        if(messageListenerUnsubscribe) messageListenerUnsubscribe();
+        currentConversation = null;
+        loadInbox();
+    });
+
+    messageRecipientSearch.addEventListener('input', async (e) => {
+        const searchTerm = e.target.value.trim();
+        messageRecipientResults.innerHTML = '';
+        messageRecipientResults.style.display = 'none';
+
+        if(searchTerm.length < 2) return;
+
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where('displayName', '>=', searchTerm), where('displayName', '<=', searchTerm + '\uf8ff'));
+        const querySnapshot = await getDocs(q);
+        
+        querySnapshot.forEach(doc => {
+            if(doc.id === auth.currentUser.uid) return;
+            const user = doc.data();
+            const resultEl = document.createElement('div');
+            resultEl.textContent = user.displayName;
+            resultEl.className = 'p-2 hover:bg-gray-100 dark:hover:bg-gray-500 cursor-pointer';
+            resultEl.dataset.userId = doc.id;
+            resultEl.dataset.userName = user.displayName;
+            messageRecipientResults.appendChild(resultEl);
+        });
+
+        if(!querySnapshot.empty) {
+            messageRecipientResults.style.display = 'block';
+        }
+    });
+    
+    function openChatWithUser(userId, userName, title = '') {
+        currentConversation = { recipientId: userId, recipientName: userName, title: title };
+        chatHeader.querySelector('span').textContent = currentConversation.recipientName;
+        chatTitleInput.value = title;
+        chatTitleInput.disabled = !!title; 
+        inboxView.style.display = 'none';
+        chatView.style.display = 'flex';
+        loadMessageHistory();
+    }
+
+    messageRecipientResults.addEventListener('click', (e) => {
+        const target = e.target;
+        if(target.dataset.userId) {
+            openChatWithUser(target.dataset.userId, target.dataset.userName);
+            messageRecipientSearch.value = '';
+            messageRecipientResults.style.display = 'none';
+        }
+    });
+    
+    document.getElementById('inboxView').addEventListener('click', async (e) => {
+        const chatBtn = e.target.closest('.inbox-item-content');
+        const deleteBtn = e.target.closest('.delete-conversation-btn');
+        
+        if(chatBtn) {
+             const item = chatBtn.closest('.inbox-item');
+             openChatWithUser(item.dataset.userId, item.dataset.userName, item.dataset.title);
+        }
+
+        if (deleteBtn) {
+            e.stopPropagation();
+            const item = deleteBtn.closest('.inbox-item');
+            const otherUserId = item.dataset.userId;
+            const title = item.dataset.title;
+            if (confirm(`Are you sure you want to hide this conversation with ${item.dataset.userName}? The other user will still see it.`)) {
+                const conversationId = [auth.currentUser.uid, otherUserId].sort().join('_') + `_${title}`;
+                const conversationRef = doc(db, 'conversations', conversationId);
+                
+                await updateDoc(conversationRef, {
+                    hiddenFor: arrayUnion(auth.currentUser.uid)
+                });
+                showAlert('Conversation hidden.');
+            }
+        }
+    });
+
+    async function loadInbox() {
+        if(!auth.currentUser) return;
+        const convosRef = collection(db, 'conversations');
+        const q = query(convosRef, where('participants', 'array-contains', auth.currentUser.uid), orderBy('lastMessageTimestamp', 'desc'));
+
+        onSnapshot(q, (snapshot) => {
+            urgentInboxList.innerHTML = '';
+            regularInboxList.innerHTML = '';
+
+            let hasConversations = false;
+
+            snapshot.forEach(doc => {
+                const convo = doc.data();
+                if(convo.hiddenFor && convo.hiddenFor.includes(auth.currentUser.uid)) return;
+                hasConversations = true;
+
+                const otherUserId = convo.participants.find(id => id !== auth.currentUser.uid);
+                const otherUserData = usersDataCache[otherUserId];
+
+                if(otherUserData) {
+                    const convoEl = document.createElement('div');
+                    convoEl.className = 'inbox-item p-3 border-b dark:border-gray-600 flex justify-between items-center';
+                    convoEl.dataset.userId = otherUserId;
+                    convoEl.dataset.userName = otherUserData.displayName;
+                    convoEl.dataset.title = convo.title;
+                    
+                    const timestamp = convo.lastMessageTimestamp ? convo.lastMessageTimestamp.toDate().toLocaleString() : '';
+
+                    convoEl.innerHTML = `
+                        <div class="flex-grow cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 inbox-item-content p-2 rounded-md">
+                            <p class="font-bold text-gray-800 dark:text-gray-200">${convo.title}</p>
+                             <p class="text-sm text-gray-600 dark:text-gray-400">with ${otherUserData.displayName}</p>
+                        </div>
+                         <div class="text-xs text-gray-400 text-right pl-2">
+                            <p>${timestamp}</p>
+                            <button class="text-red-500 hover:text-red-700 mt-1 delete-conversation-btn">
+                               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                    `;
+                    if (convo.title === "NOTICE!") {
+                        urgentInboxList.appendChild(convoEl);
+                    } else {
+                        regularInboxList.appendChild(convoEl);
+                    }
+                }
+            });
+
+            document.getElementById('urgentInboxContainer').style.display = urgentInboxList.hasChildNodes() ? 'block' : 'none';
+            if(!hasConversations) {
+                 regularInboxList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 p-4">No conversations yet.</p>`;
+            }
+        });
+    }
+
+    function loadMessageHistory(){
+        if(messageListenerUnsubscribe) messageListenerUnsubscribe();
+        if(!currentConversation) return;
+
+        const conversationId = [auth.currentUser.uid, currentConversation.recipientId].sort().join('_') + `_${currentConversation.title}`;
+        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
+        const q = query(messagesRef, orderBy('createdAt'));
+
+        messageListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+            messageHistory.innerHTML = '';
+            snapshot.forEach(doc => {
+                const msg = doc.data();
+                const msgEl = document.createElement('div');
+                const isSender = msg.senderId === auth.currentUser.uid;
+                
+                msgEl.className = `p-2 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-indigo-500 text-white ml-auto' : 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 mr-auto'}`;
+                
+                msgEl.innerHTML = msg.content;
+
+                messageHistory.appendChild(msgEl);
+            });
+            messageHistory.scrollTop = messageHistory.scrollHeight;
+        });
+    }
+
+    sendMessageBtn.addEventListener('click', async () => {
+        const contentHTML = messageInput.innerHTML;
+        const title = chatTitleInput.value.trim();
+
+        if(messageInput.textContent.trim() && currentConversation && title) {
+            try {
+                await sendMessage(currentConversation.recipientId, title, contentHTML);
+                messageInput.innerHTML = '';
+                showAlert('Message sent successfully!');
+            } catch(e) { /* showAlert is handled in sendMessage */ }
+        } else {
+            showAlert("Please provide a title and message content.");
+        }
+    });
 </script>
 </body>
 </html>
