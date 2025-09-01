@@ -1,839 +1,1437 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Community Forum - Contributor Section</title>
+
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234f46e5'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E">
+
 <script src="https://cdn.tailwindcss.com"></script>
+
 <style>
-    /* Inter Font */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body {
-        font-family: 'Inter', sans-serif;
-        transition: background-color 0.3s, color 0.3s;
-    }
-    /* Simple fade-in animation for elements */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .fade-in {
-        animation: fadeIn 0.5s ease-out forwards;
-    }
 
-    /* Toggle switch styles */
-    .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
-    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-    input:checked + .slider { background-color: #4f46e5; }
-    input:checked + .slider:before { transform: translateX(26px); }
+    /* Inter Font */
 
-    /* Custom styles for dark mode compatibility */
-    .dark .bg-gray-100 { background-color: #1f2937; }
-    .dark .bg-gray-200 { background-color: #374151; }
-    .dark .text-gray-900 { color: #f9fafb; }
-    .dark .text-gray-500 { color: #d1d5db; }
-    .dark .text-gray-800 { color: #e5e7eb; }
-    .dark .border-gray-300 { border-color: #4b5563; }
-    .dark .ring-indigo-500 { ring-color: #818cf8; }
-    .dark .placeholder-gray-400::placeholder { color: #9ca3af; }
-    
-    [contenteditable=true]:empty:before {
-        content: attr(placeholder);
-        pointer-events: none;
-        display: block; /* For Firefox */
-        color: #9ca3af;
-    }
-    .dark [contenteditable=true]:empty:before {
-        color: #6b7280;
-    }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-    .dark .rich-text-btn {
-        color: #e5e7eb;
-        border-color: #4b5563;
-    }
+    body {
+
+        font-family: 'Inter', sans-serif;
+
+        transition: background-color 0.3s, color 0.3s;
+
+    }
+
+    /* Simple fade-in animation for elements */
+
+    @keyframes fadeIn {
+
+        from { opacity: 0; transform: translateY(10px); }
+
+        to { opacity: 1; transform: translateY(0); }
+
+    }
+
+    .fade-in {
+
+        animation: fadeIn 0.5s ease-out forwards;
+
+    }
+
+
+
+    /* Toggle switch styles */
+
+    .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+
+    .switch input { opacity: 0; width: 0; height: 0; }
+
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+
+    input:checked + .slider { background-color: #4f46e5; }
+
+    input:checked + .slider:before { transform: translateX(26px); }
+
+
+
+    /* Custom styles for dark mode compatibility */
+
+    .dark .bg-gray-100 { background-color: #1f2937; }
+
+    .dark .bg-gray-200 { background-color: #374151; }
+
+    .dark .text-gray-900 { color: #f9fafb; }
+
+    .dark .text-gray-500 { color: #d1d5db; }
+
+    .dark .text-gray-800 { color: #e5e7eb; }
+
+    .dark .border-gray-300 { border-color: #4b5563; }
+
+    .dark .ring-indigo-500 { ring-color: #818cf8; }
+
+    .dark .placeholder-gray-400::placeholder { color: #9ca3af; }
+
+    
+
+    [contenteditable=true]:empty:before {
+
+        content: attr(placeholder);
+
+        pointer-events: none;
+
+        display: block; /* For Firefox */
+
+        color: #9ca3af;
+
+    }
+
+    .dark [contenteditable=true]:empty:before {
+
+        color: #6b7280;
+
+    }
+
+
+
+    .dark .rich-text-btn {
+
+        color: #e5e7eb;
+
+        border-color: #4b5563;
+
+    }
+
+
+
 </style>
+
 </head>
+
 <body class="bg-gray-100">
 
+
+
 <div id="app-container">
-    <!-- Header -->
-    <header class="bg-white dark:bg-gray-800 shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center">
-                    <h1 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">Community Forum</h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <div id="userInfoContainer" class="flex items-center space-x-2 cursor-pointer" style="display: none;">
-                        <span id="userName" class="text-sm font-medium text-gray-800 dark:text-gray-200"></span>
-                        <span id="userRole" class="px-2 py-0.5 text-xs font-semibold text-white rounded-full"></span>
-                    </div>
-                    <!-- Dark Mode Toggle -->
-                    <label class="switch">
-                        <input type="checkbox" id="darkModeToggle">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-            </div>
-        </div>
-    </header>
 
-    <!-- Navigation -->
-    <nav class="bg-gray-200 dark:bg-gray-700">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center space-x-4 h-12">
-                <a href="./index.html" class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">Home</a>
-                <a href="#" id="messagesBtn" class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">Messages</a>
-                <a href="./contributor.html" class="px-3 py-2 text-sm font-medium text-white bg-indigo-600 dark:bg-indigo-500 rounded-md">Contributor Section</a>
-            </div>
-        </div>
-    </nav>
+    <!-- Header -->
+
+    <header class="bg-white dark:bg-gray-800 shadow-md">
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <div class="flex items-center justify-between h-16">
+
+                <div class="flex items-center">
+
+                    <h1 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">Community Forum</h1>
+
+                </div>
+
+                <div class="flex items-center space-x-4">
+
+                    <div id="userInfoContainer" class="flex items-center space-x-2 cursor-pointer" style="display: none;">
+
+                        <span id="userName" class="text-sm font-medium text-gray-800 dark:text-gray-200"></span>
+
+                        <span id="userRole" class="px-2 py-0.5 text-xs font-semibold text-white rounded-full"></span>
+
+                    </div>
+
+                    <!-- Dark Mode Toggle -->
+
+                    <label class="switch">
+
+                        <input type="checkbox" id="darkModeToggle">
+
+                        <span class="slider"></span>
+
+                    </label>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </header>
 
 
-    <!-- Main Content -->
-    <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div id="loading-state" class="text-center text-gray-500">
-            <p>Verifying access...</p>
-        </div>
 
-        <div id="contributor-content" style="display: none;" class="fade-in">
-            <!-- Post Creation Section -->
-            <section id="post-creation" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Create a Contributor Post</h2>
-                <div class="space-y-4">
-                    <input type="text" id="contributorPostTitle" placeholder="Post Title" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <textarea id="contributorPostContent" placeholder="Share something with fellow contributors..." class="w-full h-28 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400"></textarea>
-                </div>
-                <button id="createContributorPostBtn" class="mt-4 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">Create Post</button>
-            </section>
-            
-            <!-- Pinned Posts Section -->
-            <section id="pinned-posts-section" class="mt-8" style="display: none;">
-                <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                     <svg class="h-5 w-5 text-indigo-500 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                    Pinned Posts
-                </h3>
-                <div id="pinnedPostList" class="space-y-4">
-                    <!-- Pinned posts will be dynamically inserted here -->
-                </div>
-                <hr class="my-6 border-gray-300 dark:border-gray-600">
-            </section>
+    <!-- Navigation -->
 
-            <!-- Post List -->
-            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2 mt-8">All Contributor Posts</h3>
-            <div id="contributorPostList" class="mt-4 space-y-4">
-                <!-- Posts will be dynamically inserted here -->
-            </div>
-        </div>
-    </main>
+    <nav class="bg-gray-200 dark:bg-gray-700">
 
-    <!-- Modals -->
-    <div id="confirmModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-sm text-center">
-            <p id="confirmMessage" class="text-gray-800 dark:text-gray-200 mb-4"></p>
-            <div class="flex justify-center space-x-4">
-                <button id="confirmBtn" class="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700">Confirm</button>
-                <button id="cancelBtn" class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500">Cancel</button>
-            </div>
-        </div>
-    </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-    <div id="userProfileModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-md">
-            <div class="flex justify-between items-start mb-4">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">User Profile</h3>
-                <button id="closeUserProfileModal" class="text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
-            </div>
-            <div class="space-y-4">
-                <p class="text-gray-800 dark:text-gray-200">Total Posts: <span id="profilePostCount" class="font-bold">0</span></p>
-                <div id="changeUsernameSection" style="display: none;">
-                    <label for="newUsernameInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Change Username</label>
-                    <div class="flex mt-1">
-                        <input type="text" id="newUsernameInput" placeholder="New username" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <button id="changeUsernameBtn" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-r-md hover:bg-indigo-700">Save</button>
-                    </div>
-                      <p id="changeUsernameError" class="text-xs text-red-500 mt-1" style="display: none;"></p>
-                </div>
-                <button id="closeAccountBtn" class="w-full px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 transition-all">Close My Account</button>
-            </div>
-        </div>
-    </div>
-    <div id="postViewModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-2xl relative">
-            <button id="closePostViewModal" class="absolute top-3 right-3 text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
-            <h3 id="postViewTitle" class="text-xl font-bold text-gray-900 dark:text-white mb-2"></h3>
-            <div id="postViewMeta" class="text-xs text-gray-500 dark:text-gray-400 mb-4"></div>
-            <p id="postViewContent" class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap"></p>
-        </div>
-    </div>
-    
-      <div id="alertModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-sm text-center">
-            <p id="alertMessage" class="text-gray-800 dark:text-gray-200 mb-4"></p>
-            <button id="closeAlertModal" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700">OK</button>
-        </div>
-    </div>
+            <div class="flex items-center space-x-4 h-12">
 
-    <div id="messagingModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-lg h-3/4 flex flex-col">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Direct Messages</h3>
-                <button id="closeMessagingModal" class="text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
-            </div>
+                <a href="./index.html" class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">Home</a>
 
-            <!-- Inbox View -->
-            <div id="inboxView">
-                <div class="relative mb-2">
-                    <input type="text" id="messageRecipientSearch" placeholder="Search for user to start a new chat..." class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md">
-                    <div id="messageRecipientResults" class="absolute w-full bg-white dark:bg-gray-600 border dark:border-gray-500 rounded-md mt-1 z-10" style="display: none;"></div>
-                </div>
-                <div id="urgentInboxContainer">
-                    <h4 class="text-sm font-bold text-red-600 dark:text-red-400 my-2">URGENT</h4>
-                    <div id="urgentInboxList"></div>
-                </div>
-                <div id="regularInboxContainer" class="mt-4">
-                     <h4 class="text-sm font-bold text-gray-600 dark:text-gray-300 my-2">Conversations</h4>
-                    <div id="regularInboxList" class="flex-grow overflow-y-auto"></div>
-                </div>
-            </div>
+                <a href="#" id="messagesBtn" class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">Messages</a>
 
-            <!-- Chat View -->
-            <div id="chatView" class="h-full flex-col" style="display: none;">
-                <button id="backToInboxBtn" class="mb-2 text-sm text-indigo-600 dark:text-indigo-400 hover:underline">&larr; Back to Inbox</button>
-                <div id="chatHeader" class="mb-2">
-                    <p id="messagingWith" class="text-sm">Chat with: <span class="font-bold"></span></p>
-                    <input type="text" id="chatTitleInput" placeholder="Message Title" class="w-full px-3 py-1 mt-1 text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-300 rounded-md">
-                </div>
-                <div id="messageHistory" class="flex-grow overflow-y-auto bg-gray-50 dark:bg-gray-900 p-2 rounded-md mb-2 flex flex-col"></div>
-                <div class="relative flex items-center space-x-2 p-1 border-t dark:border-gray-600">
-                    <button data-command="bold" class="px-2 py-1 text-sm font-bold border rounded rich-text-btn">B</button>
-                    <button data-command="italic" class="px-2 py-1 text-sm italic border rounded rich-text-btn">I</button>
-                    <button data-command="strikeThrough" class="px-2 py-1 text-sm line-through border rounded rich-text-btn">S</button>
-                     <div class="relative">
-                        <button id="messageColorBtn" class="px-2 py-1 text-sm border rounded rich-text-btn">Text Color</button>
-                        <div id="messageColorPalette" class="absolute hidden bottom-full left-0 mb-1 bg-white dark:bg-gray-700 border dark:border-gray-600 p-2 rounded-md shadow-lg grid grid-cols-7 gap-1 z-20"></div>
-                    </div>
-                </div>
-                <div class="flex">
-                    <div id="messageInput" contenteditable="true" placeholder="Type your message..." class="flex-grow p-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-l-md h-24 overflow-y-auto"></div>
-                    <button id="sendMessageBtn" class="px-4 py-2 text-white bg-indigo-600 rounded-r-md hover:bg-indigo-700 self-end">Send</button>
-                </div>
-            </div>
-        </div>
-    </div>
+                <a href="./contributor.html" class="px-3 py-2 text-sm font-medium text-white bg-indigo-600 dark:bg-indigo-500 rounded-md">Contributor Section</a>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+
+
+
+    <!-- Main Content -->
+
+    <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+
+        <div id="loading-state" class="text-center text-gray-500">
+
+            <p>Verifying access...</p>
+
+        </div>
+
+
+
+        <div id="contributor-content" style="display: none;" class="fade-in">
+
+            <!-- Post Creation Section -->
+
+            <section id="post-creation" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Create a Contributor Post</h2>
+
+                <div class="space-y-4">
+
+                    <input type="text" id="contributorPostTitle" placeholder="Post Title" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+                    <textarea id="contributorPostContent" placeholder="Share something with fellow contributors..." class="w-full h-28 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400"></textarea>
+
+                </div>
+
+                <button id="createContributorPostBtn" class="mt-4 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">Create Post</button>
+
+            </section>
+
+
+
+            <!-- Post List -->
+
+            <div id="contributorPostList" class="mt-8 space-y-4">
+
+                <!-- Posts will be dynamically inserted here -->
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+
+    <!-- Modals -->
+
+    <div id="userProfileModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-md">
+
+            <div class="flex justify-between items-start mb-4">
+
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">User Profile</h3>
+
+                <button id="closeUserProfileModal" class="text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
+
+            </div>
+
+            <div class="space-y-4">
+
+                <p class="text-gray-800 dark:text-gray-200">Total Posts: <span id="profilePostCount" class="font-bold">0</span></p>
+
+                <div id="changeUsernameSection" style="display: none;">
+
+                    <label for="newUsernameInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Change Username</label>
+
+                    <div class="flex mt-1">
+
+                        <input type="text" id="newUsernameInput" placeholder="New username" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+                        <button id="changeUsernameBtn" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-r-md hover:bg-indigo-700">Save</button>
+
+                    </div>
+
+                     <p id="changeUsernameError" class="text-xs text-red-500 mt-1" style="display: none;"></p>
+
+                </div>
+
+                <button id="closeAccountBtn" class="w-full px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 transition-all">Close My Account</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="postViewModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-2xl relative">
+
+            <button id="closePostViewModal" class="absolute top-3 right-3 text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
+
+            <h3 id="postViewTitle" class="text-xl font-bold text-gray-900 dark:text-white mb-2"></h3>
+
+            <div id="postViewMeta" class="text-xs text-gray-500 dark:text-gray-400 mb-4"></div>
+
+            <p id="postViewContent" class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap"></p>
+
+        </div>
+
+    </div>
+
+    
+
+     <div id="alertModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-sm text-center">
+
+            <p id="alertMessage" class="text-gray-800 dark:text-gray-200 mb-4"></p>
+
+            <button id="closeAlertModal" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700">OK</button>
+
+        </div>
+
+    </div>
+
+
+
+    <div id="messagingModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-lg h-3/4 flex flex-col">
+
+            <div class="flex justify-between items-center mb-4">
+
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Direct Messages</h3>
+
+                <button id="closeMessagingModal" class="text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
+
+            </div>
+
+
+
+            <!-- Inbox View -->
+
+            <div id="inboxView">
+
+                <div class="relative mb-2">
+
+                    <input type="text" id="messageRecipientSearch" placeholder="Search for user to start a new chat..." class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md">
+
+                    <div id="messageRecipientResults" class="absolute w-full bg-white dark:bg-gray-600 border dark:border-gray-500 rounded-md mt-1 z-10" style="display: none;"></div>
+
+                </div>
+
+                <div id="urgentInboxContainer">
+
+                    <h4 class="text-sm font-bold text-red-600 dark:text-red-400 my-2">URGENT</h4>
+
+                    <div id="urgentInboxList"></div>
+
+                </div>
+
+                <div id="regularInboxContainer" class="mt-4">
+
+                     <h4 class="text-sm font-bold text-gray-600 dark:text-gray-300 my-2">Conversations</h4>
+
+                    <div id="regularInboxList" class="flex-grow overflow-y-auto"></div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Chat View -->
+
+            <div id="chatView" class="h-full flex-col" style="display: none;">
+
+                <button id="backToInboxBtn" class="mb-2 text-sm text-indigo-600 dark:text-indigo-400 hover:underline">&larr; Back to Inbox</button>
+
+                <div id="chatHeader" class="mb-2">
+
+                    <p id="messagingWith" class="text-sm">Chat with: <span class="font-bold"></span></p>
+
+                    <input type="text" id="chatTitleInput" placeholder="Message Title" class="w-full px-3 py-1 mt-1 text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-300 rounded-md">
+
+                </div>
+
+                <div id="messageHistory" class="flex-grow overflow-y-auto bg-gray-50 dark:bg-gray-900 p-2 rounded-md mb-2 flex flex-col"></div>
+
+                <div class="relative flex items-center space-x-2 p-1 border-t dark:border-gray-600">
+
+                    <button data-command="bold" class="px-2 py-1 text-sm font-bold border rounded rich-text-btn">B</button>
+
+                    <button data-command="italic" class="px-2 py-1 text-sm italic border rounded rich-text-btn">I</button>
+
+                    <button data-command="strikeThrough" class="px-2 py-1 text-sm line-through border rounded rich-text-btn">S</button>
+
+                     <div class="relative">
+
+                        <button id="messageColorBtn" class="px-2 py-1 text-sm border rounded rich-text-btn">Text Color</button>
+
+                        <div id="messageColorPalette" class="absolute hidden bottom-full left-0 mb-1 bg-white dark:bg-gray-700 border dark:border-gray-600 p-2 rounded-md shadow-lg grid grid-cols-7 gap-1 z-20"></div>
+
+                    </div>
+
+                </div>
+
+                <div class="flex">
+
+                    <div id="messageInput" contenteditable="true" placeholder="Type your message..." class="flex-grow p-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-l-md h-24 overflow-y-auto"></div>
+
+                    <button id="sendMessageBtn" class="px-4 py-2 text-white bg-indigo-600 rounded-r-md hover:bg-indigo-700 self-end">Send</button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 
+
+
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, where, getDocs, updateDoc, arrayUnion, writeBatch, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // IMPORTANT: Replace with your actual Firebase project configuration for security.
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_AUTH_DOMAIN",
-        databaseURL: "YOUR_DATABASE_URL",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_STORAGE_BUCKET",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID",
-        measurementId: "YOUR_MEASUREMENT_ID"
-    };
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-    const darkModeToggle = document.getElementById("darkModeToggle");
-    const userNameEl = document.getElementById("userName");
-    const userRoleEl = document.getElementById("userRole");
-    const contributorContent = document.getElementById("contributor-content");
-    const loadingState = document.getElementById("loading-state");
-    const createBtn = document.getElementById("createContributorPostBtn");
-    const postTitleInput = document.getElementById("contributorPostTitle");
-    const postContentInput = document.getElementById("contributorPostContent");
-    const postList = document.getElementById("contributorPostList");
-    const pinnedPostList = document.getElementById("pinnedPostList");
-    const pinnedPostsSection = document.getElementById("pinned-posts-section");
-    const postViewModal = document.getElementById('postViewModal');
-    const closePostViewModal = document.getElementById('closePostViewModal');
-    const alertModal = document.getElementById('alertModal');
-    const alertMessage = document.getElementById('alertMessage');
-    const closeAlertModal = document.getElementById('closeAlertModal');
-    const confirmModal = document.getElementById('confirmModal');
-    const confirmMessage = document.getElementById('confirmMessage');
-    const confirmBtn = document.getElementById('confirmBtn');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const messagesBtn = document.getElementById('messagesBtn');
-    const messagingModal = document.getElementById('messagingModal');
-    const closeMessagingModal = document.getElementById('closeMessagingModal');
-    const inboxView = document.getElementById('inboxView');
-    const chatView = document.getElementById('chatView');
-    const backToInboxBtn = document.getElementById('backToInboxBtn');
-    const messageRecipientSearch = document.getElementById('messageRecipientSearch');
-    const messageRecipientResults = document.getElementById('messageRecipientResults');
-    const urgentInboxList = document.getElementById('urgentInboxList');
-    const regularInboxList = document.getElementById('regularInboxList');
-    const chatHeader = document.getElementById('chatHeader');
-    const chatTitleInput = document.getElementById('chatTitleInput');
-    const messageHistory = document.getElementById('messageHistory');
-    const messageInput = document.getElementById('messageInput');
-    const sendMessageBtn = document.getElementById('sendMessageBtn');
+    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, where, getDocs, updateDoc, arrayUnion, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 
-    let currentUserRole = null;
-    let usersDataCache = {};
-    let postDocsCache = [];
-    let currentConversation = null;
-    let messageListenerUnsubscribe = null;
-    let currentUserData = null;
-    let confirmCallback = null;
 
-    // --- Custom Modals ---
-    function showAlert(message) {
-        alertMessage.textContent = message;
-        alertModal.style.display = 'flex';
-    }
-    closeAlertModal.onclick = () => alertModal.style.display = 'none';
+    const firebaseConfig = {
 
-    function showConfirmation(message, callback) {
-        confirmMessage.textContent = message;
-        confirmModal.style.display = 'flex';
-        confirmCallback = callback;
-    }
-    confirmBtn.onclick = () => {
-        if (confirmCallback) confirmCallback();
-        confirmModal.style.display = 'none';
-        confirmCallback = null;
-    };
-    cancelBtn.onclick = () => {
-        confirmModal.style.display = 'none';
-        confirmCallback = null;
-    };
+      apiKey: "AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4",
 
-    // --- Dark Mode ---
-    function applyDarkMode(isDark) {
-        document.documentElement.classList.toggle('dark', isDark);
-        localStorage.setItem("darkMode", isDark);
-    }
+      authDomain: "forum-3dec5.firebaseapp.com",
 
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const savedMode = localStorage.getItem("darkMode");
-    const initialDarkMode = savedMode !== null ? savedMode === 'true' : prefersDark;
-    darkModeToggle.checked = initialDarkMode;
-    applyDarkMode(initialDarkMode);
+      databaseURL: "https://forum-3dec5-default-rtdb.asia-southeast1.firebasedatabase.app",
 
-    darkModeToggle.addEventListener("change", (e) => {
-        applyDarkMode(e.target.checked);
-    });
+      projectId: "forum-3dec5",
 
-    // --- Authentication & Authorization ---
-    onAuthStateChanged(auth, async (user) => {
-        if (user && !user.isAnonymous) {
-            const userDocRef = doc(db, "users", user.uid);
-            const userDocSnap = await getDoc(userDocRef);
-            
-            // Cache all user data for author lookups
-            const usersColRef = collection(db, "users");
-            onSnapshot(usersColRef, (snapshot) => {
-                snapshot.forEach(doc => {
-                    usersDataCache[doc.id] = doc.data();
-                });
-                renderContributorPosts(); // Re-render posts if user data updates (e.g., name change)
-            });
+      storageBucket: "forum-3dec5.firebasestorage.app",
 
-            if (userDocSnap.exists()) {
-                currentUserData = userDocSnap.data();
-                currentUserRole = currentUserData.role || 'newbie';
+      messagingSenderId: "519284298976",
 
-                document.getElementById('userInfoContainer').style.display = 'flex';
-                userNameEl.textContent = currentUserData.displayName || user.email;
-                userRoleEl.textContent = currentUserRole;
-                userRoleEl.className = 'px-2 py-0.5 text-xs font-semibold text-white rounded-full';
-                switch (currentUserRole) {
-                    case 'admin': userRoleEl.classList.add('bg-violet-500'); break;
-                    case 'contributor': userRoleEl.classList.add('bg-green-500'); break;
-                    default: userRoleEl.classList.add('bg-blue-500'); break;
-                }
-                
-                if (["admin", "contributor"].includes(currentUserRole)) {
-                    loadingState.style.display = 'none';
-                    contributorContent.style.display = 'block';
-                    loadContributorPosts();
-                } else {
-                    redirectToHome("Access denied. Contributors and Admins only.");
-                }
-            } else {
-                 redirectToHome("User data not found.");
-            }
-        } else {
-            redirectToHome("You must be signed in to view this page.");
-        }
-    });
+      appId: "1:519284298976:web:8bb5e94a44f202802c2c85",
 
-    function redirectToHome(message) {
-        console.log(message);
-        showAlert(message); // Using custom alert
-        // Delay redirect to allow user to see the message
-        setTimeout(() => {
-            window.location.href = window.location.href.replace("contributor.html", "index.html");
-        }, 2000);
-    }
+      measurementId: "G-SXS8FRTT03"
 
-    // --- Post Management ---
-    function loadContributorPosts() {
-        const postsRef = collection(db, "contributorPosts");
-        const q = query(postsRef, orderBy("createdAt", "desc"));
-        onSnapshot(q, (snapshot) => {
-            postDocsCache = snapshot.docs;
-            renderContributorPosts();
-        });
-    }
-    
-    function createPostElement(docSnap, pinnedCount) {
-        const post = docSnap.data();
-        const postId = docSnap.id;
-        const authorData = usersDataCache[post.authorId] || { displayName: 'Unknown' };
-
-        const postEl = document.createElement("div");
-        postEl.className = 'bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md fade-in flex items-start space-x-4';
-        const timestamp = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now';
-        
-        const isPinned = post.isPinned === true;
-
-        let adminControls = '';
-        if (currentUserRole === 'admin') {
-            const canPin = pinnedCount < 3;
-            const pinButtonDisabled = !isPinned && !canPin ? 'disabled' : '';
-            const pinButtonTitle = !isPinned && !canPin ? 'Maximum number of pinned posts reached' : (isPinned ? 'Unpin Post' : 'Pin Post');
-
-            const pinButtonHTML = `
-                <button data-post-id="${postId}" class="${isPinned ? 'unpin-post-btn' : 'pin-post-btn'} p-1 text-gray-400 hover:text-indigo-500 ${pinButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''}" title="${pinButtonTitle}" ${pinButtonDisabled}>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        ${isPinned 
-                            ? `<path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />` 
-                            : `<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />`
-                        }
-                    </svg>
-                </button>
-            `;
-            const deleteButtonHTML = `
-                <button data-post-id="${postId}" class="delete-post-btn p-1 text-gray-400 hover:text-red-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                </button>
-            `;
-            adminControls = `<div class="flex flex-col">${pinButtonHTML}${deleteButtonHTML}</div>`;
-        }
-        
-        const pinIconHTML = isPinned ? `
-            <svg class="h-5 w-5 text-indigo-500 mr-2 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-        ` : '';
-        
-        postEl.innerHTML = `
-            <div class="flex-grow">
-                <div class="font-bold text-gray-900 dark:text-white">${authorData.displayName}</div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">${timestamp}</div>
-                 <div class="flex items-center mt-2">
-                    ${pinIconHTML}
-                    <h4 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer view-post-btn" data-post-id="${postId}">${post.title}</h4>
-                </div>
-            </div>
-            <div class="flex-shrink-0">${adminControls}</div>
-        `;
-        return postEl;
-    }
+    };
 
 
-    function renderContributorPosts() {
-        pinnedPostList.innerHTML = "";
-        postList.innerHTML = "";
 
-        const pinnedDocs = postDocsCache.filter(doc => doc.data().isPinned);
-        const regularDocs = postDocsCache.filter(doc => !doc.data().isPinned);
-        
-        if (pinnedDocs.length > 0) {
-            pinnedPostsSection.style.display = 'block';
-            pinnedDocs.forEach(docSnap => {
-                const postEl = createPostElement(docSnap, pinnedDocs.length);
-                pinnedPostList.appendChild(postEl);
-            });
-        } else {
-            pinnedPostsSection.style.display = 'none';
-        }
+    const app = initializeApp(firebaseConfig);
 
-        regularDocs.forEach(docSnap => {
-            const postEl = createPostElement(docSnap, pinnedDocs.length);
-            postList.appendChild(postEl);
-        });
-    }
+    const auth = getAuth(app);
 
-    createBtn.addEventListener("click", async () => {
-        const title = postTitleInput.value.trim();
-        const content = postContentInput.value.trim();
-        const user = auth.currentUser;
-        if (!title || !content || !user) {
-            showAlert("Please provide a title and content for your post.");
-            return;
-        }
-        
-        const authorName = currentUserData.displayName || user.email;
+    const db = getFirestore(app);
 
-        try {
-            await addDoc(collection(db, "contributorPosts"), {
-                title: title,
-                content: content,
-                authorName: authorName,
-                authorId: user.uid,
-                createdAt: serverTimestamp(),
-                isPinned: false // Default value for new posts
-            });
-            postTitleInput.value = "";
-            postContentInput.value = "";
-        } catch (error) {
-            console.error("Error creating contributor post:", error);
-            showAlert("Could not create post. Please try again.");
-        }
-    });
-    
-    document.querySelector('main').addEventListener('click', async e => {
-        const viewBtn = e.target.closest('.view-post-btn');
-        const deleteBtn = e.target.closest('.delete-post-btn');
-        const pinBtn = e.target.closest('.pin-post-btn');
-        const unpinBtn = e.target.closest('.unpin-post-btn');
 
-        if (viewBtn) {
-            const postId = viewBtn.dataset.postId;
-            const postDoc = postDocsCache.find(doc => doc.id === postId);
-            if (postDoc) {
-                const post = postDoc.data();
-                const author = usersDataCache[post.authorId] || { displayName: "Unknown" };
-                document.getElementById('postViewTitle').textContent = post.title;
-                document.getElementById('postViewContent').textContent = post.content;
-                const dateString = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'N/A';
-                document.getElementById('postViewMeta').textContent = `Posted by ${author.displayName} on ${dateString}`;
-                postViewModal.style.display = 'flex';
-            }
-        }
-        if (deleteBtn) {
-            const postId = deleteBtn.dataset.postId;
-            showConfirmation('Are you sure you want to delete this post permanently?', () => {
-                deleteDoc(doc(db, "contributorPosts", postId)).then(() => {
-                    showAlert('Post deleted successfully.');
-                }).catch(err => {
-                    console.error("Error deleting post:", err);
-                    showAlert('Error deleting post.');
-                });
-            });
-        }
-        if (pinBtn) {
-            const postId = pinBtn.dataset.postId;
-            const postsRef = collection(db, "contributorPosts");
-            const q = query(postsRef, where("isPinned", "==", true));
-            const pinnedSnapshot = await getDocs(q);
-            if (pinnedSnapshot.size < 3) {
-                await updateDoc(doc(db, "contributorPosts", postId), { isPinned: true });
-                showAlert('Post pinned.');
-            } else {
-                showAlert('You can only pin a maximum of 3 posts.');
-            }
-        }
 
-        if (unpinBtn) {
-            const postId = unpinBtn.dataset.postId;
-            await updateDoc(doc(db, "contributorPosts", postId), { isPinned: false });
-            showAlert('Post unpinned.');
-        }
-    });
+    const darkModeToggle = document.getElementById("darkModeToggle");
 
-    closePostViewModal.addEventListener('click', () => postViewModal.style.display = 'none');
-    
-    // --- Rich Text Editor Logic for Messaging ---
-    function applyStyle(editor, command, value = null) {
-        editor.focus();
-        document.execCommand(command, false, value);
-    }
-    
-    const colors = ['#000000', '#EF4444', '#F97316', '#EAB308', '#22C55E', '#3B82F6', '#8B5CF6', '#FFFFFF', '#DC2626', '#EA580C', '#D97706', '#16A34A', '#2563EB', '#7C3AED'];
-    
-    function createPalette(paletteContainer, command, editor) {
-        paletteContainer.innerHTML = '';
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'w-5 h-5 rounded border border-gray-400 flex items-center justify-center text-red-500';
-        removeBtn.innerHTML = '&#10005;';
-        removeBtn.title = "Remove Color";
-        removeBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const defaultColor = document.documentElement.classList.contains('dark') ? '#f9fafb' : '#1f2937';
-            applyStyle(editor, command, defaultColor);
-            paletteContainer.style.display = 'none';
-        });
-        paletteContainer.appendChild(removeBtn);
+    const userNameEl = document.getElementById("userName");
 
-        colors.forEach(color => {
-            const swatch = document.createElement('button');
-            swatch.className = 'w-5 h-5 rounded border border-gray-400';
-            swatch.style.backgroundColor = color;
-            swatch.addEventListener('click', (e) => {
-                 e.preventDefault();
-                 applyStyle(editor, command, color);
-                 paletteContainer.style.display = 'none';
-            });
-            paletteContainer.appendChild(swatch);
-        });
-    }
+    const userRoleEl = document.getElementById("userRole");
 
-    document.getElementById('messageColorBtn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        const palette = document.getElementById('messageColorPalette');
-        createPalette(palette, 'foreColor', messageInput);
-        palette.style.display = palette.style.display === 'none' ? 'grid' : 'none';
-    });
+    const contributorContent = document.getElementById("contributor-content");
 
-    chatView.querySelectorAll('.rich-text-btn').forEach(btn => {
-         btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const command = e.currentTarget.dataset.command;
-            if(command){
-                applyStyle(messageInput, command);
-            }
-        });
-    });
+    const loadingState = document.getElementById("loading-state");
 
-    // --- Messaging Logic ---
-    async function sendMessage(recipientId, title, contentHTML) {
-        const user = auth.currentUser;
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = contentHTML;
-        const lastMessageText = tempDiv.textContent || tempDiv.innerText || '';
+    const createBtn = document.getElementById("createContributorPostBtn");
 
-        if (!user || !recipientId || !lastMessageText || !title) {
-            showAlert('Message failed to send. Title and content are required.');
-            return Promise.reject('Missing information');
-        }
+    const postTitleInput = document.getElementById("contributorPostTitle");
 
-        const conversationId = [user.uid, recipientId].sort().join('_') + `_${title}`;
-        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
-        
-        try {
-            await setDoc(doc(db, 'conversations', conversationId), {
-                participants: [user.uid, recipientId],
-                title: title,
-                lastMessage: lastMessageText,
-                lastMessageTimestamp: serverTimestamp(),
-                hiddenFor: []
-            }, { merge: true });
+    const postContentInput = document.getElementById("contributorPostContent");
 
-            await addDoc(messagesRef, {
-                senderId: user.uid,
-                recipientId: recipientId,
-                content: contentHTML,
-                createdAt: serverTimestamp()
-            });
-             return Promise.resolve();
-        } catch (error) {
-            console.error("Error sending message:", error);
-            showAlert(`Message failed to send. Please check your Firestore rules.`);
-            return Promise.reject(error);
-        }
-    }
+    const postList = document.getElementById("contributorPostList");
 
-    messagesBtn.addEventListener('click', () => {
-        if(auth.currentUser && !auth.currentUser.isAnonymous){
-            messagingModal.style.display = 'flex';
-            inboxView.style.display = 'block';
-            chatView.style.display = 'none';
-            loadInbox();
-        } else {
-            showAlert('Please sign in to view messages.');
-        }
-    });
-    closeMessagingModal.addEventListener('click', () => {
-         messagingModal.style.display = 'none';
-         if(messageListenerUnsubscribe) messageListenerUnsubscribe();
-         currentConversation = null;
-         messageRecipientSearch.value = '';
-    });
-    backToInboxBtn.addEventListener('click', () => {
-        inboxView.style.display = 'block';
-        chatView.style.display = 'none';
-        if(messageListenerUnsubscribe) messageListenerUnsubscribe();
-        currentConversation = null;
-        loadInbox();
-    });
+    const postViewModal = document.getElementById('postViewModal');
 
-    messageRecipientSearch.addEventListener('input', async (e) => {
-        const searchTerm = e.target.value.trim();
-        messageRecipientResults.innerHTML = '';
-        messageRecipientResults.style.display = 'none';
+    const closePostViewModal = document.getElementById('closePostViewModal');
 
-        if(searchTerm.length < 2) return;
+    const alertModal = document.getElementById('alertModal');
 
-        const usersRef = collection(db, "users");
-        const q = query(usersRef, where('displayName', '>=', searchTerm), where('displayName', '<=', searchTerm + '\uf8ff'));
-        const querySnapshot = await getDocs(q);
-        
-        querySnapshot.forEach(doc => {
-            if(doc.id === auth.currentUser.uid) return;
-            const user = doc.data();
-            const resultEl = document.createElement('div');
-            resultEl.textContent = user.displayName;
-            resultEl.className = 'p-2 hover:bg-gray-100 dark:hover:bg-gray-500 cursor-pointer';
-            resultEl.dataset.userId = doc.id;
-            resultEl.dataset.userName = user.displayName;
-            messageRecipientResults.appendChild(resultEl);
-        });
+    const alertMessage = document.getElementById('alertMessage');
 
-        if(!querySnapshot.empty) {
-            messageRecipientResults.style.display = 'block';
-        }
-    });
-    
-    function openChatWithUser(userId, userName, title = '') {
-        currentConversation = { recipientId: userId, recipientName: userName, title: title };
-        chatHeader.querySelector('span').textContent = currentConversation.recipientName;
-        chatTitleInput.value = title;
-        chatTitleInput.disabled = !!title; 
-        inboxView.style.display = 'none';
-        chatView.style.display = 'flex';
-        loadMessageHistory();
-    }
+    const closeAlertModal = document.getElementById('closeAlertModal');
 
-    messageRecipientResults.addEventListener('click', (e) => {
-        const target = e.target;
-        if(target.dataset.userId) {
-            openChatWithUser(target.dataset.userId, target.dataset.userName);
-            messageRecipientSearch.value = '';
-            messageRecipientResults.style.display = 'none';
-        }
-    });
-    
-    document.getElementById('inboxView').addEventListener('click', async (e) => {
-        const chatBtn = e.target.closest('.inbox-item-content');
-        const deleteBtn = e.target.closest('.delete-conversation-btn');
-        
-        if(chatBtn) {
-           const item = chatBtn.closest('.inbox-item');
-           openChatWithUser(item.dataset.userId, item.dataset.userName, item.dataset.title);
-        }
+    const messagesBtn = document.getElementById('messagesBtn');
 
-        if (deleteBtn) {
-            e.stopPropagation();
-            const item = deleteBtn.closest('.inbox-item');
-            const otherUserId = item.dataset.userId;
-            const title = item.dataset.title;
-            showConfirmation(`Are you sure you want to hide this conversation with ${item.dataset.userName}? The other user will still see it.`, async () => {
-                const conversationId = [auth.currentUser.uid, otherUserId].sort().join('_') + `_${title}`;
-                const conversationRef = doc(db, 'conversations', conversationId);
-                
-                await updateDoc(conversationRef, {
-                    hiddenFor: arrayUnion(auth.currentUser.uid)
-                });
-                showAlert('Conversation hidden.');
-            });
-        }
-    });
+    const messagingModal = document.getElementById('messagingModal');
 
-    async function loadInbox() {
-        if(!auth.currentUser) return;
-        const convosRef = collection(db, 'conversations');
-        const q = query(convosRef, where('participants', 'array-contains', auth.currentUser.uid), orderBy('lastMessageTimestamp', 'desc'));
+    const closeMessagingModal = document.getElementById('closeMessagingModal');
 
-        onSnapshot(q, (snapshot) => {
-            urgentInboxList.innerHTML = '';
-            regularInboxList.innerHTML = '';
+    const inboxView = document.getElementById('inboxView');
 
-            let hasConversations = false;
+    const chatView = document.getElementById('chatView');
 
-            snapshot.forEach(doc => {
-                const convo = doc.data();
-                if(convo.hiddenFor && convo.hiddenFor.includes(auth.currentUser.uid)) return;
-                hasConversations = true;
+    const backToInboxBtn = document.getElementById('backToInboxBtn');
 
-                const otherUserId = convo.participants.find(id => id !== auth.currentUser.uid);
-                const otherUserData = usersDataCache[otherUserId];
+    const messageRecipientSearch = document.getElementById('messageRecipientSearch');
 
-                if(otherUserData) {
-                    const convoEl = document.createElement('div');
-                    convoEl.className = 'inbox-item p-3 border-b dark:border-gray-600 flex justify-between items-center';
-                    convoEl.dataset.userId = otherUserId;
-                    convoEl.dataset.userName = otherUserData.displayName;
-                    convoEl.dataset.title = convo.title;
-                    
-                    const timestamp = convo.lastMessageTimestamp ? convo.lastMessageTimestamp.toDate().toLocaleString() : '';
+    const messageRecipientResults = document.getElementById('messageRecipientResults');
 
-                    convoEl.innerHTML = `
-                        <div class="flex-grow cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 inbox-item-content p-2 rounded-md">
-                            <p class="font-bold text-gray-800 dark:text-gray-200">${convo.title}</p>
-                             <p class="text-sm text-gray-600 dark:text-gray-400">with ${otherUserData.displayName}</p>
-                        </div>
-                         <div class="text-xs text-gray-400 text-right pl-2">
-                            <p>${timestamp}</p>
-                            <button class="text-red-500 hover:text-red-700 mt-1 delete-conversation-btn">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                            </button>
-                        </div>
-                    `;
-                    if (convo.title === "NOTICE!") {
-                        urgentInboxList.appendChild(convoEl);
-                    } else {
-                        regularInboxList.appendChild(convoEl);
-                    }
-                }
-            });
+    const urgentInboxList = document.getElementById('urgentInboxList');
 
-            document.getElementById('urgentInboxContainer').style.display = urgentInboxList.hasChildNodes() ? 'block' : 'none';
-            if(!hasConversations) {
-                 regularInboxList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 p-4">No conversations yet.</p>`;
-            }
-        });
-    }
+    const regularInboxList = document.getElementById('regularInboxList');
 
-    function loadMessageHistory(){
-        if(messageListenerUnsubscribe) messageListenerUnsubscribe();
-        if(!currentConversation) return;
+    const chatHeader = document.getElementById('chatHeader');
 
-        const conversationId = [auth.currentUser.uid, currentConversation.recipientId].sort().join('_') + `_${currentConversation.title}`;
-        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
-        const q = query(messagesRef, orderBy('createdAt'));
+    const chatTitleInput = document.getElementById('chatTitleInput');
 
-        messageListenerUnsubscribe = onSnapshot(q, (snapshot) => {
-            messageHistory.innerHTML = '';
-            snapshot.forEach(doc => {
-                const msg = doc.data();
-                const msgEl = document.createElement('div');
-                const isSender = msg.senderId === auth.currentUser.uid;
-                
-                msgEl.className = `p-2 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-indigo-500 text-white ml-auto' : 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 mr-auto'}`;
-                
-                msgEl.innerHTML = msg.content;
+    const messageHistory = document.getElementById('messageHistory');
 
-                messageHistory.appendChild(msgEl);
-            });
-            messageHistory.scrollTop = messageHistory.scrollHeight;
-        });
-    }
+    const messageInput = document.getElementById('messageInput');
 
-    sendMessageBtn.addEventListener('click', async () => {
-        const contentHTML = messageInput.innerHTML;
-        const title = chatTitleInput.value.trim();
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
 
-        if(messageInput.textContent.trim() && currentConversation && title) {
-            try {
-                await sendMessage(currentConversation.recipientId, title, contentHTML);
-                messageInput.innerHTML = '';
-                showAlert('Message sent successfully!');
-            } catch(e) { /* showAlert is handled in sendMessage */ }
-        } else {
-            showAlert("Please provide a title and message content.");
-        }
-    });
+
+
+
+
+    let currentUserRole = null;
+
+    let usersDataCache = {};
+
+    let postDocsCache = [];
+
+    let currentConversation = null;
+
+    let messageListenerUnsubscribe = null;
+
+    let currentUserData = null;
+
+
+
+
+
+    function showAlert(message) {
+
+        alertMessage.textContent = message;
+
+        alertModal.style.display = 'flex';
+
+    }
+
+    closeAlertModal.onclick = () => alertModal.style.display = 'none';
+
+
+
+    // --- Dark Mode ---
+
+    function applyDarkMode(isDark) {
+
+        document.documentElement.classList.toggle('dark', isDark);
+
+        localStorage.setItem("darkMode", isDark);
+
+    }
+
+
+
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    const savedMode = localStorage.getItem("darkMode");
+
+    const initialDarkMode = savedMode !== null ? savedMode === 'true' : prefersDark;
+
+    darkModeToggle.checked = initialDarkMode;
+
+    applyDarkMode(initialDarkMode);
+
+
+
+    darkModeToggle.addEventListener("change", (e) => {
+
+        applyDarkMode(e.target.checked);
+
+    });
+
+
+
+    // --- Authentication & Authorization ---
+
+    onAuthStateChanged(auth, async (user) => {
+
+        if (user && !user.isAnonymous) {
+
+            const userDocRef = doc(db, "users", user.uid);
+
+            const userDocSnap = await getDoc(userDocRef);
+
+            
+
+            const usersColRef = collection(db, "users");
+
+            onSnapshot(usersColRef, (snapshot) => {
+
+                snapshot.forEach(doc => {
+
+                    usersDataCache[doc.id] = doc.data();
+
+                });
+
+                renderContributorPosts();
+
+            });
+
+
+
+            if (userDocSnap.exists()) {
+
+                currentUserData = userDocSnap.data();
+
+                currentUserRole = currentUserData.role || 'newbie';
+
+
+
+                document.getElementById('userInfoContainer').style.display = 'flex';
+
+                userNameEl.textContent = currentUserData.displayName || user.email;
+
+                userRoleEl.textContent = currentUserRole;
+
+                userRoleEl.className = 'px-2 py-0.5 text-xs font-semibold text-white rounded-full';
+
+                switch (currentUserRole) {
+
+                    case 'admin': userRoleEl.classList.add('bg-violet-500'); break;
+
+                    case 'contributor': userRoleEl.classList.add('bg-green-500'); break;
+
+                    default: userRoleEl.classList.add('bg-blue-500'); break;
+
+                }
+
+                
+
+                if (["admin", "contributor"].includes(currentUserRole)) {
+
+                    loadingState.style.display = 'none';
+
+                    contributorContent.style.display = 'block';
+
+                    loadContributorPosts();
+
+                } else {
+
+                    redirectToHome("Access denied. Contributors and Admins only.");
+
+                }
+
+            } else {
+
+                 redirectToHome("User data not found.");
+
+            }
+
+        } else {
+
+            redirectToHome("You must be signed in to view this page.");
+
+        }
+
+    });
+
+
+
+    function redirectToHome(message) {
+
+        console.log(message);
+
+        alert(message);
+
+        window.location.href = window.location.href.replace("contributor.html", "index.html");
+
+    }
+
+
+
+    // --- Post Management ---
+
+    function loadContributorPosts() {
+
+        const postsRef = collection(db, "contributorPosts");
+
+        const q = query(postsRef, orderBy("createdAt", "desc"));
+
+        onSnapshot(q, (snapshot) => {
+
+            postDocsCache = snapshot.docs;
+
+            renderContributorPosts();
+
+        });
+
+    }
+
+    
+
+    function renderContributorPosts() {
+
+        postList.innerHTML = "";
+
+        postDocsCache.forEach((docSnap) => {
+
+            const post = docSnap.data();
+
+            const postId = docSnap.id;
+
+            const authorData = usersDataCache[post.authorId] || { displayName: 'Unknown' };
+
+
+
+            const postEl = document.createElement("div");
+
+            postEl.className = 'bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md fade-in';
+
+            const timestamp = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now';
+
+            
+
+            let adminControls = '';
+
+            if (currentUserRole === 'admin') {
+
+                 adminControls = `
+
+                    <div class="ml-auto">
+
+                        <button data-post-id="${postId}" class="delete-post-btn p-1 text-gray-400 hover:text-red-500">
+
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+
+                        </button>
+
+                    </div>`;
+
+            }
+
+            
+
+            postEl.innerHTML = `
+
+                <div class="flex items-start">
+
+                    <div>
+
+                        <div class="font-bold text-gray-900 dark:text-white">${authorData.displayName}</div>
+
+                        <div class="text-xs text-gray-500 dark:text-gray-400">${timestamp}</div>
+
+                    </div>
+
+                    ${adminControls}
+
+                </div>
+
+                <h4 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400 mt-2 hover:underline cursor-pointer view-post-btn" data-post-id="${postId}">${post.title}</h4>
+
+            `;
+
+            postList.appendChild(postEl);
+
+        });
+
+    }
+
+
+
+    createBtn.addEventListener("click", async () => {
+
+        const title = postTitleInput.value.trim();
+
+        const content = postContentInput.value.trim();
+
+        const user = auth.currentUser;
+
+        if (!title || !content || !user) {
+
+            showAlert("Please provide a title and content for your post.");
+
+            return;
+
+        }
+
+        
+
+        const authorName = currentUserData.displayName || user.email;
+
+
+
+        try {
+
+            await addDoc(collection(db, "contributorPosts"), {
+
+                title: title,
+
+                content: content,
+
+                authorName: authorName,
+
+                authorId: user.uid,
+
+                createdAt: serverTimestamp()
+
+            });
+
+            postTitleInput.value = "";
+
+            postContentInput.value = "";
+
+        } catch (error) {
+
+            console.error("Error creating contributor post:", error);
+
+            showAlert("Could not create post. Please try again.");
+
+        }
+
+    });
+
+    
+
+    postList.addEventListener('click', e => {
+
+        const viewBtn = e.target.closest('.view-post-btn');
+
+        const deleteBtn = e.target.closest('.delete-post-btn');
+
+
+
+        if (viewBtn) {
+
+            const postId = viewBtn.dataset.postId;
+
+            const postDoc = postDocsCache.find(doc => doc.id === postId);
+
+            if (postDoc) {
+
+                const post = postDoc.data();
+
+                const author = usersDataCache[post.authorId];
+
+                document.getElementById('postViewTitle').textContent = post.title;
+
+                document.getElementById('postViewContent').textContent = post.content;
+
+                document.getElementById('postViewMeta').textContent = `Posted by ${author.displayName} on ${post.createdAt.toDate().toLocaleString()}`;
+
+                postViewModal.style.display = 'flex';
+
+            }
+
+        }
+
+        if (deleteBtn) {
+
+            const postId = deleteBtn.dataset.postId;
+
+            if (confirm('Are you sure you want to delete this post permanently?')) {
+
+                deleteDoc(doc(db, "contributorPosts", postId)).then(() => {
+
+                    showAlert('Post deleted successfully.');
+
+                }).catch(err => console.error("Error deleting post:", err));
+
+            }
+
+        }
+
+    });
+
+
+
+    closePostViewModal.addEventListener('click', () => postViewModal.style.display = 'none');
+
+    
+
+    // --- Rich Text Editor Logic for Messaging ---
+
+    function applyStyle(editor, command, value = null) {
+
+        editor.focus();
+
+        document.execCommand(command, false, value);
+
+    }
+
+    
+
+    const colors = ['#000000', '#EF4444', '#F97316', '#EAB308', '#22C55E', '#3B82F6', '#8B5CF6', '#FFFFFF', '#DC2626', '#EA580C', '#D97706', '#16A34A', '#2563EB', '#7C3AED'];
+
+    
+
+    function createPalette(paletteContainer, command, editor) {
+
+        paletteContainer.innerHTML = '';
+
+        const removeBtn = document.createElement('button');
+
+        removeBtn.className = 'w-5 h-5 rounded border border-gray-400 flex items-center justify-center text-red-500';
+
+        removeBtn.innerHTML = '&#10005;';
+
+        removeBtn.title = "Remove Color";
+
+        removeBtn.addEventListener('click', (e) => {
+
+            e.preventDefault();
+
+            const defaultColor = document.documentElement.classList.contains('dark') ? '#f9fafb' : '#1f2937';
+
+            applyStyle(editor, command, defaultColor);
+
+            paletteContainer.style.display = 'none';
+
+        });
+
+        paletteContainer.appendChild(removeBtn);
+
+
+
+        colors.forEach(color => {
+
+            const swatch = document.createElement('button');
+
+            swatch.className = 'w-5 h-5 rounded border border-gray-400';
+
+            swatch.style.backgroundColor = color;
+
+            swatch.addEventListener('click', (e) => {
+
+                 e.preventDefault();
+
+                 applyStyle(editor, command, color);
+
+                 paletteContainer.style.display = 'none';
+
+            });
+
+            paletteContainer.appendChild(swatch);
+
+        });
+
+    }
+
+
+
+    document.getElementById('messageColorBtn').addEventListener('click', (e) => {
+
+        e.stopPropagation();
+
+        const palette = document.getElementById('messageColorPalette');
+
+        createPalette(palette, 'foreColor', messageInput);
+
+        palette.style.display = palette.style.display === 'none' ? 'grid' : 'none';
+
+    });
+
+
+
+    chatView.querySelectorAll('.rich-text-btn').forEach(btn => {
+
+         btn.addEventListener('click', (e) => {
+
+            e.preventDefault();
+
+            const command = e.currentTarget.dataset.command;
+
+            if(command){
+
+                applyStyle(messageInput, command);
+
+            }
+
+        });
+
+    });
+
+
+
+    // --- Messaging Logic ---
+
+    async function sendMessage(recipientId, title, contentHTML) {
+
+        const user = auth.currentUser;
+
+        const tempDiv = document.createElement('div');
+
+        tempDiv.innerHTML = contentHTML;
+
+        const lastMessageText = tempDiv.textContent || tempDiv.innerText || '';
+
+
+
+        if (!user || !recipientId || !lastMessageText || !title) {
+
+            showAlert('Message failed to send. Title and content are required.');
+
+            return Promise.reject('Missing information');
+
+        }
+
+
+
+        const conversationId = [user.uid, recipientId].sort().join('_') + `_${title}`;
+
+        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
+
+        
+
+        try {
+
+            await setDoc(doc(db, 'conversations', conversationId), {
+
+                participants: [user.uid, recipientId],
+
+                title: title,
+
+                lastMessage: lastMessageText,
+
+                lastMessageTimestamp: serverTimestamp(),
+
+                hiddenFor: []
+
+            }, { merge: true });
+
+
+
+            await addDoc(messagesRef, {
+
+                senderId: user.uid,
+
+                recipientId: recipientId,
+
+                content: contentHTML,
+
+                createdAt: serverTimestamp()
+
+            });
+
+             return Promise.resolve();
+
+        } catch (error) {
+
+            console.error("Error sending message:", error);
+
+            showAlert(`Message failed to send. Please check your Firestore rules.`);
+
+            return Promise.reject(error);
+
+        }
+
+    }
+
+
+
+    messagesBtn.addEventListener('click', () => {
+
+        if(auth.currentUser && !auth.currentUser.isAnonymous){
+
+            messagingModal.style.display = 'flex';
+
+            inboxView.style.display = 'block';
+
+            chatView.style.display = 'none';
+
+            loadInbox();
+
+        } else {
+
+            showAlert('Please sign in to view messages.');
+
+        }
+
+    });
+
+    closeMessagingModal.addEventListener('click', () => {
+
+         messagingModal.style.display = 'none';
+
+         if(messageListenerUnsubscribe) messageListenerUnsubscribe();
+
+         currentConversation = null;
+
+         messageRecipientSearch.value = '';
+
+    });
+
+    backToInboxBtn.addEventListener('click', () => {
+
+        inboxView.style.display = 'block';
+
+        chatView.style.display = 'none';
+
+        if(messageListenerUnsubscribe) messageListenerUnsubscribe();
+
+        currentConversation = null;
+
+        loadInbox();
+
+    });
+
+
+
+    messageRecipientSearch.addEventListener('input', async (e) => {
+
+        const searchTerm = e.target.value.trim();
+
+        messageRecipientResults.innerHTML = '';
+
+        messageRecipientResults.style.display = 'none';
+
+
+
+        if(searchTerm.length < 2) return;
+
+
+
+        const usersRef = collection(db, "users");
+
+        const q = query(usersRef, where('displayName', '>=', searchTerm), where('displayName', '<=', searchTerm + '\uf8ff'));
+
+        const querySnapshot = await getDocs(q);
+
+        
+
+        querySnapshot.forEach(doc => {
+
+            if(doc.id === auth.currentUser.uid) return;
+
+            const user = doc.data();
+
+            const resultEl = document.createElement('div');
+
+            resultEl.textContent = user.displayName;
+
+            resultEl.className = 'p-2 hover:bg-gray-100 dark:hover:bg-gray-500 cursor-pointer';
+
+            resultEl.dataset.userId = doc.id;
+
+            resultEl.dataset.userName = user.displayName;
+
+            messageRecipientResults.appendChild(resultEl);
+
+        });
+
+
+
+        if(!querySnapshot.empty) {
+
+            messageRecipientResults.style.display = 'block';
+
+        }
+
+    });
+
+    
+
+    function openChatWithUser(userId, userName, title = '') {
+
+        currentConversation = { recipientId: userId, recipientName: userName, title: title };
+
+        chatHeader.querySelector('span').textContent = currentConversation.recipientName;
+
+        chatTitleInput.value = title;
+
+        chatTitleInput.disabled = !!title; 
+
+        inboxView.style.display = 'none';
+
+        chatView.style.display = 'flex';
+
+        loadMessageHistory();
+
+    }
+
+
+
+    messageRecipientResults.addEventListener('click', (e) => {
+
+        const target = e.target;
+
+        if(target.dataset.userId) {
+
+            openChatWithUser(target.dataset.userId, target.dataset.userName);
+
+            messageRecipientSearch.value = '';
+
+            messageRecipientResults.style.display = 'none';
+
+        }
+
+    });
+
+    
+
+    document.getElementById('inboxView').addEventListener('click', async (e) => {
+
+        const chatBtn = e.target.closest('.inbox-item-content');
+
+        const deleteBtn = e.target.closest('.delete-conversation-btn');
+
+        
+
+        if(chatBtn) {
+
+             const item = chatBtn.closest('.inbox-item');
+
+             openChatWithUser(item.dataset.userId, item.dataset.userName, item.dataset.title);
+
+        }
+
+
+
+        if (deleteBtn) {
+
+            e.stopPropagation();
+
+            const item = deleteBtn.closest('.inbox-item');
+
+            const otherUserId = item.dataset.userId;
+
+            const title = item.dataset.title;
+
+            if (confirm(`Are you sure you want to hide this conversation with ${item.dataset.userName}? The other user will still see it.`)) {
+
+                const conversationId = [auth.currentUser.uid, otherUserId].sort().join('_') + `_${title}`;
+
+                const conversationRef = doc(db, 'conversations', conversationId);
+
+                
+
+                await updateDoc(conversationRef, {
+
+                    hiddenFor: arrayUnion(auth.currentUser.uid)
+
+                });
+
+                showAlert('Conversation hidden.');
+
+            }
+
+        }
+
+    });
+
+
+
+    async function loadInbox() {
+
+        if(!auth.currentUser) return;
+
+        const convosRef = collection(db, 'conversations');
+
+        const q = query(convosRef, where('participants', 'array-contains', auth.currentUser.uid), orderBy('lastMessageTimestamp', 'desc'));
+
+
+
+        onSnapshot(q, (snapshot) => {
+
+            urgentInboxList.innerHTML = '';
+
+            regularInboxList.innerHTML = '';
+
+
+
+            let hasConversations = false;
+
+
+
+            snapshot.forEach(doc => {
+
+                const convo = doc.data();
+
+                if(convo.hiddenFor && convo.hiddenFor.includes(auth.currentUser.uid)) return;
+
+                hasConversations = true;
+
+
+
+                const otherUserId = convo.participants.find(id => id !== auth.currentUser.uid);
+
+                const otherUserData = usersDataCache[otherUserId];
+
+
+
+                if(otherUserData) {
+
+                    const convoEl = document.createElement('div');
+
+                    convoEl.className = 'inbox-item p-3 border-b dark:border-gray-600 flex justify-between items-center';
+
+                    convoEl.dataset.userId = otherUserId;
+
+                    convoEl.dataset.userName = otherUserData.displayName;
+
+                    convoEl.dataset.title = convo.title;
+
+                    
+
+                    const timestamp = convo.lastMessageTimestamp ? convo.lastMessageTimestamp.toDate().toLocaleString() : '';
+
+
+
+                    convoEl.innerHTML = `
+
+                        <div class="flex-grow cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 inbox-item-content p-2 rounded-md">
+
+                            <p class="font-bold text-gray-800 dark:text-gray-200">${convo.title}</p>
+
+                             <p class="text-sm text-gray-600 dark:text-gray-400">with ${otherUserData.displayName}</p>
+
+                        </div>
+
+                         <div class="text-xs text-gray-400 text-right pl-2">
+
+                            <p>${timestamp}</p>
+
+                            <button class="text-red-500 hover:text-red-700 mt-1 delete-conversation-btn">
+
+                               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+
+                            </button>
+
+                        </div>
+
+                    `;
+
+                    if (convo.title === "NOTICE!") {
+
+                        urgentInboxList.appendChild(convoEl);
+
+                    } else {
+
+                        regularInboxList.appendChild(convoEl);
+
+                    }
+
+                }
+
+            });
+
+
+
+            document.getElementById('urgentInboxContainer').style.display = urgentInboxList.hasChildNodes() ? 'block' : 'none';
+
+            if(!hasConversations) {
+
+                 regularInboxList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 p-4">No conversations yet.</p>`;
+
+            }
+
+        });
+
+    }
+
+
+
+    function loadMessageHistory(){
+
+        if(messageListenerUnsubscribe) messageListenerUnsubscribe();
+
+        if(!currentConversation) return;
+
+
+
+        const conversationId = [auth.currentUser.uid, currentConversation.recipientId].sort().join('_') + `_${currentConversation.title}`;
+
+        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
+
+        const q = query(messagesRef, orderBy('createdAt'));
+
+
+
+        messageListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+
+            messageHistory.innerHTML = '';
+
+            snapshot.forEach(doc => {
+
+                const msg = doc.data();
+
+                const msgEl = document.createElement('div');
+
+                const isSender = msg.senderId === auth.currentUser.uid;
+
+                
+
+                msgEl.className = `p-2 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-indigo-500 text-white ml-auto' : 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 mr-auto'}`;
+
+                
+
+                msgEl.innerHTML = msg.content;
+
+
+
+                messageHistory.appendChild(msgEl);
+
+            });
+
+            messageHistory.scrollTop = messageHistory.scrollHeight;
+
+        });
+
+    }
+
+
+
+    sendMessageBtn.addEventListener('click', async () => {
+
+        const contentHTML = messageInput.innerHTML;
+
+        const title = chatTitleInput.value.trim();
+
+
+
+        if(messageInput.textContent.trim() && currentConversation && title) {
+
+            try {
+
+                await sendMessage(currentConversation.recipientId, title, contentHTML);
+
+                messageInput.innerHTML = '';
+
+                showAlert('Message sent successfully!');
+
+            } catch(e) { /* showAlert is handled in sendMessage */ }
+
+        } else {
+
+            showAlert("Please provide a title and message content.");
+
+        }
+
+    });
+
 </script>
+
 </body>
+
 </html>
