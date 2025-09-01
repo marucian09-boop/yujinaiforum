@@ -1007,7 +1007,8 @@
                 title: title,
                 lastMessage: lastMessageText,
                 lastMessageTimestamp: serverTimestamp(),
-                hiddenFor: []
+                hiddenFor: [],
+                lastReadBy: [user.uid]
             }, { merge: true });
 
             await addDoc(messagesRef, {
@@ -1099,13 +1100,22 @@
         }
     });
     
-    function openChatWithUser(userId, userName, title = '') {
+    async function openChatWithUser(userId, userName, title = '') {
         currentConversation = { recipientId: userId, recipientName: userName, title: title };
         chatHeader.querySelector('span').textContent = currentConversation.recipientName;
         chatTitleInput.value = title;
         chatTitleInput.disabled = !!title; // Disable title input if it's an existing conversation
         inboxView.style.display = 'none';
         chatView.style.display = 'flex';
+
+        if(title){ // Only mark as read if it's an existing conversation
+             const conversationId = [auth.currentUser.uid, userId].sort().join('_') + `_${title}`;
+             const conversationRef = doc(db, 'conversations', conversationId);
+             await updateDoc(conversationRef, {
+                lastReadBy: arrayUnion(auth.currentUser.uid)
+             });
+        }
+
         loadMessageHistory();
     }
 
@@ -1175,10 +1185,11 @@
                     convoEl.dataset.title = convo.title;
                     
                     const timestamp = convo.lastMessageTimestamp ? convo.lastMessageTimestamp.toDate().toLocaleString() : '';
+                    const isUnread = convo.lastReadBy && !convo.lastReadBy.includes(auth.currentUser.uid);
 
                     convoEl.innerHTML = `
                         <div class="flex-grow cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 inbox-item-content p-2 rounded-md">
-                            <p class="font-bold text-gray-800 dark:text-gray-200">${convo.title}</p>
+                            <p class="font-bold text-gray-800 dark:text-gray-200">${convo.title} ${isUnread ? '<span class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-blue-500 rounded-full">new</span>' : ''}</p>
                              <p class="text-sm text-gray-600 dark:text-gray-400">with ${otherUserData.displayName}</p>
                         </div>
                          <div class="text-xs text-gray-400 text-right pl-2">
