@@ -232,31 +232,31 @@
 
 </style>
 </head>
-<body class="bg-primary text-primary">
+<body>
 
 <div id="app-container">
     <!-- Header -->
-    <header class="bg-secondary/80 dark:bg-secondary/50 backdrop-blur-lg sticky top-0 z-40 border-b border-border-primary">
+    <header class="bg-[var(--bg-secondary)]/80 backdrop-blur-lg sticky top-0 z-40 border-b border-[var(--border-primary)]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
                 <div class="flex items-center space-x-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-8 w-8 text-accent">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-8 w-8 text-[var(--text-accent)]">
                         <path d="M4.913 2.658c1.072.454 1.99 1.374 2.536 2.446l.004-.001.002.001.002.001c.148.28.275.57.382.868H20.25a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75H3.75a.75.75 0 0 1-.75-.75V8.118c0-.35.07-.68.2-1l.001-.002.002-.003c.15-.29.32-.563.504-.815.42-.575.92-1.077 1.488-1.487l.002-.001.002-.002.001-.001A4.5 4.5 0 0 1 8.25 3.75h5.385c1.47 0 2.82.553 3.82 1.513l.002.002.001.001c.49.49.9 1.06 1.18 1.688l.002.003.001.002c.07.16.12.33.15.5H8.25a3 3 0 0 0-3 3v4.5a.75.75 0 0 1-1.5 0v-4.5a4.5 4.5 0 0 1 1.163-3.142Z"></path>
                     </svg>
-                    <h1 class="text-2xl font-bold text-text-primary">CommunityHub</h1>
+                    <h1 class="text-2xl font-bold text-[var(--text-primary)]">CommunityHub</h1>
                 </div>
                 <div class="flex items-center space-x-4">
                     <div id="userInfoContainer" class="hidden items-center space-x-3 cursor-pointer group">
-                        <span id="userName" class="text-sm font-semibold text-text-primary group-hover:text-text-accent transition-colors"></span>
+                        <span id="userName" class="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--text-accent)] transition-colors"></span>
                         <span id="userRole" class="px-2.5 py-1 text-xs font-bold text-white rounded-full"></span>
                     </div>
                     <div id="auth-container" class="flex items-center space-x-2">
                         <button id="signInLink" class="btn btn-secondary">Sign in</button>
                         <div class="relative" id="createAccountDropdownContainer">
                             <button id="createAccountBtn" type="button" class="btn btn-primary">Create account</button>
-                            <div id="createAccountDropdown" class="hidden absolute right-0 mt-2 w-48 bg-secondary rounded-lg shadow-lg py-1 z-50 border border-border-primary">
-                                <a href="#" id="signUpWithGoogleBtn" class="flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-tertiary">Sign up with Google</a>
-                                <a href="#" id="signUpWithEmailBtn" class="flex items-center gap-2 px-4 py-2 text-sm text-text-primary hover:bg-tertiary">Sign up via email</a>
+                            <div id="createAccountDropdown" class="hidden absolute right-0 mt-2 w-48 bg-[var(--bg-secondary)] rounded-lg shadow-lg py-1 z-50 border border-[var(--border-primary)]">
+                                <a href="#" id="signUpWithGoogleBtn" class="flex items-center gap-2 px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]">Sign up with Google</a>
+                                <a href="#" id="signUpWithEmailBtn" class="flex items-center gap-2 px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]">Sign up via email</a>
                             </div>
                         </div>
                     </div>
@@ -267,21 +267,21 @@
                     </label>
                 </div>
             </div>
-             <div class="pb-4 flex flex-col sm:flex-row gap-2 justify-center sm:justify-end items-center space-x-4 text-xs text-text-secondary">
-                <span><span class="font-bold text-text-primary" id="totalMembers">0</span> Total Members</span>
-                <span class="hidden sm:block h-4 border-l border-border-primary"></span>
-                <span><span class="font-bold text-text-primary" id="onlineVisitors">0</span> Online</span>
+             <div class="pb-4 flex flex-col sm:flex-row gap-2 justify-center sm:justify-end items-center space-x-4 text-xs text-[var(--text-secondary)]">
+                <span><span class="font-bold text-[var(--text-primary)]" id="totalMembers">0</span> Total Members</span>
+                <span class="hidden sm:block h-4 border-l border-[var(--border-primary)]"></span>
+                <span><span class="font-bold text-[var(--text-primary)]" id="onlineVisitors">0</span> Online</span>
             </div>
         </div>
     </header>
     
     <!-- Navigation -->
-    <nav class="bg-secondary border-b border-border-primary">
+    <nav class="bg-[var(--bg-secondary)] border-b border-[var(--border-primary)]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center space-x-2 h-14">
-                <a href="./index.html" class="px-3 py-2 text-sm font-semibold text-white bg-accent rounded-md">Home</a>
-                <a href="#" id="messagesBtn" class="px-3 py-2 text-sm font-medium text-text-secondary rounded-md hover:bg-tertiary hover:text-text-primary transition-colors">Messages</a>
-                <a href="./contributor.html" class="px-3 py-2 text-sm font-medium text-text-secondary rounded-md hover:bg-tertiary hover:text-text-primary transition-colors">Contributor Section</a>
+                <a href="./index.html" class="px-3 py-2 text-sm font-medium text-[var(--text-secondary)] rounded-md hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors">Home</a>
+                <a href="#" id="messagesBtn" class="px-3 py-2 text-sm font-medium text-[var(--text-secondary)] rounded-md hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors">Messages</a>
+                <a href="./contributor.html" class="px-3 py-2 text-sm font-medium text-[var(--text-secondary)] rounded-md hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors">Contributor Section</a>
             </div>
         </div>
     </nav>
@@ -290,22 +290,22 @@
     <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <!-- Signup Form (hidden by default) -->
         <div id="signupForm" style="display:none;" class="mb-6 card p-6 fade-in">
-            <h3 class="text-xl font-bold text-text-primary mb-4">Create an Account</h3>
+            <h3 class="text-xl font-bold text-[var(--text-primary)] mb-4">Create an Account</h3>
             <div class="space-y-4">
                 <div>
                     <input type="text" id="signupUsername" placeholder="Username" autocomplete="off" class="form-input">
-                    <p id="signupUsernameError" class="text-xs text-destructive mt-1" style="display: none;"></p>
+                    <p id="signupUsernameError" class="text-xs text-[var(--destructive)] mt-1" style="display: none;"></p>
                 </div>
                 <input type="email" id="signupEmail" placeholder="Email address" autocomplete="off" class="form-input">
                 <div>
                     <div class="relative">
                         <input type="password" id="signupPassword" placeholder="Password" autocomplete="new-password" class="form-input pr-10">
-                        <button type="button" id="togglePasswordVisibility" class="absolute inset-y-0 right-0 px-3 flex items-center text-text-secondary">
+                        <button type="button" id="togglePasswordVisibility" class="absolute inset-y-0 right-0 px-3 flex items-center text-[var(--text-secondary)]">
                             <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.02 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>
                             <svg id="eyeSlashIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.955 9.955 0 00-4.502 1.071L3.707 2.293zM10.707 10.707a2 2 0 00-2.828-2.828l2.828 2.828zM10 12a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /><path d="M2.043 10c1.274 4.057 5.02 7 9.542 7 .848 0 1.67-.11 2.458-.316l-1.473-1.473A10.014 10.014 0 012.043 10z" /></svg>
                         </button>
                     </div>
-                    <p id="passwordError" class="text-xs text-destructive mt-1" style="display: none;"></p>
+                    <p id="passwordError" class="text-xs text-[var(--destructive)] mt-1" style="display: none;"></p>
                 </div>
                 <button id="signupBtn" class="btn btn-success w-full">Sign Up</button>
             </div>
@@ -315,21 +315,21 @@
         <section id="search-section" class="mb-8">
             <div class="relative">
                  <input type="text" id="postSearchInput" placeholder="Search for a post..." class="form-input pl-10">
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </div>
-            <div id="postSearchResults" class="mt-2 bg-secondary rounded-lg shadow-lg border border-border-primary" style="display: none;"></div>
+            <div id="postSearchResults" class="mt-2 bg-[var(--bg-secondary)] rounded-lg shadow-lg border border-[var(--border-primary)]" style="display: none;"></div>
         </section>
 
         <!-- Post Creation Section -->
         <section id="post-creation" class="card p-6">
-            <h2 class="text-2xl font-bold text-text-primary mb-4">Create a New Post</h2>
+            <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-4">Create a New Post</h2>
             <div class="space-y-4">
                 <input type="text" id="postTitle" placeholder="Post Title" class="form-input">
                 <textarea id="postContent" placeholder="What's on your mind?" class="form-input h-32" disabled></textarea>
             </div>
             <div class="mt-4 flex items-center justify-between">
                 <button id="createPostBtn" class="btn btn-primary" disabled>Create Post</button>
-                <p id="auth-prompt" class="text-sm text-destructive font-medium">Please sign in to create a post.</p>
+                <p id="auth-prompt" class="text-sm text-[var(--destructive)] font-medium">Please sign in to create a post.</p>
             </div>
         </section>
 
@@ -346,18 +346,18 @@
     <div id="userProfileModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50">
         <div class="card p-6 w-full max-w-md modal-content-animation">
             <div class="flex justify-between items-start mb-4">
-                <h3 class="text-lg font-bold text-text-primary">User Profile</h3>
+                <h3 class="text-lg font-bold text-[var(--text-primary)]">User Profile</h3>
                 <button id="closeUserProfileModal" class="btn btn-ghost !p-1 h-8 w-8">&times;</button>
             </div>
             <div class="space-y-4">
-                <p class="text-text-primary">Total Posts: <span id="profilePostCount" class="font-bold">0</span></p>
+                <p class="text-[var(--text-primary)]">Total Posts: <span id="profilePostCount" class="font-bold">0</span></p>
                 <div id="changeUsernameSection" style="display: none;" class="space-y-2">
-                    <label for="newUsernameInput" class="block text-sm font-medium text-text-secondary">Change Username</label>
+                    <label for="newUsernameInput" class="block text-sm font-medium text-[var(--text-secondary)]">Change Username</label>
                     <div class="flex">
                         <input type="text" id="newUsernameInput" placeholder="New username" class="form-input rounded-r-none">
                         <button id="changeUsernameBtn" class="btn btn-primary rounded-l-none">Save</button>
                     </div>
-                    <p id="changeUsernameError" class="text-xs text-destructive mt-1" style="display: none;"></p>
+                    <p id="changeUsernameError" class="text-xs text-[var(--destructive)] mt-1" style="display: none;"></p>
                 </div>
                 <button id="closeAccountBtn" class="btn btn-danger w-full">Close My Account</button>
             </div>
@@ -368,11 +368,11 @@
         <div class="card p-6 w-full max-w-2xl relative flex flex-col max-h-[85vh] modal-content-animation">
             <div class="flex-shrink-0">
                 <button id="closePostViewModal" class="absolute top-3 right-3 btn btn-ghost !p-1 h-8 w-8 z-10">&times;</button>
-                <h3 id="postViewTitle" class="text-2xl font-bold text-text-primary mb-2 pr-8"></h3>
-                <div id="postViewMeta" class="text-sm text-text-secondary mb-4"></div>
+                <h3 id="postViewTitle" class="text-2xl font-bold text-[var(--text-primary)] mb-2 pr-8"></h3>
+                <div id="postViewMeta" class="text-sm text-[var(--text-secondary)] mb-4"></div>
             </div>
             <div class="overflow-y-auto pr-4 -mr-4">
-                <p id="postViewContent" class="text-text-primary whitespace-pre-wrap leading-relaxed"></p>
+                <p id="postViewContent" class="text-[var(--text-primary)] whitespace-pre-wrap leading-relaxed"></p>
             </div>
         </div>
     </div>
@@ -446,12 +446,12 @@
             postEl.innerHTML = `
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3">
-                        <div class="font-bold text-text-primary">${post.author}</div>
+                        <div class="font-bold text-[var(--text-primary)]">${post.author}</div>
                         <span class="px-2.5 py-1 text-xs font-bold text-white ${post.statusColor} rounded-full">${post.role}</span>
                     </div>
-                    <div class="text-xs text-text-secondary">${post.timestamp}</div>
+                    <div class="text-xs text-[var(--text-secondary)]">${post.timestamp}</div>
                 </div>
-                <h4 class="text-xl font-semibold text-text-accent mt-3 hover:underline cursor-pointer view-post-btn" data-post-id="${post.id}">${post.title}</h4>
+                <h4 class="text-xl font-semibold text-[var(--text-accent)] mt-3 hover:underline cursor-pointer view-post-btn" data-post-id="${post.id}">${post.title}</h4>
             `;
             postList.appendChild(postEl);
         });
@@ -466,3 +466,4 @@
 </script>
 </body>
 </html>
+
