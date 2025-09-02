@@ -230,62 +230,6 @@
         color: var(--text-secondary);
         opacity: 0.7;
     }
-    
-    /* --- Inbox Specific Styles --- */
-    .conversation-card {
-        background-color: var(--bg-secondary);
-        border-bottom: 1px solid var(--border-primary);
-        transition: background-color 0.2s;
-    }
-    .conversation-card:hover {
-        background-color: var(--bg-tertiary);
-    }
-    .message-bubble {
-        padding: 0.75rem 1rem;
-        border-radius: 1.25rem;
-        max-width: 75%;
-        position: relative;
-    }
-    .message-bubble.user {
-        background-color: var(--accent-primary);
-        color: white;
-        border-bottom-right-radius: 0.25rem;
-    }
-    .message-bubble.admin {
-        background-color: var(--destructive);
-        color: white;
-        border-bottom-left-radius: 0.25rem;
-    }
-    .message-bubble.other {
-         background-color: var(--bg-tertiary);
-         color: var(--text-primary);
-         border-bottom-left-radius: 0.25rem;
-    }
-    #message-input:focus {
-        outline: none;
-        box-shadow: 0 0 0 2px var(--accent-primary);
-    }
-
-    /* --- Notification Toast --- */
-    .toast {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 1rem 1.5rem;
-        border-radius: 0.5rem;
-        color: white;
-        font-weight: 600;
-        z-index: 1050; /* Higher than modals */
-        opacity: 0;
-        transform: translateY(-20px);
-        transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-    .toast.show {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    .toast.success { background-color: var(--success); }
-    .toast.error { background-color: var(--destructive); }
 
 </style>
 </head>
@@ -339,9 +283,9 @@
     <nav class="bg-[var(--bg-secondary)] border-b border-[var(--border-primary)]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-wrap justify-center sm:justify-start items-center space-x-2 h-auto sm:h-14 py-2 sm:py-0">
-                <a href="#" class="px-3 py-2 text-sm font-medium text-[var(--text-secondary)] rounded-md hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors">Home</a>
+                <a href="./index.html" class="px-3 py-2 text-sm font-medium text-[var(--text-secondary)] rounded-md hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors">Home</a>
                 <a href="#" id="messagesBtn" class="px-3 py-2 text-sm font-medium text-[var(--text-secondary)] rounded-md hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors">Messages</a>
-                <a href="#" class="px-3 py-2 text-sm font-medium text-[var(--text-secondary)] rounded-md hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors">Contributor Section</a>
+                <a href="./contributor.html" class="px-3 py-2 text-sm font-medium text-[var(--text-secondary)] rounded-md hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors">Contributor Section</a>
             </div>
         </div>
     </nav>
@@ -437,41 +381,40 @@
         </div>
     </div>
 
-    <!-- INBOX / MESSAGING MODAL -->
     <div id="messagingModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
-        <div class="w-full max-w-4xl h-[80vh] flex bg-[var(--bg-secondary)] rounded-2xl shadow-2xl overflow-hidden border border-[var(--border-primary)] modal-content-animation relative">
-            <button id="closeMessagingModal" class="absolute top-3 right-3 btn btn-ghost !p-1 h-8 w-8 z-10">&times;</button>
-            
-            <!-- Conversation List -->
-            <div class="w-1/3 border-r border-[var(--border-primary)] flex flex-col">
-                <div class="p-4 border-b border-[var(--border-primary)]">
-                    <h2 class="text-xl font-bold">Messages</h2>
-                    <div class="relative mt-2">
-                        <input type="text" id="userSearchInput" placeholder="Start a new chat..." class="form-input w-full text-sm py-1">
-                        <div id="userSearchResults" class="absolute top-full left-0 right-0 bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-b-lg z-20 max-h-48 overflow-y-auto" style="display: none;"></div>
-                    </div>
+        <div class="card p-6 w-full max-w-lg h-3/4 flex flex-col modal-content-animation">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-[var(--text-primary)]">Direct Messages</h3>
+                <button id="closeMessagingModal" class="btn btn-ghost !p-1 h-8 w-8">&times;</button>
+            </div>
+            <div id="inboxView">
+                <div class="relative mb-2">
+                    <input type="text" id="messageRecipientSearch" placeholder="Search for user to start a new chat..." class="form-input">
+                    <div id="messageRecipientResults" class="absolute w-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg mt-1 z-10" style="display: none;"></div>
                 </div>
-                <div id="conversation-list" class="flex-grow overflow-y-auto">
-                    <!-- Conversation cards will be injected here -->
+                <div id="urgentInboxContainer">
+                    <h4 class="text-sm font-bold text-[var(--destructive)] my-2">URGENT</h4>
+                    <div id="urgentInboxList"></div>
+                </div>
+                <div id="regularInboxContainer" class="mt-4">
+                    <h4 class="text-sm font-bold text-[var(--text-secondary)] my-2">Conversations</h4>
+                    <div id="regularInboxList" class="flex-grow overflow-y-auto"></div>
                 </div>
             </div>
-
-            <!-- Message Area -->
-            <div class="w-2/3 flex flex-col">
-                <div id="message-container" class="flex-grow p-6 overflow-y-auto space-y-4">
-                    <!-- Messages will be injected here -->
-                    <div class="flex items-center justify-center h-full">
-                        <p class="text-[var(--text-secondary)]">Select a conversation to start messaging.</p>
-                    </div>
+            <div id="chatView" class="h-full flex-col" style="display: none;">
+                <button id="backToInboxBtn" class="mb-2 text-sm text-[var(--text-accent)] hover:underline">&larr; Back to Inbox</button>
+                <div id="chatHeader" class="mb-2">
+                    <p id="messagingWith" class="text-sm">Chat with: <span class="font-bold"></span></p>
+                    <input type="text" id="chatTitleInput" placeholder="Message Title" class="form-input mt-1 text-sm">
                 </div>
-                <div class="p-4 border-t border-[var(--border-primary)] bg-[var(--bg-secondary)]">
-                    <form id="message-form" class="flex items-center gap-4">
-                        <div id="message-input" contenteditable="true" placeholder="Type a message..." class="w-full p-3 bg-[var(--bg-tertiary)] rounded-lg text-[var(--text-primary)]"></div>
-                        <button type="submit" class="bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-white font-bold py-3 px-6 rounded-lg transition-colors">
-                            Send
-                        </button>
-                    </form>
+                <div id="messageHistory" class="flex-grow overflow-y-auto bg-[var(--bg-tertiary)] p-2 rounded-md mb-2 flex flex-col"></div>
+                <div class="rich-text-toolbar flex items-center space-x-2 p-1">
+                    <button data-command="bold" class="rich-text-btn font-bold">B</button>
+                    <button data-command="italic" class="rich-text-btn italic">I</button>
+                    <button data-command="strikeThrough" class="rich-text-btn line-through">S</button>
+                    <div class="relative"><button id="messageColorBtn" class="rich-text-btn">Color</button><div id="messageColorPalette" class="absolute hidden bottom-full left-0 mb-1 bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-2 rounded-md shadow-lg grid grid-cols-7 gap-1 z-20"></div></div>
                 </div>
+                <div class="flex"><div id="messageInput" contenteditable="true" placeholder="Type your message..." class="rich-text-editor flex-grow !rounded-r-none h-24"></div><button id="sendMessageBtn" class="btn btn-primary !rounded-l-none self-end">Send</button></div>
             </div>
         </div>
     </div>
@@ -507,8 +450,15 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-[var(--text-secondary)]">Send Warning</label>
-                    <div id="warningMessage" contenteditable="true" placeholder="Enter warning message..." class="rich-text-editor mt-1 min-h-[50px]"></div>
-                    <button id="sendWarningBtn" class="mt-2 w-full btn btn-primary bg-yellow-500 hover:bg-yellow-600">Send Warning to selected user</button>
+                    <div class="rich-text-toolbar flex items-center space-x-2 my-2 p-1">
+                        <button data-command="bold" class="rich-text-btn font-bold">B</button>
+                        <button data-command="italic" class="rich-text-btn italic">I</button>
+                        <button data-command="strikeThrough" class="rich-text-btn line-through">S</button>
+                        <div class="relative"><button id="warningColorBtn" class="rich-text-btn">Color</button><div id="warningColorPalette" class="absolute hidden bottom-full left-0 mb-1 bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-2 rounded-md shadow-lg grid grid-cols-7 gap-1 z-10"></div></div>
+                        <div class="relative"><button id="warningBgColorBtn" class="rich-text-btn">BG</button><div id="warningBgColorPalette" class="absolute hidden bottom-full left-0 mb-1 bg-[var(--bg-secondary)] border border-[var(--border-primary)] p-2 rounded-md shadow-lg grid grid-cols-7 gap-1 z-10"></div></div>
+                    </div>
+                    <div id="warningMessage" contenteditable="true" placeholder="Enter warning message..." class="rich-text-editor mt-1"></div>
+                    <button id="sendWarningBtn" class="mt-2 w-full btn btn-primary bg-yellow-500 hover:bg-yellow-600">Send Warning</button>
                 </div>
                 <div class="flex space-x-4"><button id="banUserBtn" class="w-full btn btn-danger">Ban User</button><button id="unbanUserBtn" class="w-full btn btn-success">Unban User</button></div>
                 <button id="closeAdminModal" class="mt-4 w-full btn btn-secondary">Close</button>
@@ -524,10 +474,6 @@
     </div>
 
 </div>
-
-<!-- This is where notifications will appear -->
-<div id="toast-container"></div>
-
 
 <script type="module">
     // Firebase imports
@@ -553,15 +499,7 @@
     const rtdb = getDatabase(app);
     const provider = new GoogleAuthProvider();
 
-    // --- GLOBAL STATE ---
-    let currentUserRole = null;
-    let usersDataCache = {};
-    let postDocsCache = [];
-    let currentConversationId = null;
-    let currentUserData = null;
-    let targetUserId = null; // For admin modal
-    
-    // --- UI ELEMENTS ---
+    // UI Elements
     const signOutBtn = document.getElementById("signOutBtn");
     const darkModeToggle = document.getElementById("darkModeToggle");
     const postList = document.getElementById("postList");
@@ -569,12 +507,70 @@
     const userInfoContainer = document.getElementById("userInfoContainer");
     const userNameEl = document.getElementById("userName");
     const userRoleEl = document.getElementById("userRole");
+
+    // Auth UI Elements
+    const signInLink = document.getElementById("signInLink");
+    const createAccountBtn = document.getElementById("createAccountBtn");
+    const createAccountDropdown = document.getElementById("createAccountDropdown");
+    const signUpWithGoogleBtn = document.getElementById("signUpWithGoogleBtn");
+    const signUpWithEmailBtn = document.getElementById("signUpWithEmailBtn");
+    const signInModal = document.getElementById("signInModal");
+    const closeSignInModal = document.getElementById("closeSignInModal");
+    const signInWithGoogleBtnModal = document.getElementById("signInWithGoogleBtnModal");
+    const signInWithEmailBtnModal = document.getElementById("signInWithEmailBtnModal");
+    
+    // Signup Form Elements
+    const signupForm = document.getElementById("signupForm");
+    const signupBtn = document.getElementById("signupBtn");
+    const signupUsernameInput = document.getElementById("signupUsername");
+    const signupUsernameError = document.getElementById("signupUsernameError");
+    const signupPasswordInput = document.getElementById("signupPassword");
+    const togglePasswordVisibilityBtn = document.getElementById("togglePasswordVisibility");
+    const eyeIcon = document.getElementById("eyeIcon");
+    const eyeSlashIcon = document.getElementById("eyeSlashIcon");
+    const passwordError = document.getElementById("passwordError");
+
+    // Post Elements
+    const postViewModal = document.getElementById('postViewModal');
+    const closePostViewModal = document.getElementById('closePostViewModal');
+
+    // Messaging Elements
     const messagesBtn = document.getElementById('messagesBtn');
     const messagingModal = document.getElementById('messagingModal');
     const closeMessagingModal = document.getElementById('closeMessagingModal');
-    const userSearchInput = document.getElementById('userSearchInput');
-    const userSearchResults = document.getElementById('userSearchResults');
+    const inboxView = document.getElementById('inboxView');
+    const chatView = document.getElementById('chatView');
+    const backToInboxBtn = document.getElementById('backToInboxBtn');
+    const messageRecipientSearch = document.getElementById('messageRecipientSearch');
+    const messageRecipientResults = document.getElementById('messageRecipientResults');
+    const urgentInboxList = document.getElementById('urgentInboxList');
+    const regularInboxList = document.getElementById('regularInboxList');
+    const chatHeader = document.getElementById('chatHeader');
+    const chatTitleInput = document.getElementById('chatTitleInput');
+    const messageHistory = document.getElementById('messageHistory');
+    const messageInput = document.getElementById('messageInput');
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
+    const adminModal = document.getElementById('adminModal');
+    const warningMessage = document.getElementById('warningMessage');
+    
+    // User Profile Modal
+    const userProfileModal = document.getElementById('userProfileModal');
+    const closeUserProfileModal = document.getElementById('closeUserProfileModal');
+    const profilePostCount = document.getElementById('profilePostCount');
+    const changeUsernameSection = document.getElementById('changeUsernameSection');
+    const newUsernameInput = document.getElementById('newUsernameInput');
+    const changeUsernameBtn = document.getElementById('changeUsernameBtn');
+    const changeUsernameError = document.getElementById('changeUsernameError');
+    const closeAccountBtn = document.getElementById('closeAccountBtn');
 
+
+    let currentUserRole = null;
+    let usersDataCache = {};
+    let postDocsCache = [];
+    let currentConversation = null;
+    let messageListenerUnsubscribe = null;
+    let currentUserData = null;
+    
     // --- Custom Alert Modal ---
     const alertModal = document.getElementById('alertModal');
     const alertMessage = document.getElementById('alertMessage');
@@ -585,26 +581,7 @@
         alertModal.style.display = 'flex';
     }
     closeAlertModal.onclick = () => alertModal.style.display = 'none';
-    
-    // --- Notification Toast ---
-    function showToast(message, type = 'success') {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.textContent = message;
-        container.appendChild(toast);
-        setTimeout(() => {
-            toast.classList.add('show');
-        }, 100);
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => {
-                if(container.contains(toast)) {
-                    container.removeChild(toast);
-                }
-            }, 500);
-        }, 3000);
-    }
+
 
     // --- Dark Mode ---
     function applyDarkMode(isDark) {
@@ -618,223 +595,210 @@
     applyDarkMode(initialDarkMode);
     darkModeToggle.addEventListener("change", (e) => applyDarkMode(e.target.checked));
 
-
-    // --- INBOX MESSAGING LOGIC ---
-    function initInboxMessaging(currentUser) {
-      const convoList = document.getElementById("conversation-list");
-      const form = document.getElementById("message-form");
-      const input = document.getElementById("message-input");
-
-      const convoRef = collection(db, "conversations");
-      const q = query(convoRef, orderBy("lastMessageTimestamp", "desc"));
-
-      onSnapshot(q, (snapshot) => {
-        convoList.innerHTML = "";
-        snapshot.forEach(docSnap => {
-          const convo = docSnap.data();
-          if (!convo.participants.includes(currentUser.uid)) return;
-          
-          const otherUserId = convo.participants.find(id => id !== currentUser.uid);
-          const otherUserData = usersDataCache[otherUserId];
-
-          const div = document.createElement("div");
-          div.className = "conversation-card p-4 cursor-pointer";
-          div.innerHTML = `
-            <strong class="block text-[var(--text-primary)]">${otherUserData ? otherUserData.displayName : '...'}</strong>
-            <p class="text-sm text-[var(--text-secondary)] truncate">${convo.lastMessage || "New conversation"}</p>
-            <span class="text-xs text-[var(--text-secondary)]">${new Date(convo.lastMessageTimestamp?.seconds * 1000).toLocaleTimeString()}</span>
-          `;
-          div.onclick = () => loadConversation(docSnap.id, currentUser);
-          convoList.appendChild(div);
-        });
-      });
-
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const content = input.innerHTML.trim();
-        if (!content || !currentConversationId) {
-            if(!currentConversationId) showToast("Please select a conversation first.", "error");
-            return;
-        };
-
-        const msgRef = collection(db, `conversations/${currentConversationId}/messages`);
-        try {
-            await addDoc(msgRef, {
-              content,
-              sender: currentUser.email,
-              timestamp: serverTimestamp(),
-              reactions: {},
-              deletedBy: [],
-              role: currentUser.role || "user"
-            });
-            await updateDoc(doc(db, "conversations", currentConversationId), {
-              lastMessage: content,
-              lastMessageTimestamp: serverTimestamp()
-            });
-            input.innerHTML = "";
-            showToast("Message sent successfully!", "success");
-        } catch (error) {
-            console.error("Error sending message: ", error);
-            showToast("Failed to send message.", "error");
-        }
-      });
-    }
-
-    function loadConversation(convoId, currentUser) {
-      currentConversationId = convoId;
-      const msgRef = collection(db, `conversations/${convoId}/messages`);
-      const q = query(msgRef, orderBy("timestamp"));
-      const container = document.getElementById("message-container");
-
-      onSnapshot(q, (snapshot) => {
-        container.innerHTML = "";
-        snapshot.forEach(docSnap => {
-          const msg = docSnap.data();
-          if (msg.deletedBy?.includes(currentUser.uid)) return;
-          
-          const isCurrentUser = msg.sender === currentUser.email;
-          const wrapper = document.createElement('div');
-          wrapper.className = `flex w-full ${isCurrentUser ? 'justify-end' : 'justify-start'}`;
-          const div = document.createElement("div");
-          
-          let bubbleRole = 'other';
-          if(isCurrentUser) bubbleRole = 'user';
-          else if (msg.role === 'admin') bubbleRole = 'admin';
-          
-          div.className = `message-bubble ${bubbleRole}`;
-          div.innerHTML = `
-            <div class="font-bold text-sm mb-1">${msg.sender}</div>
-            <div class="text">${msg.content}</div>
-            <div class="reactions mt-2 flex items-center gap-2">
-              ${renderReactions(msg.reactions)}
-              <div class="reaction-buttons flex gap-1">
-                 ${renderReactionButtons(docSnap.id)}
-              </div>
-            </div>
-            <button class="delete-msg-btn absolute top-1 right-1 text-xs opacity-50 hover:opacity-100" data-id="${docSnap.id}">🗑️</button>
-          `;
-          wrapper.appendChild(div);
-          container.appendChild(wrapper);
-        });
-        container.scrollTop = container.scrollHeight;
-      });
-    }
-
-    function renderReactions(reactions = {}) {
-      return Object.entries(reactions).map(([emoji, users]) =>
-        `<span class="reaction bg-[var(--bg-tertiary)] text-xs font-medium px-2 py-1 rounded-full">${emoji} ${users.length}</span>`
-      ).join('');
-    }
-
-    function renderReactionButtons(messageId) {
-      const emojis = ['👍', '❤️', '😂'];
-      return emojis.map(emoji => `
-        <button data-emoji="${emoji}" data-message-id="${messageId}" class="p-1 rounded-full hover:bg-[var(--bg-tertiary)] transition-colors">${emoji}</button>
-      `).join('');
-    }
-
-    document.getElementById('message-container').addEventListener("click", async (e) => {
-        const currentUser = auth.currentUser;
-        if(!currentUser || !currentConversationId) return;
-
-        const btn = e.target.closest(".delete-msg-btn");
-        if (btn) {
-          const messageId = btn.dataset.id;
-          await updateDoc(doc(db, `conversations/${currentConversationId}/messages`, messageId), {
-            deletedBy: arrayUnion(currentUser.uid)
-          });
-        }
-
-        const reactionBtn = e.target.closest("[data-emoji]");
-        if (reactionBtn) {
-          const emoji = reactionBtn.dataset.emoji;
-          const messageId = reactionBtn.dataset.messageId;
-          const messageRef = doc(db, `conversations/${currentConversationId}/messages`, messageId);
-          const snap = await getDoc(messageRef);
-          const data = snap.data();
-
-          const updated = { ...data.reactions };
-          if (!updated[emoji]) updated[emoji] = [];
-          
-          const userEmail = currentUser.email;
-          const userIndex = updated[emoji].indexOf(userEmail);
-          
-          if(userIndex > -1){
-            updated[emoji].splice(userIndex, 1);
-            if(updated[emoji].length === 0) delete updated[emoji];
-          } else {
-             updated[emoji].push(userEmail);
-          }
-          await updateDoc(messageRef, { reactions: updated });
+    // --- Input Error Handling ---
+    togglePasswordVisibilityBtn.addEventListener("click", () => {
+        const type = signupPasswordInput.getAttribute("type") === "password" ? "text" : "password";
+        signupPasswordInput.setAttribute("type", type);
+        eyeIcon.classList.toggle("hidden");
+        eyeSlashIcon.classList.toggle("hidden");
+    });
+    signupPasswordInput.addEventListener("input", () => {
+        if (passwordError.style.display === 'block') {
+            passwordError.style.display = 'none';
         }
     });
+    signupUsernameInput.addEventListener("input", () => {
+        if (signupUsernameError.style.display === 'block') {
+            signupUsernameError.style.display = 'none';
+        }
+    });
+
+    // --- Authentication UI Logic ---
+    const googleSignInHandler = async () => {
+        try {
+            const result = await signInWithPopup(auth, provider);
+            await handleUser(result.user);
+            signInModal.style.display = 'none';
+        } catch (error) {
+            console.error("Google sign-in error:", error);
+        }
+    };
+
+    signInLink.addEventListener("click", () => {
+        signInModal.style.display = 'flex';
+    });
+    closeSignInModal.addEventListener("click", () => {
+        signInModal.style.display = 'none';
+    });
     
-    userSearchInput.addEventListener('input', async (e) => {
-        const searchTerm = e.target.value.trim();
-        userSearchResults.innerHTML = '';
-        if (searchTerm.length < 1) {
-            userSearchResults.style.display = 'none';
+    signInWithGoogleBtnModal.addEventListener("click", googleSignInHandler);
+    
+    signUpWithGoogleBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        googleSignInHandler();
+        createAccountDropdown.classList.add('hidden');
+    });
+
+    signUpWithEmailBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        signupForm.style.display = 'block';
+        createAccountDropdown.classList.add('hidden');
+    });
+    
+    // Dropdown toggle logic
+    createAccountBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        createAccountDropdown.classList.toggle('hidden');
+    });
+
+    window.addEventListener("click", (event) => {
+        if (!document.getElementById('createAccountDropdownContainer').contains(event.target)) {
+            createAccountDropdown.classList.add('hidden');
+        }
+         const colorPalettes = document.querySelectorAll('[id$="ColorPalette"]');
+        colorPalettes.forEach(palette => {
+            const btnId = palette.id.replace('Palette', 'Btn');
+            const btn = document.getElementById(btnId);
+            if (btn && !btn.contains(event.target) && !palette.contains(event.target)) {
+                palette.style.display = 'none';
+            }
+        });
+    });
+
+
+    // --- Email/Password Signup & Signin Logic ---
+    signInWithEmailBtnModal.addEventListener('click', async () => {
+        const identifier = document.getElementById('signInIdentifier').value.trim();
+        const password = document.getElementById('signInPassword').value;
+        const signInError = document.getElementById('signInError');
+        signInError.style.display = 'none';
+
+        if (!identifier || !password) {
+            signInError.textContent = 'Please enter your credentials.';
+            signInError.style.display = 'block';
+            return;
+        }
+
+        let email = identifier;
+        
+        try {
+            if (!identifier.includes('@')) {
+                const usersRef = collection(db, "users");
+                const q = query(usersRef, where("displayName", "==", identifier));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    signInError.textContent = 'User not found.';
+                    signInError.style.display = 'block';
+                    return;
+                }
+                email = querySnapshot.docs[0].data().email;
+            }
+            
+            await signInWithEmailAndPassword(auth, email, password);
+            signInModal.style.display = 'none';
+        } catch (error) {
+            console.error("Sign in error:", error);
+            signInError.textContent = 'Invalid credentials. Please try again.';
+            signInError.style.display = 'block';
+        }
+    });
+
+    signupBtn.addEventListener("click", async () => {
+        const email = document.getElementById("signupEmail").value;
+        const password = signupPasswordInput.value;
+        const username = signupUsernameInput.value.trim();
+        
+        passwordError.style.display = 'none';
+        signupUsernameError.style.display = 'none';
+
+        const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,16}$/;
+
+        if (!email || !password || !username) {
+            showAlert("Please fill out all fields.");
+            return;
+        }
+        if (!passwordRegex.test(password)) {
+            passwordError.innerHTML = "Must be 7-16 characters & contain letters, numbers, & special characters.<br>e.g., Password@1, Secure!23, MyP@ssw0rd";
+            passwordError.style.display = 'block';
             return;
         }
 
         const usersRef = collection(db, "users");
-        const q = query(usersRef, where('displayName', '>=', searchTerm), where('displayName', '<=', searchTerm + '\uf8ff'));
-        
-        try {
-            const querySnapshot = await getDocs(q);
-            querySnapshot.forEach(doc => {
-                const user = doc.data();
-                if (doc.id === auth.currentUser.uid) return;
-                
-                const resultEl = document.createElement('div');
-                resultEl.className = 'p-2 hover:bg-[var(--bg-tertiary)] cursor-pointer';
-                resultEl.textContent = user.displayName;
-                resultEl.dataset.userId = doc.id;
-                userSearchResults.appendChild(resultEl);
-            });
-            userSearchResults.style.display = querySnapshot.empty ? 'none' : 'block';
-        } catch (error) {
-            console.error("Error searching users:", error);
-        }
-    });
+        const q = query(usersRef, where("displayName", "==", username));
+        const querySnapshot = await getDocs(q);
 
-    userSearchResults.addEventListener('click', async (e) => {
-        const resultEl = e.target.closest('[data-user-id]');
-        if (!resultEl) return;
-
-        const selectedUserId = resultEl.dataset.userId;
-        if (!currentUserData) {
-            showToast("You must be logged in to start a chat.", "error");
+        if (!querySnapshot.empty) {
+            signupUsernameError.textContent = "Username is already taken. Please choose another one.";
+            signupUsernameError.style.display = 'block';
             return;
         }
 
-        userSearchInput.value = '';
-        userSearchResults.style.display = 'none';
-        
-        const participants = [currentUserData.uid, selectedUserId].sort();
-        const conversationId = participants.join('_');
-
-        const convoRef = doc(db, 'conversations', conversationId);
-        const convoSnap = await getDoc(convoRef);
-
-        if (!convoSnap.exists()) {
-            await setDoc(convoRef, {
-                participants: participants,
-                lastMessage: "New conversation started.",
-                lastMessageTimestamp: serverTimestamp()
-            });
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            await handleUser(userCredential.user, username);
+            signupForm.style.display = 'none';
+        } catch (error) {
+            console.error("Email signup error:", error);
+            showAlert(`Error: ${error.message}`);
         }
-
-        loadConversation(conversationId, currentUserData);
     });
-    // --- END INBOX LOGIC ---
+    signOutBtn.addEventListener("click", () => signOut(auth));
+
+    // --- User Management ---
+    async function handleUser(user, chosenUsername = null) {
+        if (!user) return;
+        const userRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userRef);
+
+        if (!userDoc.exists()) {
+            const isAdmin = user.email === 'yujinbussinessmatter@gmail.com';
+            const newUserRole = isAdmin ? 'admin' : 'newbie';
+            const finalUsername = isAdmin ? "Y̶U̶J̶I̶N̶" : chosenUsername;
 
 
-    // --- Authentication Logic ---
+            if (finalUsername) {
+                await setDoc(userRef, {
+                    uid: user.uid, email: user.email, displayName: finalUsername,
+                    createdAt: serverTimestamp(), role: newUserRole, banned: false, warnings: []
+                });
+            } else {
+                const usernameModal = document.getElementById("usernameModal");
+                usernameModal.style.display = 'flex';
+                document.getElementById("submitUsernameBtn").onclick = async () => {
+                    const modalUsernameInput = document.getElementById("modalUsernameInput");
+                    const usernameError = document.getElementById("usernameError");
+                    const newUsername = isAdmin ? "Y̶U̶J̶I̶N̶" : modalUsernameInput.value.trim();
+
+                    if (!newUsername) {
+                        usernameError.textContent = "Username cannot be empty.";
+                        usernameError.style.display = "block";
+                        return;
+                    }
+                    const usersRef = collection(db, "users");
+                    const q = query(usersRef, where("displayName", "==", newUsername));
+                    const querySnapshot = await getDocs(q);
+                    if (!querySnapshot.empty && !isAdmin) {
+                        usernameError.textContent = "This username is already taken.";
+                        usernameError.style.display = "block";
+                    } else {
+                        await setDoc(userRef, {
+                            uid: user.uid, email: user.email, displayName: newUsername,
+                            createdAt: serverTimestamp(), role: newUserRole, banned: false, warnings: []
+                        });
+                        usernameModal.style.display = 'none';
+                    }
+                };
+            }
+        }
+    }
+    
+    // --- Auth State Observer ---
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             const userDocRef = doc(db, "users", user.uid);
             const userDocSnap = await getDoc(userDocRef);
+
             setupPresence(user);
             attachFirestoreListeners();
             
@@ -852,13 +816,39 @@
                 document.getElementById("postContent").disabled = false;
                 document.getElementById("createPostBtn").disabled = false;
                 document.getElementById("auth-prompt").style.display = 'none';
-                currentUserData = { ...userDocSnap.data(), uid: user.uid, email: user.email };
+
+                currentUserData = userDocSnap.data();
+                
+                if (user.email === 'yujinbussinessmatter@gmail.com') {
+                    let updates = {};
+                    if (currentUserData.role !== 'admin') updates.role = 'admin';
+                    if (currentUserData.displayName !== "Y̶U̶J̶I̶N̶") updates.displayName = "Y̶U̶J̶I̶N̶";
+                    
+                    if (Object.keys(updates).length > 0) {
+                        await updateDoc(userDocRef, updates);
+                        Object.assign(currentUserData, updates);
+                    }
+                }
+
                 currentUserRole = currentUserData.role || 'newbie';
                 userNameEl.textContent = currentUserData.displayName || user.email;
-                userRoleEl.textContent = currentUserData.banned ? 'Banned' : currentUserRole;
-                // ... (rest of the role styling logic)
 
-                initInboxMessaging(currentUserData); // Initialize inbox for logged-in user
+                if (currentUserData.banned) {
+                    userRoleEl.textContent = 'Banned';
+                    userRoleEl.className = 'px-2.5 py-1 text-xs font-bold text-white rounded-full bg-red-600';
+                } else {
+                    userRoleEl.textContent = currentUserRole;
+                    userRoleEl.className = 'px-2.5 py-1 text-xs font-bold text-white rounded-full';
+                    switch (currentUserRole) {
+                        case 'admin': userRoleEl.classList.add('bg-violet-500'); break;
+                        case 'contributor': userRoleEl.classList.add('bg-green-500'); break;
+                        default: userRoleEl.classList.add('bg-blue-500'); break;
+                    }
+                }
+            } else {
+                userNameEl.textContent = user.email;
+                userRoleEl.textContent = '...';
+                userRoleEl.classList.add('bg-gray-500');
             }
         } else {
             authContainer.style.display = 'flex';
@@ -872,14 +862,17 @@
             if(window.firestoreUnsubscribes) {
                 window.firestoreUnsubscribes.forEach(unsub => unsub());
             }
-            signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
+            signInAnonymously(auth).catch(error => {
+                console.error("Anonymous sign-in failed:", error);
+            });
         }
     });
-
+    
     function setupPresence(user) {
         if (!user) return;
         const myConnectionsRef = ref(rtdb, `status/${user.uid}`);
         const connectedRef = ref(rtdb, '.info/connected');
+
         onValue(connectedRef, (snap) => {
             if (snap.val() === true) {
                 set(myConnectionsRef, { online: true, last_changed: rtdbServerTimestamp() });
@@ -888,164 +881,652 @@
         });
     }
     
-    // --- Firestore Listeners ---
+    function renderPosts() {
+        postList.innerHTML = '';
+        postDocsCache.forEach(doc => {
+            const post = doc.data();
+            const postId = doc.id;
+            const authorData = usersDataCache[post.authorId];
+            
+            if (!authorData) return;
+
+            const postEl = document.createElement('div');
+            postEl.className = 'card p-5';
+            const timestamp = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now';
+
+            let userStatusHTML = '';
+            const role = authorData.role || 'newbie';
+            if (authorData.banned) {
+                 userStatusHTML = `<span class="ml-2 px-2.5 py-1 text-xs font-bold text-white bg-red-600 rounded-full">Banned</span>`;
+            } else {
+                let roleColor = 'bg-blue-500';
+                if (role === 'admin') roleColor = 'bg-violet-500';
+                if (role === 'contributor') roleColor = 'bg-green-500';
+                userStatusHTML = `<span class="ml-2 px-2.5 py-1 text-xs font-bold text-white ${roleColor} rounded-full">${role}</span>`;
+            }
+            
+            let adminControls = '';
+            if (currentUserRole === 'admin') {
+                adminControls = `
+                    <div class="ml-auto flex items-center space-x-2">
+                         <button data-author-id="${post.authorId}" data-author-name="${authorData.displayName}" class="manage-user-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
+                        </button>
+                        <button data-post-id="${postId}" class="delete-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--destructive)]">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>`;
+            }
+
+            postEl.innerHTML = `
+                <div class="flex items-start flex-wrap">
+                    <div class="flex items-center mb-2 sm:mb-0">
+                        <div class="font-bold text-[var(--text-primary)]">${authorData.displayName}</div>
+                        ${userStatusHTML}
+                    </div>
+                    ${adminControls}
+                </div>
+                <div class="text-xs text-[var(--text-secondary)]">${timestamp}</div>
+                <h4 class="text-xl font-semibold text-[var(--text-accent)] mt-2 hover:underline cursor-pointer view-post-btn" data-post-id="${postId}">${post.title}</h4>
+            `;
+            postList.appendChild(postEl);
+        });
+    }
+
+
     function attachFirestoreListeners() {
         if (window.firestoreUnsubscribes) {
              window.firestoreUnsubscribes.forEach(unsub => unsub());
         }
         window.firestoreUnsubscribes = [];
 
-        const usersUnsub = onSnapshot(collection(db, "users"), (snapshot) => {
+        const usersColRef = collection(db, "users");
+        const usersUnsub = onSnapshot(usersColRef, (snapshot) => {
             document.getElementById("totalMembers").textContent = snapshot.size;
             snapshot.forEach(doc => {
                 usersDataCache[doc.id] = doc.data();
             });
-            renderPosts();
+            renderPosts(); // Re-render posts with updated user data
         });
 
-        const presenceUnsub = onValue(ref(rtdb, "status"), (snapshot) => {
+        const statusRef = ref(rtdb, "status");
+        const presenceUnsub = onValue(statusRef, (snapshot) => {
             document.getElementById("onlineVisitors").textContent = snapshot.exists() ? snapshot.size : 0;
         });
 
-        const postsUnsub = onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), (snapshot) => {
+        const postsColRef = collection(db, "posts");
+        const q = query(postsColRef, orderBy("createdAt", "desc"));
+        const postsUnsub = onSnapshot(q, (snapshot) => {
             postDocsCache = snapshot.docs;
-            renderPosts();
+            renderPosts(); // Render posts with latest post data
         });
 
         window.firestoreUnsubscribes.push(usersUnsub, presenceUnsub, postsUnsub);
     }
     
-    function renderPosts() {
-        postList.innerHTML = '';
-        postDocsCache.forEach(doc => {
-            const post = doc.data();
-            const authorData = usersDataCache[post.authorId];
-            if (!authorData) return;
-            const postEl = document.createElement('div');
-            postEl.className = 'card p-5';
-            const timestamp = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now';
-            // ... (rest of post rendering logic, it's quite long and unchanged) ...
-             let adminControls = '';
-            if (currentUserRole === 'admin') {
-                adminControls = `
-                    <div class="ml-auto flex items-center space-x-2">
-                         <button data-author-id="${post.authorId}" class="manage-user-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]">
-                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
-                        </button>
-                    </div>`;
+    // --- Post Creation & Admin Actions---
+    document.getElementById('createPostBtn').addEventListener('click', async () => {
+        const title = document.getElementById("postTitle").value.trim();
+        const content = document.getElementById("postContent").value.trim();
+        const user = auth.currentUser;
+        if (title && content && user && currentUserData) {
+            if (!currentUserData.banned) {
+                const postsColRef = collection(db, "posts");
+                await addDoc(postsColRef, {
+                    title: title,
+                    content: content,
+                    authorId: user.uid,
+                    authorName: currentUserData.displayName,
+                    createdAt: serverTimestamp(),
+                });
+                document.getElementById("postTitle").value = '';
+                document.getElementById("postContent").value = '';
+            } else {
+                showAlert("Your account is banned and you cannot create posts.");
             }
-            postEl.innerHTML = `
-                <div class="flex items-start flex-wrap">
-                    <div class="flex items-center mb-2 sm:mb-0">
-                        <div class="font-bold text-[var(--text-primary)]">${authorData.displayName}</div>
-                    </div>
-                    ${adminControls}
-                </div>
-                <div class="text-xs text-[var(--text-secondary)]">${timestamp}</div>
-                <h4 class="text-xl font-semibold text-[var(--text-accent)] mt-2 hover:underline cursor-pointer view-post-btn" data-post-id="${doc.id}">${post.title}</h4>
-            `;
-            postList.appendChild(postEl);
+        } else {
+             showAlert("Please provide a title and content for your post.");
+        }
+    });
+
+    postList.addEventListener('click', e => {
+        const viewBtn = e.target.closest('.view-post-btn');
+        const deleteBtn = e.target.closest('.delete-post-btn');
+        const manageBtn = e.target.closest('.manage-user-btn');
+
+        if (viewBtn) {
+            const postId = viewBtn.dataset.postId;
+            const postDoc = postDocsCache.find(doc => doc.id === postId);
+            if(postDoc) {
+                const post = postDoc.data();
+                const author = usersDataCache[post.authorId];
+                document.getElementById('postViewTitle').textContent = post.title;
+                document.getElementById('postViewContent').textContent = post.content;
+                document.getElementById('postViewMeta').textContent = `Posted by ${author.displayName} on ${post.createdAt.toDate().toLocaleString()}`;
+                postViewModal.style.display = 'flex';
+            }
+        }
+        if (deleteBtn) {
+            const postId = deleteBtn.dataset.postId;
+            if (confirm('Are you sure you want to delete this post permanently?')) {
+                deleteDoc(doc(db, "posts", postId)).then(() => {
+                    showAlert('Post deleted successfully.');
+                }).catch(err => console.error("Error deleting post:", err));
+            }
+        }
+        if (manageBtn) {
+            const userId = manageBtn.dataset.authorId;
+            const userName = usersDataCache[userId]?.displayName;
+            if(userName) {
+                openAdminModal(userId, userName);
+            }
+        }
+    });
+    closePostViewModal.addEventListener('click', () => postViewModal.style.display = 'none');
+
+    let targetUserId = null;
+
+    function openAdminModal(userId, userName) {
+        targetUserId = userId;
+        document.getElementById('adminModalUsername').textContent = userName;
+        warningMessage.innerHTML = '';
+        adminModal.style.display = 'flex';
+    }
+    document.getElementById('closeAdminModal').onclick = () => adminModal.style.display = 'none';
+
+    document.getElementById('banUserBtn').onclick = async () => {
+        if (!targetUserId) return;
+        await updateDoc(doc(db, "users", targetUserId), { banned: true });
+        showAlert('User has been banned.');
+        adminModal.style.display = 'none';
+    };
+    document.getElementById('unbanUserBtn').onclick = async () => {
+        if (!targetUserId) return;
+        await updateDoc(doc(db, "users", targetUserId), { banned: false });
+        showAlert('User has been unbanned.');
+        adminModal.style.display = 'none';
+    };
+    
+    // --- Rich Text Editor Logic ---
+    function applyStyle(editor, command, value = null) {
+        editor.focus();
+        document.execCommand(command, false, value);
+    }
+    
+    const colors = ['#000000', '#EF4444', '#F97316', '#EAB308', '#22C55E', '#3B82F6', '#8B5CF6', '#FFFFFF', '#DC2626', '#EA580C', '#D97706', '#16A34A', '#2563EB', '#7C3AED'];
+    
+    function createPalette(paletteContainer, command, editor) {
+        paletteContainer.innerHTML = ''; // Clear previous
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'w-5 h-5 rounded border border-gray-400 flex items-center justify-center text-red-500';
+        removeBtn.innerHTML = '&#10005;';
+        removeBtn.title = "Remove Color";
+        removeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (command === 'foreColor') {
+                const defaultColor = document.documentElement.classList.contains('dark') ? 'var(--text-primary)' : 'var(--text-primary)';
+                applyStyle(editor, command, defaultColor);
+            } else if (command === 'hiliteColor') {
+                 const defaultBg = 'transparent';
+                applyStyle(editor, command, defaultBg);
+            }
+            paletteContainer.style.display = 'none';
+        });
+        paletteContainer.appendChild(removeBtn);
+
+        colors.forEach(color => {
+            const swatch = document.createElement('button');
+            swatch.className = 'w-5 h-5 rounded border border-gray-400';
+            swatch.style.backgroundColor = color;
+            swatch.addEventListener('click', (e) => {
+                 e.preventDefault();
+                 applyStyle(editor, command, color);
+                 paletteContainer.style.display = 'none';
+            });
+            paletteContainer.appendChild(swatch);
         });
     }
-
-    // --- EVENT LISTENERS ---
     
-    // Auth-related UI
-    // ... (This section remains largely the same: sign-in modals, sign-up forms, etc.)
+    document.getElementById('warningColorBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const palette = document.getElementById('warningColorPalette');
+        createPalette(palette, 'foreColor', warningMessage);
+        palette.style.display = palette.style.display === 'none' ? 'grid' : 'none';
+        document.getElementById('warningBgColorPalette').style.display = 'none';
+    });
+    
+    document.getElementById('warningBgColorBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const palette = document.getElementById('warningBgColorPalette');
+        createPalette(palette, 'hiliteColor', warningMessage);
+        palette.style.display = palette.style.display === 'none' ? 'grid' : 'none';
+        document.getElementById('warningColorPalette').style.display = 'none';
+    });
 
-    // Open/Close Messaging Modal
+
+    adminModal.querySelectorAll('.rich-text-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const command = e.currentTarget.dataset.command;
+            if(command){
+                applyStyle(warningMessage, command);
+            }
+        });
+    });
+
+    document.getElementById('messageColorBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const palette = document.getElementById('messageColorPalette');
+        createPalette(palette, 'foreColor', messageInput);
+        palette.style.display = palette.style.display === 'none' ? 'grid' : 'none';
+    });
+
+    chatView.querySelectorAll('.rich-text-btn').forEach(btn => {
+         btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const command = e.currentTarget.dataset.command;
+            if(command){
+                applyStyle(messageInput, command);
+            }
+        });
+    });
+    
+    
+    // --- Messaging Logic ---
+    async function sendMessage(recipientId, title, contentHTML) {
+        const user = auth.currentUser;
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = contentHTML;
+        const lastMessageText = tempDiv.textContent || tempDiv.innerText || '';
+
+        if (!user || !recipientId || !lastMessageText || !title) {
+            showAlert('Message failed to send. Title and content are required.');
+            return Promise.reject('Missing information');
+        }
+
+        const conversationId = [user.uid, recipientId].sort().join('_') + `_${title}`;
+        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
+        
+        try {
+            await setDoc(doc(db, 'conversations', conversationId), {
+                participants: [user.uid, recipientId],
+                title: title,
+                lastMessage: lastMessageText,
+                lastMessageTimestamp: serverTimestamp(),
+                hiddenFor: [],
+                lastReadBy: [user.uid]
+            }, { merge: true });
+
+            await addDoc(messagesRef, {
+                senderId: user.uid,
+                recipientId: recipientId,
+                content: contentHTML,
+                createdAt: serverTimestamp()
+            });
+              return Promise.resolve();
+        } catch (error) {
+            console.error("Error sending message:", error);
+            showAlert(`Message failed to send. Please check your Firestore rules.`);
+            return Promise.reject(error);
+        }
+    }
+
+    document.getElementById('sendWarningBtn').onclick = async () => {
+        if (!targetUserId) return;
+        const messageHTML = warningMessage.innerHTML;
+        const messageText = warningMessage.textContent.trim();
+
+        if (messageText) {
+            const warningTitle = "NOTICE!";
+            const warningContent = "<strong>OFFICIAL WARNING:</strong> " + messageHTML;
+            
+            try {
+                await sendMessage(targetUserId, warningTitle, warningContent);
+                await updateDoc(doc(db, "users", targetUserId), {
+                    warnings: arrayUnion({ message: messageText, date: serverTimestamp() })
+                });
+
+                showAlert('Warning has been sent as a direct message.');
+                adminModal.style.display = 'none';
+
+            } catch(e) { /* showAlert is handled in sendMessage */ }
+        } else {
+            showAlert('Warning message cannot be empty.');
+        }
+    };
+
     messagesBtn.addEventListener('click', () => {
         if(auth.currentUser && !auth.currentUser.isAnonymous){
             messagingModal.style.display = 'flex';
+            inboxView.style.display = 'block';
+            chatView.style.display = 'none';
+            loadInbox();
         } else {
             showAlert('Please sign in to view messages.');
         }
     });
     closeMessagingModal.addEventListener('click', () => {
          messagingModal.style.display = 'none';
+         if(messageListenerUnsubscribe) messageListenerUnsubscribe();
+         currentConversation = null;
+         messageRecipientSearch.value = '';
+    });
+    backToInboxBtn.addEventListener('click', () => {
+        inboxView.style.display = 'block';
+        chatView.style.display = 'none';
+        if(messageListenerUnsubscribe) messageListenerUnsubscribe();
+        currentConversation = null;
+        loadInbox();
     });
 
-    // Admin Modal Logic
-    function openAdminModal(userId) {
-        targetUserId = userId;
-        const userData = usersDataCache[userId];
-        if(!userData) return;
-        document.getElementById('adminModalUsername').textContent = userData.displayName;
-        document.getElementById('warningMessage').innerHTML = '';
-        document.getElementById('adminModal').style.display = 'flex';
+    messageRecipientSearch.addEventListener('input', async (e) => {
+        const searchTerm = e.target.value.trim();
+        messageRecipientResults.innerHTML = '';
+        messageRecipientResults.style.display = 'none';
+
+        if(searchTerm.length < 2) return;
+
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where('displayName', '>=', searchTerm), where('displayName', '<=', searchTerm + '\uf8ff'));
+        const querySnapshot = await getDocs(q);
+        
+        querySnapshot.forEach(doc => {
+            if(doc.id === auth.currentUser.uid) return;
+            const user = doc.data();
+            const resultEl = document.createElement('div');
+            resultEl.textContent = user.displayName;
+            resultEl.className = 'p-2 hover:bg-[var(--bg-tertiary)] cursor-pointer';
+            resultEl.dataset.userId = doc.id;
+            resultEl.dataset.userName = user.displayName;
+            messageRecipientResults.appendChild(resultEl);
+        });
+
+        if(!querySnapshot.empty) {
+            messageRecipientResults.style.display = 'block';
+        }
+    });
+    
+    async function openChatWithUser(userId, userName, title = '') {
+        currentConversation = { recipientId: userId, recipientName: userName, title: title };
+        chatHeader.querySelector('span').textContent = currentConversation.recipientName;
+        chatTitleInput.value = title;
+        chatTitleInput.disabled = !!title; // Disable title input if it's an existing conversation
+        inboxView.style.display = 'none';
+        chatView.style.display = 'flex';
+
+        if(title){ // Only mark as read if it's an existing conversation
+             const conversationId = [auth.currentUser.uid, userId].sort().join('_') + `_${title}`;
+             const conversationRef = doc(db, 'conversations', conversationId);
+             await updateDoc(conversationRef, {
+                 lastReadBy: arrayUnion(auth.currentUser.uid)
+             });
+        }
+
+        loadMessageHistory();
     }
-    
-    document.getElementById('closeAdminModal').onclick = () => document.getElementById('adminModal').style.display = 'none';
 
-    document.getElementById('banUserBtn').onclick = async () => {
-        if (!targetUserId) return;
-        await updateDoc(doc(db, "users", targetUserId), { banned: true });
-        showToast('User has been banned.', 'success');
-        document.getElementById('adminModal').style.display = 'none';
-    };
-    
-    document.getElementById('unbanUserBtn').onclick = async () => {
-        if (!targetUserId) return;
-        await updateDoc(doc(db, "users", targetUserId), { banned: false });
-        showToast('User has been unbanned.', 'success');
-        document.getElementById('adminModal').style.display = 'none';
-    };
-    
-    document.getElementById('sendWarningBtn').onclick = async () => {
-        if (!targetUserId) {
-            showToast('No user selected for warning.', 'error');
-            return;
+    messageRecipientResults.addEventListener('click', (e) => {
+        const target = e.target;
+        if(target.dataset.userId) {
+            openChatWithUser(target.dataset.userId, target.dataset.userName);
+            messageRecipientSearch.value = '';
+            messageRecipientResults.style.display = 'none';
         }
-        const message = document.getElementById('warningMessage').innerHTML.trim();
-        if (!message) {
-            showToast('Warning message cannot be empty.', 'error');
-            return;
+    });
+    
+    document.getElementById('inboxView').addEventListener('click', async (e) => {
+        const chatBtn = e.target.closest('.inbox-item-content');
+        const deleteBtn = e.target.closest('.delete-conversation-btn');
+        
+        if(chatBtn) {
+             const item = chatBtn.closest('.inbox-item');
+             openChatWithUser(item.dataset.userId, item.dataset.userName, item.dataset.title);
         }
-        
-        // Find or create conversation with the target user
-        const user = auth.currentUser;
-        const conversationId = [user.uid, targetUserId].sort().join('_');
-        const convoRef = doc(db, 'conversations', conversationId);
-        
-        try {
-            await setDoc(convoRef, {
-                participants: [user.uid, targetUserId],
-                lastMessage: `ADMIN WARNING: ${document.getElementById('warningMessage').textContent.trim()}`,
-                lastMessageTimestamp: serverTimestamp()
-            }, { merge: true });
-            
-            const msgRef = collection(db, `conversations/${conversationId}/messages`);
-            await addDoc(msgRef, {
-                content: message,
-                sender: "Admin",
-                timestamp: serverTimestamp(),
-                role: 'admin',
-                reactions: {},
-                deletedBy: []
+
+        if (deleteBtn) {
+            e.stopPropagation();
+            const item = deleteBtn.closest('.inbox-item');
+            const otherUserId = item.dataset.userId;
+            const title = item.dataset.title;
+            if (confirm(`Are you sure you want to hide this conversation with ${item.dataset.userName}? The other user will still see it.`)) {
+                const conversationId = [auth.currentUser.uid, otherUserId].sort().join('_') + `_${title}`;
+                const conversationRef = doc(db, 'conversations', conversationId);
+                
+                await updateDoc(conversationRef, {
+                    hiddenFor: arrayUnion(auth.currentUser.uid)
+                });
+
+                showAlert('Conversation hidden.');
+            }
+        }
+    });
+
+    async function loadInbox() {
+        if(!auth.currentUser) return;
+        const convosRef = collection(db, 'conversations');
+        const q = query(convosRef, where('participants', 'array-contains', auth.currentUser.uid), orderBy('lastMessageTimestamp', 'desc'));
+
+        onSnapshot(q, (snapshot) => {
+            urgentInboxList.innerHTML = '';
+            regularInboxList.innerHTML = '';
+
+            let hasConversations = false;
+
+            snapshot.forEach(doc => {
+                const convo = doc.data();
+
+                if(convo.hiddenFor && convo.hiddenFor.includes(auth.currentUser.uid)){
+                    return;
+                }
+                hasConversations = true;
+
+                const otherUserId = convo.participants.find(id => id !== auth.currentUser.uid);
+                const otherUserData = usersDataCache[otherUserId];
+
+                if(otherUserData) {
+                    const convoEl = document.createElement('div');
+                    convoEl.className = 'inbox-item p-3 border-b border-[var(--border-primary)] flex justify-between items-center';
+                    convoEl.dataset.userId = otherUserId;
+                    convoEl.dataset.userName = otherUserData.displayName;
+                    convoEl.dataset.title = convo.title;
+                    
+                    const timestamp = convo.lastMessageTimestamp ? convo.lastMessageTimestamp.toDate().toLocaleString() : '';
+                    const isUnread = convo.lastReadBy && !convo.lastReadBy.includes(auth.currentUser.uid);
+
+                    convoEl.innerHTML = `
+                        <div class="flex-grow cursor-pointer hover:bg-[var(--bg-tertiary)] inbox-item-content p-2 rounded-md">
+                            <p class="font-bold text-[var(--text-primary)]">${convo.title} ${isUnread ? '<span class="ml-2 px-2.5 py-1 text-xs font-bold text-white bg-blue-500 rounded-full">new</span>' : ''}</p>
+                             <p class="text-sm text-[var(--text-secondary)]">with ${otherUserData.displayName}</p>
+                        </div>
+                         <div class="text-xs text-[var(--text-secondary)] text-right pl-2">
+                             <p>${timestamp}</p>
+                             <button class="text-[var(--destructive)] hover:text-red-700 mt-1 delete-conversation-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                    `;
+                    if (convo.title === "NOTICE!") {
+                        urgentInboxList.appendChild(convoEl);
+                    } else {
+                        regularInboxList.appendChild(convoEl);
+                    }
+                }
             });
-            showToast('Warning sent successfully.', 'success');
-            document.getElementById('adminModal').style.display = 'none';
-        } catch(e) {
-            showToast('Failed to send warning.', 'error');
-            console.error(e);
-        }
-    };
-    
-    // Post list actions (view, manage)
-    postList.addEventListener('click', e => {
-        const viewBtn = e.target.closest('.view-post-btn');
-        const manageBtn = e.target.closest('.manage-user-btn');
 
-        if (viewBtn) {
-            // ... view post logic ...
+            document.getElementById('urgentInboxContainer').style.display = urgentInboxList.hasChildNodes() ? 'block' : 'none';
+            if(!hasConversations) {
+                 regularInboxList.innerHTML = `<p class="text-center text-[var(--text-secondary)] p-4">No conversations yet.</p>`;
+            }
+        });
+    }
+
+    function loadMessageHistory(){
+        if(messageListenerUnsubscribe) messageListenerUnsubscribe();
+        if(!currentConversation) return;
+
+        const conversationId = [auth.currentUser.uid, currentConversation.recipientId].sort().join('_') + `_${currentConversation.title}`;
+        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
+        const q = query(messagesRef, orderBy('createdAt'));
+
+        messageListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+            messageHistory.innerHTML = '';
+            snapshot.forEach(doc => {
+                const msg = doc.data();
+                const msgEl = document.createElement('div');
+                const isSender = msg.senderId === auth.currentUser.uid;
+                
+                msgEl.className = `p-2 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-[var(--accent-primary)] text-white ml-auto' : 'bg-[var(--bg-secondary)] text-[var(--text-primary)] mr-auto'}`;
+                
+                msgEl.innerHTML = msg.content;
+
+                messageHistory.appendChild(msgEl);
+            });
+            messageHistory.scrollTop = messageHistory.scrollHeight;
+        });
+    }
+
+    sendMessageBtn.addEventListener('click', async () => {
+        const contentHTML = messageInput.innerHTML;
+        const title = chatTitleInput.value.trim();
+
+        if(messageInput.textContent.trim() && currentConversation && title) {
+            try {
+                await sendMessage(currentConversation.recipientId, title, contentHTML);
+                messageInput.innerHTML = '';
+                showAlert('Message sent successfully!');
+            } catch(e) { /* showAlert is handled in sendMessage */ }
+        } else {
+            showAlert("Please provide a title and message content.");
         }
-        if (manageBtn) {
-            const userId = manageBtn.dataset.authorId;
-            openAdminModal(userId);
+    });
+
+    userInfoContainer.addEventListener('click', async () => {
+        const user = auth.currentUser;
+        if (!user || user.isAnonymous) return;
+
+        const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid));
+        const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid));
+
+        const postSnap = await getDocs(postsQuery);
+        const contributorSnap = await getDocs(contributorPostsQuery);
+        
+        profilePostCount.textContent = postSnap.size + contributorSnap.size;
+
+        if (currentUserRole === 'admin' || currentUserRole === 'contributor') {
+            const thirtyDaysInMillis = 30 * 24 * 60 * 60 * 1000;
+            const lastChange = currentUserData.lastUsernameChange?.toMillis();
+            const now = Date.now();
+
+            if (lastChange && (now - lastChange < thirtyDaysInMillis)) {
+                const daysRemaining = Math.ceil((thirtyDaysInMillis - (now - lastChange)) / (1000 * 60 * 60 * 24));
+                changeUsernameBtn.disabled = true;
+                newUsernameInput.disabled = true;
+                changeUsernameError.textContent = `You can change your username again in ${daysRemaining} days.`;
+                changeUsernameError.style.display = 'block';
+            } else {
+                 changeUsernameBtn.disabled = false;
+                 newUsernameInput.disabled = false;
+                 changeUsernameError.style.display = 'none';
+            }
+            changeUsernameSection.style.display = 'block';
+        } else {
+            changeUsernameSection.style.display = 'none';
+        }
+
+        userProfileModal.style.display = 'flex';
+    });
+
+    closeUserProfileModal.addEventListener('click', () => {
+        userProfileModal.style.display = 'none';
+    });
+
+    changeUsernameBtn.addEventListener('click', async () => {
+        const newUsername = newUsernameInput.value.trim();
+        const user = auth.currentUser;
+        changeUsernameError.style.display = 'none';
+
+        if (!newUsername) {
+            changeUsernameError.textContent = "New username cannot be empty.";
+            changeUsernameError.style.display = 'block';
+            return;
+        }
+
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("displayName", "==", newUsername));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            changeUsernameError.textContent = "This username is already taken.";
+            changeUsernameError.style.display = 'block';
+            return;
+        }
+
+        const batch = writeBatch(db);
+        const userRef = doc(db, "users", user.uid);
+        batch.update(userRef, { 
+            displayName: newUsername,
+            lastUsernameChange: serverTimestamp()
+        });
+
+        const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid));
+        const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid));
+
+        const postSnap = await getDocs(postsQuery);
+        postSnap.forEach(postDoc => {
+            batch.update(postDoc.ref, { authorName: newUsername });
+        });
+
+        const contributorSnap = await getDocs(contributorPostsQuery);
+        contributorSnap.forEach(postDoc => {
+            batch.update(postDoc.ref, { authorName: newUsername });
+        });
+
+        try {
+            await batch.commit();
+            showAlert("Username updated successfully!");
+            userProfileModal.style.display = 'none';
+        } catch (error) {
+            console.error("Error updating username:", error);
+            showAlert("Failed to update username. Please try again.");
+        }
+    });
+
+    closeAccountBtn.addEventListener('click', async () => {
+        const user = auth.currentUser;
+        if (!user || user.isAnonymous) return;
+
+        if (confirm("Are you sure you want to close your account? This action will rename all your posts to '[Deleted User]' and permanently ban you from posting. This cannot be undone.")) {
+            const batch = writeBatch(db);
+            const userRef = doc(db, "users", user.uid);
+            batch.update(userRef, { displayName: "[Deleted User]", banned: true });
+
+            const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid));
+            const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid));
+
+            const postSnap = await getDocs(postsQuery);
+            postSnap.forEach(postDoc => {
+                batch.update(postDoc.ref, { authorName: "[Deleted User]" });
+            });
+
+            const contributorSnap = await getDocs(contributorPostsQuery);
+            contributorSnap.forEach(postDoc => {
+                batch.update(postDoc.ref, { authorName: "[Deleted User]" });
+            });
+
+            try {
+                await batch.commit();
+                // We don't delete the user from auth so they can't re-register the email
+                // but we sign them out.
+                await signOut(auth);
+                showAlert("Your account has been closed.");
+                userProfileModal.style.display = 'none';
+            } catch (error) {
+                console.error("Error closing account:", error);
+                showAlert("Failed to close account. Please try again.");
+            }
         }
     });
 
 </script>
 </body>
 </html>
-
