@@ -1,1387 +1,340 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-gray-50">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Community Forum - Home</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234f46e5'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E">
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-    /* Inter Font */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body {
-        font-family: 'Inter', sans-serif;
-        transition: background-color 0.3s, color 0.3s;
-    }
-    /* Simple fade-in animation for elements */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .fade-in {
-        animation: fadeIn 0.5s ease-out forwards;
-    }
-
-    /* Toggle switch styles */
-    .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
-    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-    input:checked + .slider { background-color: #4f46e5; }
-    input:checked + .slider:before { transform: translateX(26px); }
-
-    /* Custom styles for dark mode compatibility */
-    .dark .bg-gray-100 { background-color: #1f2937; }
-    .dark .bg-gray-200 { background-color: #374151; }
-    .dark .text-gray-900 { color: #f9fafb; }
-    .dark .text-gray-500 { color: #d1d5db; }
-    .dark .text-gray-800 { color: #e5e7eb; }
-    .dark .border-gray-300 { border-color: #4b5563; }
-    .dark .ring-indigo-500 { ring-color: #818cf8; }
-    .dark .placeholder-gray-400::placeholder { color: #9ca3af; }
-    
-    [contenteditable=true]:empty:before {
-        content: attr(placeholder);
-        pointer-events: none;
-        display: block; /* For Firefox */
-        color: #9ca3af;
-    }
-    .dark [contenteditable=true]:empty:before {
-        color: #6b7280;
-    }
-
-    .dark .rich-text-btn {
-        color: #e5e7eb;
-        border-color: #4b5563;
-    }
-
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community Forum</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom scrollbar for a cleaner look */
+    .modal-content::-webkit-scrollbar { width: 8px; }
+    .modal-content::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+    .modal-content::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+    .modal-content::-webkit-scrollbar-thumb:hover { background: #555; }
+  </style>
 </head>
-<body class="bg-gray-100">
+<body class="h-full font-sans bg-gray-100 text-gray-800">
 
-<div id="app-container">
-    <!-- Header -->
-    <header class="bg-white dark:bg-gray-800 shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center">
-                    <h1 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">Community Forum</h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <!-- User Info Display -->
-                    <div id="userInfoContainer" class="flex items-center space-x-2 cursor-pointer" style="display: none;">
-                        <span id="userName" class="text-sm font-medium text-gray-800 dark:text-gray-200"></span>
-                        <span id="userRole" class="px-2 py-0.5 text-xs font-semibold text-white rounded-full"></span>
-                    </div>
-                    <!-- Auth Buttons -->
-                    <div id="auth-container" class="flex items-center space-x-4">
-                        <!-- Sign In link -->
-                        <div class="text-right">
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Have an account?</p>
-                            <button id="signInLink" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">Sign in</button>
-                        </div>
-    
-                        <!-- Create Account Dropdown -->
-                        <div class="relative" id="createAccountDropdownContainer">
-                            <button id="createAccountBtn" type="button" class="px-3 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">Create an account</button>
-                            <div id="createAccountDropdown" class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg py-1 z-50" style="display: none;">
-                                <a href="#" id="signUpWithGoogleBtn" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">Sign up with Google</a>
-                                <a href="#" id="signUpWithEmailBtn" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">Sign up via email</a>
-                            </div>
-                        </div>
-                    </div>
-                     <button id="signOutBtn" type="button" style="display:none;" class="px-3 py-2 text-sm font-semibold text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all">Sign out</button>
-                    <!-- Dark Mode Toggle -->
-                    <label class="switch">
-                        <input type="checkbox" id="darkModeToggle">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-            </div>
-             <div class="pb-3 flex justify-center sm:justify-end items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
-                <span><span id="totalMembers" class="font-bold">0</span> Total Members</span>
-                <span class="h-4 border-l border-gray-300 dark:border-gray-600"></span>
-                <span><span id="onlineVisitors" class="font-bold">0</span> Online</span>
-            </div>
+<div id="app" class="flex flex-col h-full">
+  <!-- Header -->
+  <header class="bg-white shadow-md w-full sticky top-0 z-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between py-3">
+        <h1 class="text-2xl font-bold text-gray-900">Community Forum</h1>
+        <div class="flex items-center space-x-4">
+          <div id="auth-container" class="flex items-center space-x-3">
+            <span id="userEmail" class="text-sm font-medium text-gray-600 hidden sm:block"></span>
+            <button id="signInBtn" class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
+              Sign In
+            </button>
+            <button id="signOutBtn" class="hidden px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition">
+              Sign Out
+            </button>
+          </div>
         </div>
-    </header>
-    
-    <!-- Navigation -->
-    <nav class="bg-gray-200 dark:bg-gray-700">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center space-x-4 h-12">
-                <a href="./index.html" class="px-3 py-2 text-sm font-medium text-white bg-indigo-600 dark:bg-indigo-500 rounded-md">Home</a>
-                <a href="#" id="messagesBtn" class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">Messages</a>
-                <a href="./contributor.html" class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">Contributor Section</a>
-            </div>
+      </div>
+      <div class="border-t border-gray-200 py-2 text-xs text-gray-500 flex items-center justify-center sm:justify-start space-x-4">
+        <div class="flex items-center">
+            <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.124-1.282-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.124-1.282.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            <span id="totalMembers">0</span>&nbsp;Total Members
         </div>
-    </nav>
-
-
-    <!-- Main Content -->
-    <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-         <!-- Signup Form (hidden by default) -->
-        <div id="signupForm" style="display:none;" class="mb-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md fade-in">
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Create an Account</h3>
-            <div class="space-y-4">
-                <div>
-                    <input type="text" id="signupUsername" placeholder="Username" autocomplete="off" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <p id="signupUsernameError" class="text-xs text-red-500 mt-1" style="display: none;"></p>
-                </div>
-                <input type="email" id="signupEmail" placeholder="Email address" autocomplete="off" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <div>
-                    <div class="relative">
-                        <input type="password" id="signupPassword" placeholder="Password" autocomplete="new-password" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10">
-                        <button type="button" id="togglePasswordVisibility" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 dark:text-gray-400">
-                            <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.02 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
-                            </svg>
-                            <svg id="eyeSlashIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.955 9.955 0 00-4.502 1.071L3.707 2.293zM10.707 10.707a2 2 0 00-2.828-2.828l2.828 2.828zM10 12a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                                <path d="M2.043 10c1.274 4.057 5.02 7 9.542 7 .848 0 1.67-.11 2.458-.316l-1.473-1.473A10.014 10.014 0 012.043 10z" />
-                            </svg>
-                        </button>
-                    </div>
-                    <p id="passwordError" class="text-xs text-red-500 mt-1" style="display: none;"></p>
-                </div>
-                <button id="signupBtn" class="w-full px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all">Sign Up</button>
-            </div>
+        <div class="flex items-center">
+             <svg class="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+            <span id="onlineVisitors">0</span>&nbsp;Online
         </div>
-        
-         <!-- Search Section -->
-        <section id="search-section" class="mb-6">
-            <input type="text" id="postSearchInput" placeholder="Search for a post..." class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <div id="postSearchResults" class="mt-2 bg-white dark:bg-gray-800 rounded-md shadow-md" style="display: none;"></div>
-        </section>
-
-        <!-- Post Creation Section -->
-        <section id="post-creation" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Create a New Post</h2>
-            <div class="space-y-4">
-                 <input type="text" id="postTitle" placeholder="Post Title" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <textarea id="postContent" placeholder="What's on your mind?" class="w-full h-28 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400 dark:placeholder-gray-500" disabled></textarea>
-            </div>
-            <button id="createPostBtn" class="mt-4 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed dark:disabled:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all" disabled>Create Post</button>
-            <p id="auth-prompt" class="text-xs text-red-500 mt-2">Please sign in to create a post.</p>
-        </section>
-
-        <!-- Post List -->
-        <div id="postList" class="mt-8 space-y-4">
-            <!-- Posts will be dynamically inserted here -->
-        </div>
-        <div class="text-center mt-6">
-             <button id="loadMoreBtn" style="display:none;" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">Load More Posts</button>
-        </div>
-    </main>
-    
-    <!-- Modals -->
-     <div id="userProfileModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-md">
-            <div class="flex justify-between items-start mb-4">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">User Profile</h3>
-                <button id="closeUserProfileModal" class="text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
-            </div>
-            <div class="space-y-4">
-                <p class="text-gray-800 dark:text-gray-200">Total Posts: <span id="profilePostCount" class="font-bold">0</span></p>
-                <div id="changeUsernameSection" style="display: none;">
-                    <label for="newUsernameInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Change Username</label>
-                    <div class="flex mt-1">
-                        <input type="text" id="newUsernameInput" placeholder="New username" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <button id="changeUsernameBtn" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-r-md hover:bg-indigo-700">Save</button>
-                    </div>
-                     <p id="changeUsernameError" class="text-xs text-red-500 mt-1" style="display: none;"></p>
-                </div>
-                <button id="closeAccountBtn" class="w-full px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 transition-all">Close My Account</button>
-            </div>
-        </div>
+      </div>
     </div>
+  </header>
 
-    <div id="postViewModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-2xl relative">
-            <button id="closePostViewModal" class="absolute top-3 right-3 text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
-            <h3 id="postViewTitle" class="text-xl font-bold text-gray-900 dark:text-white mb-2"></h3>
-            <div id="postViewMeta" class="text-xs text-gray-500 dark:text-gray-400 mb-4"></div>
-            <p id="postViewContent" class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap"></p>
-        </div>
-    </div>
-    
-    <div id="messagingModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-lg h-3/4 flex flex-col">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Direct Messages</h3>
-                <button id="closeMessagingModal" class="text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
-            </div>
+  <!-- Main Content -->
+  <main class="flex-grow max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Create Post Section -->
+    <section id="create-post-section" class="bg-white p-6 rounded-lg shadow-md mb-8 hidden">
+      <h2 class="text-xl font-bold mb-4">Create a New Post</h2>
+      <input type="text" id="postTitle" placeholder="Post Title" maxlength="120" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition mb-4">
+      <textarea id="postContent" placeholder="Write something..." class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition h-32 resize-none"></textarea>
+      <button id="createPostBtn" class="mt-4 w-full sm:w-auto px-6 py-2 text-white bg-green-600 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition font-semibold">
+        Create Post
+      </button>
+    </section>
 
-            <!-- Inbox View -->
-            <div id="inboxView">
-                <div class="relative mb-2">
-                    <input type="text" id="messageRecipientSearch" placeholder="Search for user to start a new chat..." class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md">
-                    <div id="messageRecipientResults" class="absolute w-full bg-white dark:bg-gray-600 border dark:border-gray-500 rounded-md mt-1 z-10" style="display: none;"></div>
-                </div>
-                <div id="urgentInboxContainer">
-                    <h4 class="text-sm font-bold text-red-600 dark:text-red-400 my-2">URGENT</h4>
-                    <div id="urgentInboxList"></div>
-                </div>
-                <div id="regularInboxContainer" class="mt-4">
-                     <h4 class="text-sm font-bold text-gray-600 dark:text-gray-300 my-2">Conversations</h4>
-                    <div id="regularInboxList" class="flex-grow overflow-y-auto"></div>
-                </div>
-            </div>
+    <!-- Login Prompt Section -->
+    <section id="login-prompt-section" class="bg-white p-6 rounded-lg shadow-md mb-8 text-center">
+        <h2 class="text-xl font-bold mb-2">Join the Conversation!</h2>
+        <p class="text-gray-600 mb-4">Please sign in to create new posts and engage with the community.</p>
+        <button id="promptSignInBtn" class="px-6 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
+              Sign In with Google
+        </button>
+    </section>
 
-            <!-- Chat View -->
-            <div id="chatView" class="h-full flex-col" style="display: none;">
-                <button id="backToInboxBtn" class="mb-2 text-sm text-indigo-600 dark:text-indigo-400 hover:underline">&larr; Back to Inbox</button>
-                <div id="chatHeader" class="mb-2">
-                    <p id="messagingWith" class="text-sm">Chat with: <span class="font-bold"></span></p>
-                    <input type="text" id="chatTitleInput" placeholder="Message Title" class="w-full px-3 py-1 mt-1 text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-300 rounded-md">
-                </div>
-                <div id="messageHistory" class="flex-grow overflow-y-auto bg-gray-50 dark:bg-gray-900 p-2 rounded-md mb-2 flex flex-col"></div>
-                <div class="relative flex items-center space-x-2 p-1 border-t dark:border-gray-600">
-                    <button data-command="bold" class="px-2 py-1 text-sm font-bold border rounded rich-text-btn">B</button>
-                    <button data-command="italic" class="px-2 py-1 text-sm italic border rounded rich-text-btn">I</button>
-                    <button data-command="strikeThrough" class="px-2 py-1 text-sm line-through border rounded rich-text-btn">S</button>
-                     <div class="relative">
-                        <button id="messageColorBtn" class="px-2 py-1 text-sm border rounded rich-text-btn">Text Color</button>
-                        <div id="messageColorPalette" class="absolute hidden bottom-full left-0 mb-1 bg-white dark:bg-gray-700 border dark:border-gray-600 p-2 rounded-md shadow-lg grid grid-cols-7 gap-1 z-20"></div>
-                    </div>
-                </div>
-                <div class="flex">
-                    <div id="messageInput" contenteditable="true" placeholder="Type your message..." class="flex-grow p-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-l-md h-24 overflow-y-auto"></div>
-                    <button id="sendMessageBtn" class="px-4 py-2 text-white bg-indigo-600 rounded-r-md hover:bg-indigo-700 self-end">Send</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Posts Section -->
+    <section>
+      <h2 class="text-2xl font-bold mb-4">Posts</h2>
+      <div id="postList" class="space-y-4">
+        <!-- Posts will be dynamically inserted here -->
+         <div class="text-center text-gray-500 py-10">Loading posts...</div>
+      </div>
+    </section>
+  </main>
+</div>
 
-    <div id="signInModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-sm">
-            <div class="flex justify-between items-start mb-4">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Sign In</h3>
-                <button id="closeSignInModal" class="text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
-            </div>
-            <div class="space-y-4">
-                <button id="signInWithGoogleBtnModal" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                    <svg class="w-5 h-5 mr-3" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.223,0-9.657-3.356-11.303-7.962l-6.571,4.819C9.656,39.663,16.318,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C44.464,34.048,48,27.421,48,20c0-1.577-0.191-3.118-0.54-4.594l-0.231,0.195C45.696,17.227,44.254,19.14,43.611,20.083z"></path></svg>
-                    Sign in with Google
-                </button>
-                <div class="relative flex py-2 items-center">
-                    <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
-                    <span class="flex-shrink mx-4 text-gray-400">or</span>
-                    <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
-                </div>
-                <input type="text" id="signInIdentifier" placeholder="Username or Email" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <input type="password" id="signInPassword" placeholder="Password" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <p id="signInError" class="text-xs text-red-500 mt-1" style="display: none;"></p>
-                <button id="signInWithEmailBtnModal" class="w-full px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all">Sign In</button>
-            </div>
-        </div>
+<!-- Modal -->
+<div id="postModal" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+    <div class="p-5 border-b border-gray-200 flex justify-between items-center">
+        <h2 id="modalTitle" class="text-2xl font-bold">Loading...</h2>
+        <button class="close-modal-btn text-gray-400 hover:text-gray-600 transition">&times;</button>
     </div>
-    
-    <div id="usernameModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-sm">
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Choose a Username</h3>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">This will be your public name in the forum.</p>
-            <input type="text" id="modalUsernameInput" placeholder="Enter a unique username" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <p id="usernameError" class="text-xs text-red-500 mt-1" style="display: none;"></p>
-            <button id="submitUsernameBtn" class="mt-4 w-full px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">Confirm Username</button>
-        </div>
+    <div id="modalBody" class="p-6 overflow-y-auto modal-content prose max-w-none">
+      <p>Loading content...</p>
     </div>
-    
-    <div id="adminModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-md">
-             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Manage User</h3>
-             <p id="adminModalUsername" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-4"></p>
-             <div class="space-y-4">
-                 <div>
-                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Send Warning</label>
-                     <div class="relative flex items-center space-x-2 my-2 p-1 border-b dark:border-gray-600">
-                        <button data-command="bold" class="px-2 py-1 text-sm font-bold border rounded rich-text-btn dark:text-gray-200 dark:border-gray-500">B</button>
-                        <button data-command="italic" class="px-2 py-1 text-sm italic border rounded rich-text-btn dark:text-gray-200 dark:border-gray-500">I</button>
-                        <button data-command="strikeThrough" class="px-2 py-1 text-sm line-through border rounded rich-text-btn dark:text-gray-200 dark:border-gray-500">S</button>
-                        <div class="relative">
-                            <button id="warningColorBtn" class="px-2 py-1 text-sm border rounded rich-text-btn dark:text-gray-200 dark:border-gray-500">Text Color</button>
-                            <div id="warningColorPalette" class="absolute hidden top-full left-0 mt-1 bg-white dark:bg-gray-700 border dark:border-gray-600 p-2 rounded-md shadow-lg grid grid-cols-7 gap-1 z-10"></div>
-                        </div>
-                        <div class="relative">
-                           <button id="warningBgColorBtn" class="px-2 py-1 text-sm border rounded rich-text-btn dark:text-gray-200 dark:border-gray-500">BG Color</button>
-                           <div id="warningBgColorPalette" class="absolute hidden top-full left-0 mt-1 bg-white dark:bg-gray-700 border dark:border-gray-600 p-2 rounded-md shadow-lg grid grid-cols-7 gap-1 z-10"></div>
-                        </div>
-                     </div>
-                     <div id="warningMessage" contenteditable="true" placeholder="Enter warning message..." class="mt-1 w-full p-2 h-24 overflow-y-auto text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
-                     <button id="sendWarningBtn" class="mt-2 w-full px-4 py-2 text-sm font-semibold text-white bg-yellow-500 rounded-md hover:bg-yellow-600 transition-all">Send Warning</button>
-                 </div>
-                 <div class="flex space-x-4">
-                     <button id="banUserBtn" class="w-full px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 transition-all">Ban User</button>
-                     <button id="unbanUserBtn" class="w-full px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 transition-all">Unban User</button>
-                 </div>
-                 <button id="closeAdminModal" class="mt-4 w-full px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 transition-all">Close</button>
-             </div>
-        </div>
-    </div>
-
-    <div id="alertModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-sm text-center">
-            <p id="alertMessage" class="text-gray-800 dark:text-gray-200 mb-4"></p>
-            <button id="closeAlertModal" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700">OK</button>
-        </div>
-    </div>
-
+  </div>
 </div>
 
 <script type="module">
-    // Firebase imports
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInWithEmailAndPassword, signInAnonymously, deleteUser } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, onSnapshot, addDoc, query, orderBy, where, getDocs, updateDoc, deleteDoc, arrayUnion, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithRedirect, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  import { getDatabase, ref, onDisconnect, set, onValue, serverTimestamp as dbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4",
-      authDomain: "forum-3dec5.firebaseapp.com",
-      databaseURL: "https://forum-3dec5-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "forum-3dec5",
-      storageBucket: "forum-3dec5.firebasestorage.app",
-      messagingSenderId: "519284298976",
-      appId: "1:519284298976:web:8bb5e94a44f202802c2c85",
-      measurementId: "G-SXS8FRTT03"
+  // --- Firebase Configuration ---
+  const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+  const rtdbAppId = appId.replace(/\./g, '_'); // Sanitize for Realtime Database paths
+  const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+  
+  // --- Initialize Firebase ---
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const rtdb = getDatabase(app);
+  const provider = new GoogleAuthProvider();
+
+  // --- DOM Elements ---
+  const signInBtn = document.getElementById("signInBtn");
+  const promptSignInBtn = document.getElementById("promptSignInBtn");
+  const signOutBtn = document.getElementById("signOutBtn");
+  const userEmailEl = document.getElementById("userEmail");
+  const createPostBtn = document.getElementById("createPostBtn");
+  const postTitleEl = document.getElementById("postTitle");
+  const postContentEl = document.getElementById("postContent");
+  const postListEl = document.getElementById("postList");
+  const totalMembersEl = document.getElementById("totalMembers");
+  const onlineVisitorsEl = document.getElementById("onlineVisitors");
+  const createPostSection = document.getElementById('create-post-section');
+  const loginPromptSection = document.getElementById('login-prompt-section');
+  const modal = document.getElementById('postModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalBody = document.getElementById('modalBody');
+  const closeModalBtns = document.querySelectorAll('.close-modal-btn');
+
+  // --- Paths ---
+  const usersPath = `artifacts/${appId}/public/data/users`;
+  const postsPath = `artifacts/${appId}/public/data/posts`;
+  const statusPath = `artifacts/${rtdbAppId}/public/data/status`;
+
+  let currentUnsubscribePost = null;
+
+  // --- Authentication ---
+  const initAuth = async () => {
+    try {
+      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+        await signInWithCustomToken(auth, __initial_auth_token);
+      } else {
+        await signInAnonymously(auth);
+      }
+    } catch (error) {
+      console.error("Authentication failed:", error);
+    }
+  };
+  
+  onAuthStateChanged(auth, async (user) => {
+    if (user && !user.isAnonymous) {
+      // User is signed in
+      userEmailEl.textContent = user.email;
+      signInBtn.classList.add("hidden");
+      signOutBtn.classList.remove("hidden");
+      createPostSection.classList.remove('hidden');
+      loginPromptSection.classList.add('hidden');
+      
+      // Add or update user in Firestore
+      const userRef = doc(db, usersPath, user.uid);
+      await setDoc(userRef, { email: user.email, lastLogin: serverTimestamp() }, { merge: true });
+
+      trackPresence(user);
+    } else {
+      // User is signed out or anonymous
+      userEmailEl.textContent = "";
+      signInBtn.classList.remove("hidden");
+      signOutBtn.classList.add("hidden");
+      createPostSection.classList.add('hidden');
+      loginPromptSection.classList.remove('hidden');
+    }
+    updateTotalMembers();
+  });
+
+  signInBtn.addEventListener("click", () => signInWithRedirect(auth, provider));
+  promptSignInBtn.addEventListener("click", () => signInWithRedirect(auth, provider));
+  signOutBtn.addEventListener("click", () => signOut(auth));
+
+
+  // --- Presence (Realtime Database) ---
+  function trackPresence(user) {
+    if (!user) return;
+    const userStatusRef = ref(rtdb, `${statusPath}/${user.uid}`);
+    
+    const isOfflineForDatabase = {
+      state: 'offline',
+      last_changed: dbServerTimestamp(),
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const rtdb = getDatabase(app);
-    const provider = new GoogleAuthProvider();
-
-    // UI Elements
-    const signOutBtn = document.getElementById("signOutBtn");
-    const darkModeToggle = document.getElementById("darkModeToggle");
-    const postList = document.getElementById("postList");
-    const authContainer = document.getElementById("auth-container");
-    const userInfoContainer = document.getElementById("userInfoContainer");
-    const userNameEl = document.getElementById("userName");
-    const userRoleEl = document.getElementById("userRole");
-
-    // Auth UI Elements
-    const signInLink = document.getElementById("signInLink");
-    const createAccountBtn = document.getElementById("createAccountBtn");
-    const createAccountDropdown = document.getElementById("createAccountDropdown");
-    const signUpWithGoogleBtn = document.getElementById("signUpWithGoogleBtn");
-    const signUpWithEmailBtn = document.getElementById("signUpWithEmailBtn");
-    const signInModal = document.getElementById("signInModal");
-    const closeSignInModal = document.getElementById("closeSignInModal");
-    const signInWithGoogleBtnModal = document.getElementById("signInWithGoogleBtnModal");
-    const signInWithEmailBtnModal = document.getElementById("signInWithEmailBtnModal");
-    
-    // Signup Form Elements
-    const signupForm = document.getElementById("signupForm");
-    const signupBtn = document.getElementById("signupBtn");
-    const signupUsernameInput = document.getElementById("signupUsername");
-    const signupUsernameError = document.getElementById("signupUsernameError");
-    const signupPasswordInput = document.getElementById("signupPassword");
-    const togglePasswordVisibilityBtn = document.getElementById("togglePasswordVisibility");
-    const eyeIcon = document.getElementById("eyeIcon");
-    const eyeSlashIcon = document.getElementById("eyeSlashIcon");
-    const passwordError = document.getElementById("passwordError");
-
-    // Post Elements
-    const postViewModal = document.getElementById('postViewModal');
-    const closePostViewModal = document.getElementById('closePostViewModal');
-
-    // Messaging Elements
-    const messagesBtn = document.getElementById('messagesBtn');
-    const messagingModal = document.getElementById('messagingModal');
-    const closeMessagingModal = document.getElementById('closeMessagingModal');
-    const inboxView = document.getElementById('inboxView');
-    const chatView = document.getElementById('chatView');
-    const backToInboxBtn = document.getElementById('backToInboxBtn');
-    const messageRecipientSearch = document.getElementById('messageRecipientSearch');
-    const messageRecipientResults = document.getElementById('messageRecipientResults');
-    const urgentInboxList = document.getElementById('urgentInboxList');
-    const regularInboxList = document.getElementById('regularInboxList');
-    const chatHeader = document.getElementById('chatHeader');
-    const chatTitleInput = document.getElementById('chatTitleInput');
-    const messageHistory = document.getElementById('messageHistory');
-    const messageInput = document.getElementById('messageInput');
-    const sendMessageBtn = document.getElementById('sendMessageBtn');
-    const adminModal = document.getElementById('adminModal');
-    const warningMessage = document.getElementById('warningMessage');
-    
-    // User Profile Modal
-    const userProfileModal = document.getElementById('userProfileModal');
-    const closeUserProfileModal = document.getElementById('closeUserProfileModal');
-    const profilePostCount = document.getElementById('profilePostCount');
-    const changeUsernameSection = document.getElementById('changeUsernameSection');
-    const newUsernameInput = document.getElementById('newUsernameInput');
-    const changeUsernameBtn = document.getElementById('changeUsernameBtn');
-    const changeUsernameError = document.getElementById('changeUsernameError');
-    const closeAccountBtn = document.getElementById('closeAccountBtn');
-
-
-    let currentUserRole = null;
-    let usersDataCache = {};
-    let postDocsCache = [];
-    let currentConversation = null;
-    let messageListenerUnsubscribe = null;
-    let currentUserData = null;
-    
-    // --- Custom Alert Modal ---
-    const alertModal = document.getElementById('alertModal');
-    const alertMessage = document.getElementById('alertMessage');
-    const closeAlertModal = document.getElementById('closeAlertModal');
-
-    function showAlert(message) {
-        alertMessage.textContent = message;
-        alertModal.style.display = 'flex';
-    }
-    closeAlertModal.onclick = () => alertModal.style.display = 'none';
-
-
-    // --- Dark Mode ---
-    function applyDarkMode(isDark) {
-        document.documentElement.classList.toggle('dark', isDark);
-        localStorage.setItem("darkMode", isDark);
-    }
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const savedMode = localStorage.getItem("darkMode");
-    const initialDarkMode = savedMode !== null ? savedMode === 'true' : prefersDark;
-    darkModeToggle.checked = initialDarkMode;
-    applyDarkMode(initialDarkMode);
-    darkModeToggle.addEventListener("change", (e) => applyDarkMode(e.target.checked));
-
-    // --- Input Error Handling ---
-    togglePasswordVisibilityBtn.addEventListener("click", () => {
-        const type = signupPasswordInput.getAttribute("type") === "password" ? "text" : "password";
-        signupPasswordInput.setAttribute("type", type);
-        eyeIcon.classList.toggle("hidden");
-        eyeSlashIcon.classList.toggle("hidden");
-    });
-    signupPasswordInput.addEventListener("input", () => {
-        if (passwordError.style.display === 'block') {
-            passwordError.style.display = 'none';
-        }
-    });
-    signupUsernameInput.addEventListener("input", () => {
-        if (signupUsernameError.style.display === 'block') {
-            signupUsernameError.style.display = 'none';
-        }
-    });
-
-    // --- Authentication UI Logic ---
-    const googleSignInHandler = async () => {
-        try {
-            const result = await signInWithPopup(auth, provider);
-            await handleUser(result.user);
-            signInModal.style.display = 'none';
-        } catch (error) {
-            console.error("Google sign-in error:", error);
-        }
+    const isOnlineForDatabase = {
+      state: 'online',
+      last_changed: dbServerTimestamp(),
+      email: user.email
     };
 
-    signInLink.addEventListener("click", () => {
-        signInModal.style.display = 'flex';
+    onValue(ref(rtdb, '.info/connected'), (snapshot) => {
+      if (snapshot.val() === false) {
+        return;
+      }
+      onDisconnect(userStatusRef).set(isOfflineForDatabase).then(() => {
+        set(userStatusRef, isOnlineForDatabase);
+      });
     });
-    closeSignInModal.addEventListener("click", () => {
-        signInModal.style.display = 'none';
-    });
-    
-    signInWithGoogleBtnModal.addEventListener("click", googleSignInHandler);
-    
-    signUpWithGoogleBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        googleSignInHandler();
-        createAccountDropdown.style.display = 'none';
-    });
+  }
 
-    signUpWithEmailBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        signupForm.style.display = 'block';
-        createAccountDropdown.style.display = 'none';
-    });
-    
-    // Dropdown toggle logic
-    createAccountBtn.addEventListener("click", (event) => {
-        event.stopPropagation();
-        createAccountDropdown.style.display = createAccountDropdown.style.display === 'none' ? 'block' : 'none';
-    });
-
-    window.addEventListener("click", (event) => {
-        if (!document.getElementById('createAccountDropdownContainer').contains(event.target)) {
-            createAccountDropdown.style.display = 'none';
-        }
-         const colorPalettes = document.querySelectorAll('[id$="ColorPalette"]');
-        colorPalettes.forEach(palette => {
-            const btnId = palette.id.replace('Palette', 'Btn');
-            const btn = document.getElementById(btnId);
-            if (btn && !btn.contains(event.target) && !palette.contains(event.target)) {
-                palette.style.display = 'none';
-            }
-        });
-    });
+  // Listen for online user count
+  onValue(ref(rtdb, statusPath), (snapshot) => {
+      if (snapshot.exists()){
+          const statuses = snapshot.val();
+          const onlineCount = Object.values(statuses).filter(s => s.state === 'online').length;
+          onlineVisitorsEl.textContent = onlineCount;
+      } else {
+          onlineVisitorsEl.textContent = 0;
+      }
+  });
 
 
-    // --- Email/Password Signup & Signin Logic ---
-    signInWithEmailBtnModal.addEventListener('click', async () => {
-        const identifier = document.getElementById('signInIdentifier').value.trim();
-        const password = document.getElementById('signInPassword').value;
-        const signInError = document.getElementById('signInError');
-        signInError.style.display = 'none';
+  // --- Firestore ---
+  async function updateTotalMembers() {
+    const usersCollection = collection(db, usersPath);
+    const snapshot = await getDocs(usersCollection);
+    totalMembersEl.textContent = snapshot.size;
+  }
+  
+  createPostBtn.addEventListener("click", async () => {
+    const user = auth.currentUser;
+    if (!user || user.isAnonymous) return;
 
-        if (!identifier || !password) {
-            signInError.textContent = 'Please enter your credentials.';
-            signInError.style.display = 'block';
-            return;
-        }
+    const title = postTitleEl.value.trim();
+    const content = postContentEl.value.trim();
 
-        let email = identifier;
-        
-        try {
-            if (!identifier.includes('@')) {
-                const usersRef = collection(db, "users");
-                const q = query(usersRef, where("displayName", "==", identifier));
-                const querySnapshot = await getDocs(q);
-
-                if (querySnapshot.empty) {
-                    signInError.textContent = 'User not found.';
-                    signInError.style.display = 'block';
-                    return;
-                }
-                email = querySnapshot.docs[0].data().email;
-            }
-            
-            await signInWithEmailAndPassword(auth, email, password);
-            signInModal.style.display = 'none';
-        } catch (error) {
-            console.error("Sign in error:", error);
-            signInError.textContent = 'Invalid credentials. Please try again.';
-            signInError.style.display = 'block';
-        }
-    });
-
-    signupBtn.addEventListener("click", async () => {
-        const email = document.getElementById("signupEmail").value;
-        const password = signupPasswordInput.value;
-        const username = signupUsernameInput.value.trim();
-        
-        passwordError.style.display = 'none';
-        signupUsernameError.style.display = 'none';
-
-        const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,16}$/;
-
-        if (!email || !password || !username) {
-            showAlert("Please fill out all fields.");
-            return;
-        }
-        if (!passwordRegex.test(password)) {
-            passwordError.innerHTML = "Must be 7-16 characters & contain letters, numbers, & special characters.<br>e.g., Password@1, Secure!23, MyP@ssw0rd";
-            passwordError.style.display = 'block';
-            return;
-        }
-
-        const usersRef = collection(db, "users");
-        const q = query(usersRef, where("displayName", "==", username));
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-            signupUsernameError.textContent = "Username is already taken. Please choose another one.";
-            signupUsernameError.style.display = 'block';
-            return;
-        }
-
-        try {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            await handleUser(userCredential.user, username);
-            signupForm.style.display = 'none';
-        } catch (error) {
-            console.error("Email signup error:", error);
-            showAlert(`Error: ${error.message}`);
-        }
-    });
-    signOutBtn.addEventListener("click", () => signOut(auth));
-
-    // --- User Management ---
-    async function handleUser(user, chosenUsername = null) {
-        if (!user) return;
-        const userRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userRef);
-
-        if (!userDoc.exists()) {
-            const isAdmin = user.email === 'yujinbussinessmatter@gmail.com';
-            const newUserRole = isAdmin ? 'admin' : 'newbie';
-            const finalUsername = isAdmin ? "Y̶U̶J̶I̶N̶" : chosenUsername;
-
-
-            if (finalUsername) {
-                await setDoc(userRef, {
-                    uid: user.uid, email: user.email, displayName: finalUsername,
-                    createdAt: serverTimestamp(), role: newUserRole, banned: false, warnings: []
-                });
-            } else {
-                const usernameModal = document.getElementById("usernameModal");
-                usernameModal.style.display = 'flex';
-                document.getElementById("submitUsernameBtn").onclick = async () => {
-                    const modalUsernameInput = document.getElementById("modalUsernameInput");
-                    const usernameError = document.getElementById("usernameError");
-                    const newUsername = isAdmin ? "Y̶U̶J̶I̶N̶" : modalUsernameInput.value.trim();
-
-                    if (!newUsername) {
-                        usernameError.textContent = "Username cannot be empty.";
-                        usernameError.style.display = "block";
-                        return;
-                    }
-                    const usersRef = collection(db, "users");
-                    const q = query(usersRef, where("displayName", "==", newUsername));
-                    const querySnapshot = await getDocs(q);
-                    if (!querySnapshot.empty && !isAdmin) {
-                        usernameError.textContent = "This username is already taken.";
-                        usernameError.style.display = "block";
-                    } else {
-                        await setDoc(userRef, {
-                            uid: user.uid, email: user.email, displayName: newUsername,
-                            createdAt: serverTimestamp(), role: newUserRole, banned: false, warnings: []
-                        });
-                        usernameModal.style.display = 'none';
-                    }
-                };
-            }
-        }
-    }
-    
-    // --- Auth State Observer ---
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            const userDocRef = doc(db, "users", user.uid);
-            const userDocSnap = await getDoc(userDocRef);
-
-            setupPresence(user);
-            attachFirestoreListeners();
-            
-            if (user.isAnonymous) {
-                authContainer.style.display = 'flex';
-                signOutBtn.style.display = 'none';
-                userInfoContainer.style.display = 'none';
-                document.getElementById("postContent").disabled = true;
-                document.getElementById("createPostBtn").disabled = true;
-                document.getElementById("auth-prompt").style.display = 'block';
-            } else if (userDocSnap.exists()) {
-                authContainer.style.display = 'none';
-                signOutBtn.style.display = 'block';
-                userInfoContainer.style.display = 'flex';
-                document.getElementById("postContent").disabled = false;
-                document.getElementById("createPostBtn").disabled = false;
-                document.getElementById("auth-prompt").style.display = 'none';
-
-                currentUserData = userDocSnap.data();
-                
-                if (user.email === 'yujinbussinessmatter@gmail.com') {
-                    let updates = {};
-                    if (currentUserData.role !== 'admin') updates.role = 'admin';
-                    if (currentUserData.displayName !== "Y̶U̶J̶I̶N̶") updates.displayName = "Y̶U̶J̶I̶N̶";
-                    
-                    if (Object.keys(updates).length > 0) {
-                        await updateDoc(userDocRef, updates);
-                        Object.assign(currentUserData, updates);
-                    }
-                }
-
-                currentUserRole = currentUserData.role || 'newbie';
-                userNameEl.textContent = currentUserData.displayName || user.email;
-
-                if (currentUserData.banned) {
-                    userRoleEl.textContent = 'Banned';
-                    userRoleEl.className = 'px-2 py-0.5 text-xs font-semibold text-white bg-red-600 rounded-full';
-                } else {
-                    userRoleEl.textContent = currentUserRole;
-                    userRoleEl.className = 'px-2 py-0.5 text-xs font-semibold text-white rounded-full';
-                    switch (currentUserRole) {
-                        case 'admin': userRoleEl.classList.add('bg-violet-500'); break;
-                        case 'contributor': userRoleEl.classList.add('bg-green-500'); break;
-                        default: userRoleEl.classList.add('bg-blue-500'); break;
-                    }
-                }
-            } else {
-                userNameEl.textContent = user.email;
-                userRoleEl.textContent = '...';
-                userRoleEl.classList.add('bg-gray-500');
-            }
-        } else {
-            authContainer.style.display = 'flex';
-            signOutBtn.style.display = 'none';
-            userInfoContainer.style.display = 'none';
-            document.getElementById("postContent").disabled = true;
-            document.getElementById("createPostBtn").disabled = true;
-            document.getElementById("auth-prompt").style.display = 'block';
-            postList.innerHTML = '';
-            currentUserRole = null;
-            if(window.firestoreUnsubscribes) {
-                window.firestoreUnsubscribes.forEach(unsub => unsub());
-            }
-            signInAnonymously(auth).catch(error => {
-                console.error("Anonymous sign-in failed:", error);
-            });
-        }
-    });
-    
-    function setupPresence(user) {
-        if (!user) return;
-        const myConnectionsRef = ref(rtdb, `status/${user.uid}`);
-        const connectedRef = ref(rtdb, '.info/connected');
-
-        onValue(connectedRef, (snap) => {
-            if (snap.val() === true) {
-                set(myConnectionsRef, { online: true, last_changed: rtdbServerTimestamp() });
-                onDisconnect(myConnectionsRef).remove();
-            }
-        });
-    }
-    
-    function renderPosts() {
-        postList.innerHTML = '';
-        postDocsCache.forEach(doc => {
-            const post = doc.data();
-            const postId = doc.id;
-            const authorData = usersDataCache[post.authorId];
-            
-            if (!authorData) return;
-
-            const postEl = document.createElement('div');
-            postEl.className = 'bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md fade-in';
-            const timestamp = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now';
-
-            let userStatusHTML = '';
-            const role = authorData.role || 'newbie';
-            if (authorData.banned) {
-                 userStatusHTML = `<span class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-red-600 rounded-full">Banned</span>`;
-            } else {
-                let roleColor = 'bg-blue-500';
-                if (role === 'admin') roleColor = 'bg-violet-500';
-                if (role === 'contributor') roleColor = 'bg-green-500';
-                userStatusHTML = `<span class="ml-2 px-2 py-0.5 text-xs font-semibold text-white ${roleColor} rounded-full">${role}</span>`;
-            }
-            
-            let adminControls = '';
-            if (currentUserRole === 'admin') {
-                adminControls = `
-                    <div class="ml-auto flex items-center space-x-2">
-                         <button data-author-id="${post.authorId}" data-author-name="${authorData.displayName}" class="manage-user-btn p-1 text-gray-400 hover:text-blue-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
-                        </button>
-                        <button data-post-id="${postId}" class="delete-post-btn p-1 text-gray-400 hover:text-red-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                        </button>
-                    </div>`;
-            }
-
-            postEl.innerHTML = `
-                <div class="flex items-start">
-                    <div class="flex items-center">
-                        <div class="font-bold text-gray-900 dark:text-white">${authorData.displayName}</div>
-                        ${userStatusHTML}
-                    </div>
-                    ${adminControls}
-                </div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">${timestamp}</div>
-                <h4 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400 mt-2 hover:underline cursor-pointer view-post-btn" data-post-id="${postId}">${post.title}</h4>
-            `;
-            postList.appendChild(postEl);
-        });
+    if (!title || !content) {
+      alert("Please enter a title and content.");
+      return;
     }
 
+    createPostBtn.disabled = true;
+    createPostBtn.textContent = "Posting...";
 
-    function attachFirestoreListeners() {
-        if (window.firestoreUnsubscribes) {
-             window.firestoreUnsubscribes.forEach(unsub => unsub());
-        }
-        window.firestoreUnsubscribes = [];
-
-        const usersColRef = collection(db, "users");
-        const usersUnsub = onSnapshot(usersColRef, (snapshot) => {
-            document.getElementById("totalMembers").textContent = snapshot.size;
-            snapshot.forEach(doc => {
-                usersDataCache[doc.id] = doc.data();
-            });
-            renderPosts(); // Re-render posts with updated user data
-        });
-
-        const statusRef = ref(rtdb, "status");
-        const presenceUnsub = onValue(statusRef, (snapshot) => {
-            document.getElementById("onlineVisitors").textContent = snapshot.exists() ? snapshot.size : 0;
-        });
-
-        const postsColRef = collection(db, "posts");
-        const q = query(postsColRef, orderBy("createdAt", "desc"));
-        const postsUnsub = onSnapshot(q, (snapshot) => {
-            postDocsCache = snapshot.docs;
-            renderPosts(); // Render posts with latest post data
-        });
-
-        window.firestoreUnsubscribes.push(usersUnsub, presenceUnsub, postsUnsub);
+    try {
+      await addDoc(collection(db, postsPath), {
+        title,
+        content,
+        authorId: user.uid,
+        authorEmail: user.email,
+        createdAt: serverTimestamp(),
+      });
+      postTitleEl.value = '';
+      postContentEl.value = '';
+    } catch (error) {
+      console.error("Error creating post:", error);
+      alert("Failed to create post. Please try again.");
+    } finally {
+      createPostBtn.disabled = false;
+      createPostBtn.textContent = "Create Post";
     }
-    
-    // --- Post Creation & Admin Actions---
-    document.getElementById('createPostBtn').addEventListener('click', async () => {
-        const title = document.getElementById("postTitle").value.trim();
-        const content = document.getElementById("postContent").value.trim();
-        const user = auth.currentUser;
-        if (title && content && user && currentUserData) {
-            if (!currentUserData.banned) {
-                const postsColRef = collection(db, "posts");
-                await addDoc(postsColRef, {
-                    title: title,
-                    content: content,
-                    authorId: user.uid,
-                    authorName: currentUserData.displayName,
-                    createdAt: serverTimestamp(),
-                });
-                document.getElementById("postTitle").value = '';
-                document.getElementById("postContent").value = '';
-            } else {
-                showAlert("Your account is banned and you cannot create posts.");
-            }
-        } else {
-             showAlert("Please provide a title and content for your post.");
-        }
-    });
+  });
 
-    postList.addEventListener('click', e => {
-        const viewBtn = e.target.closest('.view-post-btn');
-        const deleteBtn = e.target.closest('.delete-post-btn');
-        const manageBtn = e.target.closest('.manage-user-btn');
-
-        if (viewBtn) {
-            const postId = viewBtn.dataset.postId;
-            const postDoc = postDocsCache.find(doc => doc.id === postId);
-            if(postDoc) {
-                const post = postDoc.data();
-                const author = usersDataCache[post.authorId];
-                document.getElementById('postViewTitle').textContent = post.title;
-                document.getElementById('postViewContent').textContent = post.content;
-                document.getElementById('postViewMeta').textContent = `Posted by ${author.displayName} on ${post.createdAt.toDate().toLocaleString()}`;
-                postViewModal.style.display = 'flex';
-            }
-        }
-        if (deleteBtn) {
-            const postId = deleteBtn.dataset.postId;
-            if (confirm('Are you sure you want to delete this post permanently?')) {
-                deleteDoc(doc(db, "posts", postId)).then(() => {
-                    showAlert('Post deleted successfully.');
-                }).catch(err => console.error("Error deleting post:", err));
-            }
-        }
-        if (manageBtn) {
-            const userId = manageBtn.dataset.authorId;
-            const userName = usersDataCache[userId]?.displayName;
-            if(userName) {
-                 openAdminModal(userId, userName);
-            }
-        }
-    });
-    closePostViewModal.addEventListener('click', () => postViewModal.style.display = 'none');
-
-    let targetUserId = null;
-
-    function openAdminModal(userId, userName) {
-        targetUserId = userId;
-        document.getElementById('adminModalUsername').textContent = userName;
-        warningMessage.innerHTML = '';
-        adminModal.style.display = 'flex';
+  // Real-time post list
+  const q = query(collection(db, postsPath), orderBy("createdAt", "desc"));
+  onSnapshot(q, (snapshot) => {
+    if (snapshot.empty) {
+        postListEl.innerHTML = '<div class="text-center text-gray-500 py-10">No posts yet. Be the first to post!</div>';
+        return;
     }
-    document.getElementById('closeAdminModal').onclick = () => adminModal.style.display = 'none';
+    postListEl.innerHTML = '';
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const postDiv = document.createElement('div');
+      postDiv.className = 'bg-white p-5 rounded-lg shadow-md hover:shadow-lg transition cursor-pointer';
+      postDiv.setAttribute('data-id', docSnap.id);
 
-    document.getElementById('banUserBtn').onclick = async () => {
-        if (!targetUserId) return;
-        await updateDoc(doc(db, "users", targetUserId), { banned: true });
-        showAlert('User has been banned.');
-        adminModal.style.display = 'none';
-    };
-    document.getElementById('unbanUserBtn').onclick = async () => {
-        if (!targetUserId) return;
-        await updateDoc(doc(db, "users", targetUserId), { banned: false });
-        showAlert('User has been unbanned.');
-        adminModal.style.display = 'none';
-    };
+      const postDate = data.createdAt?.toDate().toLocaleString() || 'Just now';
+
+      postDiv.innerHTML = `
+        <h3 class="text-lg font-bold text-gray-900">${data.title || 'Untitled Post'}</h3>
+        <p class="text-sm text-gray-500 mb-2">By ${data.authorEmail || 'Unknown'} on ${postDate}</p>
+        <p class="text-gray-700">${(data.content || '').slice(0, 150)}...</p>
+      `;
+      postDiv.addEventListener('click', () => openPostModal(docSnap.id));
+      postListEl.appendChild(postDiv);
+    });
+  }, (error) => {
+      console.error("Error fetching posts:", error);
+      postListEl.innerHTML = '<div class="text-center text-red-500 py-10">Error loading posts. Please check permissions and try again.</div>';
+  });
+
+  // --- Modal Logic ---
+  function openPostModal(postId) {
+    modalTitle.textContent = 'Loading...';
+    modalBody.innerHTML = '<p>Loading content...</p>';
+    modal.classList.remove('hidden');
+
+    if (currentUnsubscribePost) currentUnsubscribePost();
     
-    // --- Rich Text Editor Logic ---
-    function applyStyle(editor, command, value = null) {
-        editor.focus();
-        document.execCommand(command, false, value);
+    const docRef = doc(db, postsPath, postId);
+    currentUnsubscribePost = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        modalTitle.textContent = data.title || 'Untitled Post';
+        const postDate = data.createdAt?.toDate().toLocaleString() || 'Just now';
+        modalBody.innerHTML = `
+          <p class="text-sm text-gray-500 mb-4">By ${data.authorEmail || 'Unknown'} on ${postDate}</p>
+          <div class="prose-p:mb-4 prose-headings:font-bold">${data.content.replace(/\n/g, '<br>')}</div>
+        `;
+      } else {
+        modalTitle.textContent = 'Error';
+        modalBody.innerHTML = '<p>Post not found. It may have been deleted.</p>';
+      }
+    }, (error) => {
+        console.error("Error fetching post details:", error);
+        modalTitle.textContent = 'Error';
+        modalBody.innerHTML = '<p>Could not load post. Please try again later.</p>';
+    });
+  }
+
+  function closeModal() {
+    modal.classList.add('hidden');
+    if (currentUnsubscribePost) {
+      currentUnsubscribePost();
+      currentUnsubscribePost = null;
     }
-    
-    const colors = ['#000000', '#EF4444', '#F97316', '#EAB308', '#22C55E', '#3B82F6', '#8B5CF6', '#FFFFFF', '#DC2626', '#EA580C', '#D97706', '#16A34A', '#2563EB', '#7C3AED'];
-    
-    function createPalette(paletteContainer, command, editor) {
-        paletteContainer.innerHTML = ''; // Clear previous
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'w-5 h-5 rounded border border-gray-400 flex items-center justify-center text-red-500';
-        removeBtn.innerHTML = '&#10005;';
-        removeBtn.title = "Remove Color";
-        removeBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (command === 'foreColor') {
-                const defaultColor = document.documentElement.classList.contains('dark') ? '#f9fafb' : '#1f2937';
-                applyStyle(editor, command, defaultColor);
-            } else if (command === 'hiliteColor') {
-                 const defaultBg = 'transparent';
-                applyStyle(editor, command, defaultBg);
-            }
-            paletteContainer.style.display = 'none';
-        });
-        paletteContainer.appendChild(removeBtn);
+  }
 
-        colors.forEach(color => {
-            const swatch = document.createElement('button');
-            swatch.className = 'w-5 h-5 rounded border border-gray-400';
-            swatch.style.backgroundColor = color;
-            swatch.addEventListener('click', (e) => {
-                 e.preventDefault();
-                 applyStyle(editor, command, color);
-                 paletteContainer.style.display = 'none';
-            });
-            paletteContainer.appendChild(swatch);
-        });
-    }
-    
-    document.getElementById('warningColorBtn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        const palette = document.getElementById('warningColorPalette');
-        createPalette(palette, 'foreColor', warningMessage);
-        palette.style.display = palette.style.display === 'none' ? 'grid' : 'none';
-        document.getElementById('warningBgColorPalette').style.display = 'none';
-    });
-    
-    document.getElementById('warningBgColorBtn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        const palette = document.getElementById('warningBgColorPalette');
-        createPalette(palette, 'hiliteColor', warningMessage);
-        palette.style.display = palette.style.display === 'none' ? 'grid' : 'none';
-        document.getElementById('warningColorPalette').style.display = 'none';
-    });
+  closeModalBtns.forEach(btn => btn.addEventListener('click', closeModal));
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+  });
 
-
-    adminModal.querySelectorAll('.rich-text-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const command = e.currentTarget.dataset.command;
-            if(command){
-                applyStyle(warningMessage, command);
-            }
-        });
-    });
-
-    document.getElementById('messageColorBtn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        const palette = document.getElementById('messageColorPalette');
-        createPalette(palette, 'foreColor', messageInput);
-        palette.style.display = palette.style.display === 'none' ? 'grid' : 'none';
-    });
-
-    chatView.querySelectorAll('.rich-text-btn').forEach(btn => {
-         btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const command = e.currentTarget.dataset.command;
-            if(command){
-                applyStyle(messageInput, command);
-            }
-        });
-    });
-    
-    
-    // --- Messaging Logic ---
-    async function sendMessage(recipientId, title, contentHTML) {
-        const user = auth.currentUser;
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = contentHTML;
-        const lastMessageText = tempDiv.textContent || tempDiv.innerText || '';
-
-        if (!user || !recipientId || !lastMessageText || !title) {
-            showAlert('Message failed to send. Title and content are required.');
-            return Promise.reject('Missing information');
-        }
-
-        const conversationId = [user.uid, recipientId].sort().join('_') + `_${title}`;
-        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
-        
-        try {
-            await setDoc(doc(db, 'conversations', conversationId), {
-                participants: [user.uid, recipientId],
-                title: title,
-                lastMessage: lastMessageText,
-                lastMessageTimestamp: serverTimestamp(),
-                hiddenFor: [],
-                lastReadBy: [user.uid]
-            }, { merge: true });
-
-            await addDoc(messagesRef, {
-                senderId: user.uid,
-                recipientId: recipientId,
-                content: contentHTML,
-                createdAt: serverTimestamp()
-            });
-             return Promise.resolve();
-        } catch (error) {
-            console.error("Error sending message:", error);
-            showAlert(`Message failed to send. Please check your Firestore rules.`);
-            return Promise.reject(error);
-        }
-    }
-
-    document.getElementById('sendWarningBtn').onclick = async () => {
-        if (!targetUserId) return;
-        const messageHTML = warningMessage.innerHTML;
-        const messageText = warningMessage.textContent.trim();
-
-        if (messageText) {
-            const warningTitle = "NOTICE!";
-            const warningContent = "<strong>OFFICIAL WARNING:</strong> " + messageHTML;
-            
-            try {
-                await sendMessage(targetUserId, warningTitle, warningContent);
-                await updateDoc(doc(db, "users", targetUserId), {
-                    warnings: arrayUnion({ message: messageText, date: serverTimestamp() })
-                });
-
-                showAlert('Warning has been sent as a direct message.');
-                adminModal.style.display = 'none';
-
-            } catch(e) { /* showAlert is handled in sendMessage */ }
-        } else {
-            showAlert('Warning message cannot be empty.');
-        }
-    };
-
-    messagesBtn.addEventListener('click', () => {
-        if(auth.currentUser && !auth.currentUser.isAnonymous){
-            messagingModal.style.display = 'flex';
-            inboxView.style.display = 'block';
-            chatView.style.display = 'none';
-            loadInbox();
-        } else {
-            showAlert('Please sign in to view messages.');
-        }
-    });
-    closeMessagingModal.addEventListener('click', () => {
-         messagingModal.style.display = 'none';
-         if(messageListenerUnsubscribe) messageListenerUnsubscribe();
-         currentConversation = null;
-         messageRecipientSearch.value = '';
-    });
-    backToInboxBtn.addEventListener('click', () => {
-        inboxView.style.display = 'block';
-        chatView.style.display = 'none';
-        if(messageListenerUnsubscribe) messageListenerUnsubscribe();
-        currentConversation = null;
-        loadInbox();
-    });
-
-    messageRecipientSearch.addEventListener('input', async (e) => {
-        const searchTerm = e.target.value.trim();
-        messageRecipientResults.innerHTML = '';
-        messageRecipientResults.style.display = 'none';
-
-        if(searchTerm.length < 2) return;
-
-        const usersRef = collection(db, "users");
-        const q = query(usersRef, where('displayName', '>=', searchTerm), where('displayName', '<=', searchTerm + '\uf8ff'));
-        const querySnapshot = await getDocs(q);
-        
-        querySnapshot.forEach(doc => {
-            if(doc.id === auth.currentUser.uid) return;
-            const user = doc.data();
-            const resultEl = document.createElement('div');
-            resultEl.textContent = user.displayName;
-            resultEl.className = 'p-2 hover:bg-gray-100 dark:hover:bg-gray-500 cursor-pointer';
-            resultEl.dataset.userId = doc.id;
-            resultEl.dataset.userName = user.displayName;
-            messageRecipientResults.appendChild(resultEl);
-        });
-
-        if(!querySnapshot.empty) {
-            messageRecipientResults.style.display = 'block';
-        }
-    });
-    
-    async function openChatWithUser(userId, userName, title = '') {
-        currentConversation = { recipientId: userId, recipientName: userName, title: title };
-        chatHeader.querySelector('span').textContent = currentConversation.recipientName;
-        chatTitleInput.value = title;
-        chatTitleInput.disabled = !!title; // Disable title input if it's an existing conversation
-        inboxView.style.display = 'none';
-        chatView.style.display = 'flex';
-
-        if(title){ // Only mark as read if it's an existing conversation
-             const conversationId = [auth.currentUser.uid, userId].sort().join('_') + `_${title}`;
-             const conversationRef = doc(db, 'conversations', conversationId);
-             await updateDoc(conversationRef, {
-                lastReadBy: arrayUnion(auth.currentUser.uid)
-             });
-        }
-
-        loadMessageHistory();
-    }
-
-    messageRecipientResults.addEventListener('click', (e) => {
-        const target = e.target;
-        if(target.dataset.userId) {
-            openChatWithUser(target.dataset.userId, target.dataset.userName);
-            messageRecipientSearch.value = '';
-            messageRecipientResults.style.display = 'none';
-        }
-    });
-    
-    document.getElementById('inboxView').addEventListener('click', async (e) => {
-        const chatBtn = e.target.closest('.inbox-item-content');
-        const deleteBtn = e.target.closest('.delete-conversation-btn');
-        
-        if(chatBtn) {
-             const item = chatBtn.closest('.inbox-item');
-             openChatWithUser(item.dataset.userId, item.dataset.userName, item.dataset.title);
-        }
-
-        if (deleteBtn) {
-            e.stopPropagation();
-            const item = deleteBtn.closest('.inbox-item');
-            const otherUserId = item.dataset.userId;
-            const title = item.dataset.title;
-            if (confirm(`Are you sure you want to hide this conversation with ${item.dataset.userName}? The other user will still see it.`)) {
-                const conversationId = [auth.currentUser.uid, otherUserId].sort().join('_') + `_${title}`;
-                const conversationRef = doc(db, 'conversations', conversationId);
-                
-                await updateDoc(conversationRef, {
-                    hiddenFor: arrayUnion(auth.currentUser.uid)
-                });
-
-                showAlert('Conversation hidden.');
-            }
-        }
-    });
-
-    async function loadInbox() {
-        if(!auth.currentUser) return;
-        const convosRef = collection(db, 'conversations');
-        const q = query(convosRef, where('participants', 'array-contains', auth.currentUser.uid), orderBy('lastMessageTimestamp', 'desc'));
-
-        onSnapshot(q, (snapshot) => {
-            urgentInboxList.innerHTML = '';
-            regularInboxList.innerHTML = '';
-
-            let hasConversations = false;
-
-            snapshot.forEach(doc => {
-                const convo = doc.data();
-
-                if(convo.hiddenFor && convo.hiddenFor.includes(auth.currentUser.uid)){
-                    return;
-                }
-                hasConversations = true;
-
-                const otherUserId = convo.participants.find(id => id !== auth.currentUser.uid);
-                const otherUserData = usersDataCache[otherUserId];
-
-                if(otherUserData) {
-                    const convoEl = document.createElement('div');
-                    convoEl.className = 'inbox-item p-3 border-b dark:border-gray-600 flex justify-between items-center';
-                    convoEl.dataset.userId = otherUserId;
-                    convoEl.dataset.userName = otherUserData.displayName;
-                    convoEl.dataset.title = convo.title;
-                    
-                    const timestamp = convo.lastMessageTimestamp ? convo.lastMessageTimestamp.toDate().toLocaleString() : '';
-                    const isUnread = convo.lastReadBy && !convo.lastReadBy.includes(auth.currentUser.uid);
-
-                    convoEl.innerHTML = `
-                        <div class="flex-grow cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 inbox-item-content p-2 rounded-md">
-                            <p class="font-bold text-gray-800 dark:text-gray-200">${convo.title} ${isUnread ? '<span class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-blue-500 rounded-full">new</span>' : ''}</p>
-                             <p class="text-sm text-gray-600 dark:text-gray-400">with ${otherUserData.displayName}</p>
-                        </div>
-                         <div class="text-xs text-gray-400 text-right pl-2">
-                            <p>${timestamp}</p>
-                            <button class="text-red-500 hover:text-red-700 mt-1 delete-conversation-btn">
-                               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                            </button>
-                        </div>
-                    `;
-                    if (convo.title === "NOTICE!") {
-                        urgentInboxList.appendChild(convoEl);
-                    } else {
-                        regularInboxList.appendChild(convoEl);
-                    }
-                }
-            });
-
-            document.getElementById('urgentInboxContainer').style.display = urgentInboxList.hasChildNodes() ? 'block' : 'none';
-            if(!hasConversations) {
-                 regularInboxList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 p-4">No conversations yet.</p>`;
-            }
-        });
-    }
-
-    function loadMessageHistory(){
-        if(messageListenerUnsubscribe) messageListenerUnsubscribe();
-        if(!currentConversation) return;
-
-        const conversationId = [auth.currentUser.uid, currentConversation.recipientId].sort().join('_') + `_${currentConversation.title}`;
-        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
-        const q = query(messagesRef, orderBy('createdAt'));
-
-        messageListenerUnsubscribe = onSnapshot(q, (snapshot) => {
-            messageHistory.innerHTML = '';
-            snapshot.forEach(doc => {
-                const msg = doc.data();
-                const msgEl = document.createElement('div');
-                const isSender = msg.senderId === auth.currentUser.uid;
-                
-                msgEl.className = `p-2 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-indigo-500 text-white ml-auto' : 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 mr-auto'}`;
-                
-                msgEl.innerHTML = msg.content;
-
-                messageHistory.appendChild(msgEl);
-            });
-            messageHistory.scrollTop = messageHistory.scrollHeight;
-        });
-    }
-
-    sendMessageBtn.addEventListener('click', async () => {
-        const contentHTML = messageInput.innerHTML;
-        const title = chatTitleInput.value.trim();
-
-        if(messageInput.textContent.trim() && currentConversation && title) {
-            try {
-                await sendMessage(currentConversation.recipientId, title, contentHTML);
-                messageInput.innerHTML = '';
-                showAlert('Message sent successfully!');
-            } catch(e) { /* showAlert is handled in sendMessage */ }
-        } else {
-            showAlert("Please provide a title and message content.");
-        }
-    });
-
-    userInfoContainer.addEventListener('click', async () => {
-        const user = auth.currentUser;
-        if (!user || user.isAnonymous) return;
-
-        const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid));
-        const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid));
-
-        const postSnap = await getDocs(postsQuery);
-        const contributorSnap = await getDocs(contributorPostsQuery);
-        
-        profilePostCount.textContent = postSnap.size + contributorSnap.size;
-
-        if (currentUserRole === 'admin' || currentUserRole === 'contributor') {
-            const thirtyDaysInMillis = 30 * 24 * 60 * 60 * 1000;
-            const lastChange = currentUserData.lastUsernameChange?.toMillis();
-            const now = Date.now();
-
-            if (lastChange && (now - lastChange < thirtyDaysInMillis)) {
-                const daysRemaining = Math.ceil((thirtyDaysInMillis - (now - lastChange)) / (1000 * 60 * 60 * 24));
-                changeUsernameBtn.disabled = true;
-                newUsernameInput.disabled = true;
-                changeUsernameError.textContent = `You can change your username again in ${daysRemaining} days.`;
-                changeUsernameError.style.display = 'block';
-            } else {
-                 changeUsernameBtn.disabled = false;
-                 newUsernameInput.disabled = false;
-                 changeUsernameError.style.display = 'none';
-            }
-            changeUsernameSection.style.display = 'block';
-        } else {
-            changeUsernameSection.style.display = 'none';
-        }
-
-        userProfileModal.style.display = 'flex';
-    });
-
-    closeUserProfileModal.addEventListener('click', () => {
-        userProfileModal.style.display = 'none';
-    });
-
-    changeUsernameBtn.addEventListener('click', async () => {
-        const newUsername = newUsernameInput.value.trim();
-        const user = auth.currentUser;
-        changeUsernameError.style.display = 'none';
-
-        if (!newUsername) {
-            changeUsernameError.textContent = "New username cannot be empty.";
-            changeUsernameError.style.display = 'block';
-            return;
-        }
-
-        const usersRef = collection(db, "users");
-        const q = query(usersRef, where("displayName", "==", newUsername));
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-            changeUsernameError.textContent = "This username is already taken.";
-            changeUsernameError.style.display = 'block';
-            return;
-        }
-
-        const batch = writeBatch(db);
-        const userRef = doc(db, "users", user.uid);
-        batch.update(userRef, { 
-            displayName: newUsername,
-            lastUsernameChange: serverTimestamp()
-        });
-
-        const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid));
-        const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid));
-
-        const postSnap = await getDocs(postsQuery);
-        postSnap.forEach(postDoc => {
-            batch.update(postDoc.ref, { authorName: newUsername });
-        });
-
-        const contributorSnap = await getDocs(contributorPostsQuery);
-        contributorSnap.forEach(postDoc => {
-            batch.update(postDoc.ref, { authorName: newUsername });
-        });
-
-        try {
-            await batch.commit();
-            showAlert("Username updated successfully!");
-            userProfileModal.style.display = 'none';
-        } catch (error) {
-            console.error("Error updating username:", error);
-            showAlert("Failed to update username. Please try again.");
-        }
-    });
-
-    closeAccountBtn.addEventListener('click', async () => {
-        const user = auth.currentUser;
-        if (!user || user.isAnonymous) return;
-
-        if (confirm("Are you sure you want to close your account? This action will rename all your posts to '[Deleted User]' and permanently ban you from posting. This cannot be undone.")) {
-            const batch = writeBatch(db);
-            const userRef = doc(db, "users", user.uid);
-            batch.update(userRef, { displayName: "[Deleted User]", banned: true });
-
-            const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid));
-            const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid));
-
-            const postSnap = await getDocs(postsQuery);
-            postSnap.forEach(postDoc => {
-                batch.update(postDoc.ref, { authorName: "[Deleted User]" });
-            });
-
-            const contributorSnap = await getDocs(contributorPostsQuery);
-            contributorSnap.forEach(postDoc => {
-                batch.update(postDoc.ref, { authorName: "[Deleted User]" });
-            });
-
-            try {
-                await batch.commit();
-                // We don't delete the user from auth so they can't re-register the email
-                // but we sign them out.
-                await signOut(auth);
-                showAlert("Your account has been closed.");
-                userProfileModal.style.display = 'none';
-            } catch (error) {
-                console.error("Error closing account:", error);
-                showAlert("Failed to close account. Please try again.");
-            }
-        }
-    });
+  // --- Initial Load ---
+  initAuth();
 
 </script>
+
 </body>
 </html>
 
