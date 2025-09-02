@@ -179,9 +179,16 @@
   import { getDatabase, ref, onDisconnect, set, onValue, serverTimestamp as dbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
   // --- Firebase Configuration ---
-  const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-  const rtdbAppId = appId.replace(/\./g, '_'); // Sanitize for Realtime Database paths
-  const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+  const firebaseConfig = {
+    apiKey: "AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4",
+    authDomain: "forum-3dec5.firebaseapp.com",
+    databaseURL: "https://forum-3dec5-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "forum-3dec5",
+    storageBucket: "forum-3dec5.appspot.com", // Corrected from firebasestorage.app
+    messagingSenderId: "519284298976",
+    appId: "1:519284298976:web:8bb5e94a44f202802c2c85",
+    measurementId: "G-SXS8FRTT03"
+  };
   
   // --- Initialize Firebase ---
   const app = initializeApp(firebaseConfig);
@@ -226,11 +233,11 @@
   const signUpBtn = document.getElementById("signUpBtn");
   const googleSignInBtn = document.getElementById("googleSignInBtn");
 
-
-  // --- Paths ---
-  const usersPath = `artifacts/${appId}/public/data/users`;
-  const postsPath = `artifacts/${appId}/public/data/posts`;
-  const statusPath = `artifacts/${rtdbAppId}/public/data/status`;
+  // For simplicity in this environment, we will use the root collections.
+  // In a multi-tenant app, you would use the nested paths.
+  const usersPath = `users`;
+  const postsPath = `posts`;
+  const statusPath = `status`;
 
   let currentUnsubscribePost = null;
 
@@ -273,18 +280,6 @@
   }
 
   // --- AUTH ---
-  const initAuth = async () => {
-    try {
-      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-        await signInWithCustomToken(auth, __initial_auth_token);
-      } else {
-        await signInAnonymously(auth);
-      }
-    } catch (error) {
-      console.error("Authentication failed:", error);
-    }
-  };
-  
   onAuthStateChanged(auth, async (user) => {
     if (user && !user.isAnonymous) {
       // User is signed in
@@ -302,6 +297,15 @@
         const role = userDoc.data().role || "newbie";
         updateRoleBadge(role);
       } else {
+        // This case might happen if a user signs in but their doc creation failed.
+        // We can create a default doc here as a fallback.
+         await setDoc(doc(db, usersPath, user.uid), {
+            email: user.email,
+            displayName: user.displayName || "New User",
+            role: 'newbie',
+            banned: false,
+            lastLogin: serverTimestamp()
+        }, { merge: true });
         updateRoleBadge("newbie");
       }
 
@@ -314,6 +318,8 @@
       signOutBtn.classList.add("hidden");
       createPostSection.classList.add('hidden');
       loggedOutPrompt.classList.remove('hidden');
+      // If the user signs out, we can sign them in anonymously to view posts.
+      signInAnonymously(auth).catch(err => console.error("Anonymous sign-in failed:", err));
     }
     validatePostForm();
   });
@@ -552,7 +558,8 @@
   });
 
   // --- Initial Load ---
-  initAuth();
+  // Start with an anonymous user to allow viewing posts
+  signInAnonymously(auth).catch(err => console.error("Initial anonymous sign-in failed:", err));
 
 </script>
 
