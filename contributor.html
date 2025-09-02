@@ -4,210 +4,364 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Community Forum - Contributor Section</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234f46e5'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M21 15a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v9zM5 7a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1H5zm4 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm5 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z'/%3E%3C/svg%3E">
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-    /* Inter Font */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body {
-        font-family: 'Inter', sans-serif;
-        transition: background-color 0.3s, color 0.3s;
+    /* =========================================
+    Modern Design System for Community Forum
+    =========================================
+    */
+
+    /* --- Font & Base --- */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    
+    :root {
+        --font-sans: 'Inter', sans-serif;
+        
+        /* Light Theme Colors */
+        --bg-primary: #f8fafc; /* slate-50 */
+        --bg-secondary: #ffffff; /* white */
+        --bg-tertiary: #f1f5f9; /* slate-100 */
+        --border-primary: #e2e8f0; /* slate-200 */
+        --text-primary: #0f172a; /* slate-900 */
+        --text-secondary: #64748b; /* slate-500 */
+        --text-accent: #4f46e5; /* indigo-600 */
+        --accent-primary: #4f46e5; /* indigo-600 */
+        --accent-primary-hover: #4338ca; /* indigo-700 */
+        --destructive: #dc2626; /* red-600 */
+        --destructive-hover: #b91c1c; /* red-700 */
+        --success: #16a34a; /* green-600 */
+        --success-hover: #15803d; /* green-700 */
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     }
-    /* Simple fade-in animation for elements */
+
+    .dark {
+        /* Dark Theme Colors */
+        --bg-primary: #0f172a; /* slate-900 */
+        --bg-secondary: #1e293b; /* slate-800 */
+        --bg-tertiary: #334155; /* slate-700 */
+        --border-primary: #334155; /* slate-700 */
+        --text-primary: #f8fafc; /* slate-50 */
+        --text-secondary: #94a3b8; /* slate-400 */
+        --text-accent: #818cf8; /* indigo-400 */
+        --accent-primary: #6366f1; /* indigo-500 */
+        --accent-primary-hover: #818cf8; /* indigo-400 */
+        --destructive: #f87171; /* red-400 */
+        --destructive-hover: #ef4444; /* red-500 */
+        --success: #4ade80; /* green-400 */
+        --success-hover: #22c55e; /* green-500 */
+    }
+
+    body {
+        font-family: var(--font-sans);
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        transition: background-color 0.3s ease, color 0.3s ease;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* --- Animations --- */
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
     }
+    @keyframes modalEnter {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
     .fade-in {
         animation: fadeIn 0.5s ease-out forwards;
     }
+    .modal-content-animation {
+        animation: modalEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
 
-    /* Toggle switch styles */
-    .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
-    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-    input:checked + .slider { background-color: #4f46e5; }
-    input:checked + .slider:before { transform: translateX(26px); }
+    /* --- Custom Components & Utilities --- */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+        cursor: pointer;
+        box-shadow: var(--shadow-sm);
+    }
+    .btn:focus-visible {
+        outline: 2px solid var(--accent-primary);
+        outline-offset: 2px;
+    }
+    .btn-primary {
+        background-color: var(--accent-primary);
+        color: white;
+    }
+    .btn-primary:hover {
+        background-color: var(--accent-primary-hover);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+    .btn-primary:disabled {
+        background-color: var(--bg-tertiary);
+        color: var(--text-secondary);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+    .btn-success {
+        background-color: var(--success);
+        color: white;
+    }
+    .btn-success:hover {
+        background-color: var(--success-hover);
+    }
+    .btn-danger {
+        background-color: var(--destructive);
+        color: white;
+    }
+    .btn-danger:hover {
+        background-color: var(--destructive-hover);
+    }
+    .btn-secondary {
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        border-color: var(--border-primary);
+    }
+    .btn-secondary:hover {
+        background-color: var(--bg-tertiary);
+    }
+    .btn-ghost {
+        background-color: transparent;
+        color: var(--text-secondary);
+        box-shadow: none;
+    }
+    .btn-ghost:hover {
+        background-color: var(--bg-tertiary);
+        color: var(--text-primary);
+    }
 
-    /* Custom styles for dark mode compatibility */
-    .dark .bg-gray-100 { background-color: #1f2937; }
-    .dark .bg-gray-200 { background-color: #374151; }
-    .dark .text-gray-900 { color: #f9fafb; }
-    .dark .text-gray-500 { color: #d1d5db; }
-    .dark .text-gray-800 { color: #e5e7eb; }
-    .dark .border-gray-300 { border-color: #4b5563; }
-    .dark .ring-indigo-500 { ring-color: #818cf8; }
-    .dark .placeholder-gray-400::placeholder { color: #9ca3af; }
+    .form-input {
+        width: 100%;
+        padding: 0.625rem 0.75rem;
+        border-radius: 0.5rem;
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-primary);
+        color: var(--text-primary);
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-input::placeholder {
+        color: var(--text-secondary);
+        opacity: 0.7;
+    }
+    .form-input:focus {
+        outline: none;
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 20%, transparent);
+    }
     
+    .card {
+        background-color: var(--bg-secondary);
+        border-radius: 0.75rem;
+        border: 1px solid var(--border-primary);
+        box-shadow: var(--shadow-md);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .modal-overlay {
+        background-color: rgb(0 0 0 / 0.5);
+        backdrop-filter: blur(4px);
+    }
+
+    /* --- Toggle Switch --- */
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--bg-tertiary); transition: .4s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: var(--shadow-sm); }
+    input:checked + .slider { background-color: var(--accent-primary); }
+    input:checked + .slider:before { transform: translateX(20px); }
+    
+    /* --- Rich Text Editor --- */
+    .rich-text-editor {
+        min-height: 100px;
+        border-radius: 0.5rem;
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-primary);
+        padding: 0.75rem;
+    }
+    .rich-text-editor:focus-within {
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 20%, transparent);
+    }
+    .rich-text-toolbar {
+        border-bottom: 1px solid var(--border-primary);
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .rich-text-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 0.375rem;
+        color: var(--text-secondary);
+        background-color: transparent;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid transparent;
+    }
+    .rich-text-btn:hover {
+        background-color: var(--bg-tertiary);
+        color: var(--text-primary);
+    }
+
     [contenteditable=true]:empty:before {
         content: attr(placeholder);
         pointer-events: none;
         display: block; /* For Firefox */
-        color: #9ca3af;
-    }
-    .dark [contenteditable=true]:empty:before {
-        color: #6b7280;
-    }
-
-    .dark .rich-text-btn {
-        color: #e5e7eb;
-        border-color: #4b5563;
+        color: var(--text-secondary);
+        opacity: 0.7;
     }
 
 </style>
 </head>
-<body class="bg-gray-100">
+<body>
 
 <div id="app-container">
     <!-- Header -->
-    <header class="bg-white dark:bg-gray-800 shadow-md">
+    <header class="bg-[var(--bg-secondary)]/80 backdrop-blur-lg sticky top-0 z-40 border-b border-[var(--border-primary)]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center">
-                    <h1 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">Community Forum</h1>
+            <div class="flex flex-col sm:flex-row items-center justify-between py-4 sm:h-20">
+                <div class="flex items-center space-x-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-8 w-8 text-[var(--text-accent)]">
+                        <path d="M4.913 2.658c1.072.454 1.99 1.374 2.536 2.446l.004-.001.002.001.002.001c.148.28.275.57.382.868H20.25a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75H3.75a.75.75 0 0 1-.75-.75V8.118c0-.35.07-.68.2-1l.001-.002.002-.003c.15-.29.32-.563.504-.815.42-.575.92-1.077 1.488-1.487l.002-.001.002-.002.001-.001A4.5 4.5 0 0 1 8.25 3.75h5.385c1.47 0 2.82.553 3.82 1.513l.002.002.001.001c.49.49.9 1.06 1.18 1.688l.002.003.001.002c.07.16.12.33.15.5H8.25a3 3 0 0 0-3 3v4.5a.75.75 0 0 1-1.5 0v-4.5a4.5 4.5 0 0 1 1.163-3.142Z"></path>
+                    </svg>
+                    <h1 class="text-2xl font-bold text-[var(--text-primary)]">CommunityHub</h1>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <div id="userInfoContainer" class="flex items-center space-x-2 cursor-pointer" style="display: none;">
-                        <span id="userName" class="text-sm font-medium text-gray-800 dark:text-gray-200"></span>
-                        <span id="userRole" class="px-2 py-0.5 text-xs font-semibold text-white rounded-full"></span>
+                <div class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 mt-4 sm:mt-0">
+                    <div id="userInfoContainer" class="hidden items-center space-x-3 cursor-pointer group">
+                        <span id="userName" class="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--text-accent)] transition-colors"></span>
+                        <span id="userRole" class="px-2.5 py-1 text-xs font-bold text-white rounded-full"></span>
                     </div>
-                    <!-- Dark Mode Toggle -->
+                    <div id="auth-container" class="flex items-center space-x-2">
+                         <div class="text-right">
+                            <p class="text-xs text-[var(--text-secondary)]">Have an account?</p>
+                            <button id="signInLink" class="text-sm font-medium text-[var(--text-accent)] hover:underline">Sign in</button>
+                        </div>
+                        <div class="relative" id="createAccountDropdownContainer">
+                            <button id="createAccountBtn" type="button" class="btn btn-primary">Create account</button>
+                            <div id="createAccountDropdown" class="hidden absolute right-0 mt-2 w-48 bg-[var(--bg-secondary)] rounded-lg shadow-lg py-1 z-50 border border-[var(--border-primary)]">
+                                <a href="#" id="signUpWithGoogleBtn" class="flex items-center gap-2 px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]">Sign up with Google</a>
+                                <a href="#" id="signUpWithEmailBtn" class="flex items-center gap-2 px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]">Sign up via email</a>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="signOutBtn" type="button" style="display:none;" class="btn btn-danger">Sign out</button>
                     <label class="switch">
                         <input type="checkbox" id="darkModeToggle">
                         <span class="slider"></span>
                     </label>
                 </div>
             </div>
+             <div class="pb-4 flex flex-col sm:flex-row gap-2 justify-center sm:justify-end items-center space-x-4 text-xs text-[var(--text-secondary)]">
+                <span><span class="font-bold text-[var(--text-primary)]" id="totalMembers">0</span> Total Members</span>
+                <span class="hidden sm:block h-4 border-l border-[var(--border-primary)]"></span>
+                <span><span class="font-bold text-[var(--text-primary)]" id="onlineVisitors">0</span> Online</span>
+            </div>
         </div>
     </header>
-
+    
     <!-- Navigation -->
-    <nav class="bg-gray-200 dark:bg-gray-700">
+    <nav class="bg-[var(--bg-secondary)] border-b border-[var(--border-primary)]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center space-x-4 h-12">
-                <a href="./index.html" class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">Home</a>
-                <a href="#" id="messagesBtn" class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">Messages</a>
-                <a href="./contributor.html" class="px-3 py-2 text-sm font-medium text-white bg-indigo-600 dark:bg-indigo-500 rounded-md">Contributor Section</a>
+            <div class="flex flex-wrap justify-center sm:justify-start items-center space-x-2 h-auto sm:h-14 py-2 sm:py-0">
+                <a href="./index.html" class="px-3 py-2 text-sm font-medium text-[var(--text-secondary)] rounded-md hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors">Home</a>
+                <a href="#" id="messagesBtn" class="px-3 py-2 text-sm font-medium text-[var(--text-secondary)] rounded-md hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors">Messages</a>
+                <a href="./contributor.html" class="px-3 py-2 text-sm font-semibold text-white bg-[var(--accent-primary)] rounded-md">Contributor Section</a>
             </div>
         </div>
     </nav>
 
-
     <!-- Main Content -->
     <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div id="loading-state" class="text-center text-gray-500">
-            <p>Verifying access...</p>
+        <!-- Post Creation Section -->
+        <section id="post-creation" class="card p-6" style="display:none;">
+            <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-4">Create a Contributor Post</h2>
+            <div class="space-y-4">
+                <input type="text" id="postTitle" placeholder="Post Title" class="form-input">
+                <textarea id="postContent" placeholder="Share your insights..." class="form-input h-32"></textarea>
+            </div>
+            <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <button id="createPostBtn" class="btn btn-primary w-full sm:w-auto">Create Post</button>
+            </div>
+        </section>
+
+        <!-- Auth Prompt -->
+        <div id="auth-prompt" class="card p-6 text-center">
+            <p class="text-lg font-medium text-[var(--text-primary)]">Welcome to the Contributor Section!</p>
+            <p class="mt-2 text-[var(--text-secondary)]">Please sign in with a contributor or admin account to create and view exclusive posts.</p>
         </div>
 
-        <div id="contributor-content" style="display: none;" class="fade-in">
-            <!-- Post Creation Section -->
-            <section id="post-creation" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Create a Contributor Post</h2>
-                <div class="space-y-4">
-                    <input type="text" id="contributorPostTitle" placeholder="Post Title" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <textarea id="contributorPostContent" placeholder="Share something with fellow contributors..." class="w-full h-28 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-400"></textarea>
-                </div>
-                <button id="createContributorPostBtn" class="mt-4 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">Create Post</button>
-            </section>
-
-            <!-- Post List -->
-            <div id="contributorPostList" class="mt-8 space-y-4">
-                <!-- Posts will be dynamically inserted here -->
-            </div>
+        <!-- Post List -->
+        <div id="postList" class="mt-8 space-y-6">
+            <!-- Posts will be dynamically inserted here -->
+        </div>
+        <div class="text-center mt-8">
+            <button id="loadMoreBtn" style="display:none;" class="btn btn-primary">Load More Posts</button>
         </div>
     </main>
-
-    <!-- Modals -->
-     <div id="userProfileModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-md">
+    
+    <!-- All Modals from index.html should be included here for consistency -->
+    <!-- ... (Modal HTML Copied from index.html) ... -->
+    <div id="userProfileModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-md modal-content-animation">
             <div class="flex justify-between items-start mb-4">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">User Profile</h3>
-                <button id="closeUserProfileModal" class="text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
+                <h3 class="text-lg font-bold text-[var(--text-primary)]">User Profile</h3>
+                <button id="closeUserProfileModal" class="btn btn-ghost !p-1 h-8 w-8">&times;</button>
             </div>
             <div class="space-y-4">
-                <p class="text-gray-800 dark:text-gray-200">Total Posts: <span id="profilePostCount" class="font-bold">0</span></p>
-                <div id="changeUsernameSection" style="display: none;">
-                    <label for="newUsernameInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Change Username</label>
-                    <div class="flex mt-1">
-                        <input type="text" id="newUsernameInput" placeholder="New username" class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <button id="changeUsernameBtn" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-r-md hover:bg-indigo-700">Save</button>
+                <p class="text-[var(--text-primary)]">Total Posts: <span id="profilePostCount" class="font-bold">0</span></p>
+                <div id="changeUsernameSection" style="display: none;" class="space-y-2">
+                    <label for="newUsernameInput" class="block text-sm font-medium text-[var(--text-secondary)]">Change Username</label>
+                    <div class="flex">
+                        <input type="text" id="newUsernameInput" placeholder="New username" class="form-input rounded-r-none">
+                        <button id="changeUsernameBtn" class="btn btn-primary rounded-l-none">Save</button>
                     </div>
-                     <p id="changeUsernameError" class="text-xs text-red-500 mt-1" style="display: none;"></p>
+                    <p id="changeUsernameError" class="text-xs text-[var(--destructive)] mt-1" style="display: none;"></p>
                 </div>
-                <button id="closeAccountBtn" class="w-full px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 transition-all">Close My Account</button>
+                <button id="closeAccountBtn" class="btn btn-danger w-full">Close My Account</button>
             </div>
         </div>
     </div>
-    <div id="postViewModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-2xl relative">
-            <button id="closePostViewModal" class="absolute top-3 right-3 text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
-            <h3 id="postViewTitle" class="text-xl font-bold text-gray-900 dark:text-white mb-2"></h3>
-            <div id="postViewMeta" class="text-xs text-gray-500 dark:text-gray-400 mb-4"></div>
-            <p id="postViewContent" class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap"></p>
-        </div>
-    </div>
-    
-     <div id="alertModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-sm text-center">
-            <p id="alertMessage" class="text-gray-800 dark:text-gray-200 mb-4"></p>
-            <button id="closeAlertModal" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700">OK</button>
-        </div>
-    </div>
 
-    <div id="messagingModal" style="display:none;" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl fade-in w-full max-w-lg h-3/4 flex flex-col">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Direct Messages</h3>
-                <button id="closeMessagingModal" class="text-2xl font-light text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">&times;</button>
+    <div id="postViewModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-2xl relative flex flex-col max-h-[85vh] modal-content-animation">
+            <div class="flex-shrink-0">
+                <button id="closePostViewModal" class="absolute top-3 right-3 btn btn-ghost !p-1 h-8 w-8 z-10">&times;</button>
+                <h3 id="postViewTitle" class="text-2xl font-bold text-[var(--text-primary)] mb-2 pr-8"></h3>
+                <div id="postViewMeta" class="text-sm text-[var(--text-secondary)] mb-4"></div>
             </div>
-
-            <!-- Inbox View -->
-            <div id="inboxView">
-                <div class="relative mb-2">
-                    <input type="text" id="messageRecipientSearch" placeholder="Search for user to start a new chat..." class="w-full px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-md">
-                    <div id="messageRecipientResults" class="absolute w-full bg-white dark:bg-gray-600 border dark:border-gray-500 rounded-md mt-1 z-10" style="display: none;"></div>
-                </div>
-                <div id="urgentInboxContainer">
-                    <h4 class="text-sm font-bold text-red-600 dark:text-red-400 my-2">URGENT</h4>
-                    <div id="urgentInboxList"></div>
-                </div>
-                <div id="regularInboxContainer" class="mt-4">
-                     <h4 class="text-sm font-bold text-gray-600 dark:text-gray-300 my-2">Conversations</h4>
-                    <div id="regularInboxList" class="flex-grow overflow-y-auto"></div>
-                </div>
-            </div>
-
-            <!-- Chat View -->
-            <div id="chatView" class="h-full flex-col" style="display: none;">
-                <button id="backToInboxBtn" class="mb-2 text-sm text-indigo-600 dark:text-indigo-400 hover:underline">&larr; Back to Inbox</button>
-                <div id="chatHeader" class="mb-2">
-                    <p id="messagingWith" class="text-sm">Chat with: <span class="font-bold"></span></p>
-                    <input type="text" id="chatTitleInput" placeholder="Message Title" class="w-full px-3 py-1 mt-1 text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 border border-gray-300 rounded-md">
-                </div>
-                <div id="messageHistory" class="flex-grow overflow-y-auto bg-gray-50 dark:bg-gray-900 p-2 rounded-md mb-2 flex flex-col"></div>
-                <div class="relative flex items-center space-x-2 p-1 border-t dark:border-gray-600">
-                    <button data-command="bold" class="px-2 py-1 text-sm font-bold border rounded rich-text-btn">B</button>
-                    <button data-command="italic" class="px-2 py-1 text-sm italic border rounded rich-text-btn">I</button>
-                    <button data-command="strikeThrough" class="px-2 py-1 text-sm line-through border rounded rich-text-btn">S</button>
-                     <div class="relative">
-                        <button id="messageColorBtn" class="px-2 py-1 text-sm border rounded rich-text-btn">Text Color</button>
-                        <div id="messageColorPalette" class="absolute hidden bottom-full left-0 mb-1 bg-white dark:bg-gray-700 border dark:border-gray-600 p-2 rounded-md shadow-lg grid grid-cols-7 gap-1 z-20"></div>
-                    </div>
-                </div>
-                <div class="flex">
-                    <div id="messageInput" contenteditable="true" placeholder="Type your message..." class="flex-grow p-2 text-gray-900 dark:text-white bg-white dark:bg-gray-700 border border-gray-300 rounded-l-md h-24 overflow-y-auto"></div>
-                    <button id="sendMessageBtn" class="px-4 py-2 text-white bg-indigo-600 rounded-r-md hover:bg-indigo-700 self-end">Send</button>
-                </div>
+            <div class="overflow-y-auto pr-4 -mr-4">
+                <p id="postViewContent" class="text-[var(--text-primary)] whitespace-pre-wrap leading-relaxed"></p>
             </div>
         </div>
     </div>
 </div>
 
 <script type="module">
+    // Firebase imports (ensure these are the same as index.html)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, where, getDocs, updateDoc, arrayUnion, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, serverTimestamp, collection, onSnapshot, addDoc, query, orderBy, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4",
@@ -223,189 +377,180 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const rtdb = getDatabase(app);
 
+    // --- UI Elements ---
     const darkModeToggle = document.getElementById("darkModeToggle");
-    const userNameEl = document.getElementById("userName");
-    const userRoleEl = document.getElementById("userRole");
-    const contributorContent = document.getElementById("contributor-content");
-    const loadingState = document.getElementById("loading-state");
-    const createBtn = document.getElementById("createContributorPostBtn");
-    const postTitleInput = document.getElementById("contributorPostTitle");
-    const postContentInput = document.getElementById("contributorPostContent");
-    const postList = document.getElementById("contributorPostList");
+    const postList = document.getElementById("postList");
+    const postCreationSection = document.getElementById("post-creation");
+    const authPrompt = document.getElementById("auth-prompt");
+    const createPostBtn = document.getElementById("createPostBtn");
+    const postTitleInput = document.getElementById("postTitle");
+    const postContentInput = document.getElementById("postContent");
+
     const postViewModal = document.getElementById('postViewModal');
     const closePostViewModal = document.getElementById('closePostViewModal');
-    const alertModal = document.getElementById('alertModal');
-    const alertMessage = document.getElementById('alertMessage');
-    const closeAlertModal = document.getElementById('closeAlertModal');
-    const messagesBtn = document.getElementById('messagesBtn');
-    const messagingModal = document.getElementById('messagingModal');
-    const closeMessagingModal = document.getElementById('closeMessagingModal');
-    const inboxView = document.getElementById('inboxView');
-    const chatView = document.getElementById('chatView');
-    const backToInboxBtn = document.getElementById('backToInboxBtn');
-    const messageRecipientSearch = document.getElementById('messageRecipientSearch');
-    const messageRecipientResults = document.getElementById('messageRecipientResults');
-    const urgentInboxList = document.getElementById('urgentInboxList');
-    const regularInboxList = document.getElementById('regularInboxList');
-    const chatHeader = document.getElementById('chatHeader');
-    const chatTitleInput = document.getElementById('chatTitleInput');
-    const messageHistory = document.getElementById('messageHistory');
-    const messageInput = document.getElementById('messageInput');
-    const sendMessageBtn = document.getElementById('sendMessageBtn');
-
-
+    
+    // Header elements for user info
+    const userInfoContainer = document.getElementById("userInfoContainer");
+    const userNameEl = document.getElementById("userName");
+    const userRoleEl = document.getElementById("userRole");
+    const authContainer = document.getElementById("auth-container");
+    const signOutBtn = document.getElementById("signOutBtn");
+    
     let currentUserRole = null;
     let usersDataCache = {};
     let postDocsCache = [];
-    let currentConversation = null;
-    let messageListenerUnsubscribe = null;
-    let currentUserData = null;
-
-
-    function showAlert(message) {
-        alertMessage.textContent = message;
-        alertModal.style.display = 'flex';
-    }
-    closeAlertModal.onclick = () => alertModal.style.display = 'none';
 
     // --- Dark Mode ---
     function applyDarkMode(isDark) {
         document.documentElement.classList.toggle('dark', isDark);
         localStorage.setItem("darkMode", isDark);
     }
-
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const savedMode = localStorage.getItem("darkMode");
     const initialDarkMode = savedMode !== null ? savedMode === 'true' : prefersDark;
     darkModeToggle.checked = initialDarkMode;
     applyDarkMode(initialDarkMode);
-
-    darkModeToggle.addEventListener("change", (e) => {
-        applyDarkMode(e.target.checked);
-    });
-
-    // --- Authentication & Authorization ---
+    darkModeToggle.addEventListener("change", (e) => applyDarkMode(e.target.checked));
+    
+    // --- Auth State Observer ---
     onAuthStateChanged(auth, async (user) => {
         if (user && !user.isAnonymous) {
             const userDocRef = doc(db, "users", user.uid);
             const userDocSnap = await getDoc(userDocRef);
-            
-            const usersColRef = collection(db, "users");
-            onSnapshot(usersColRef, (snapshot) => {
-                snapshot.forEach(doc => {
-                    usersDataCache[doc.id] = doc.data();
-                });
-                renderContributorPosts();
-            });
 
             if (userDocSnap.exists()) {
-                currentUserData = userDocSnap.data();
-                currentUserRole = currentUserData.role || 'newbie';
+                const userData = userDocSnap.data();
+                currentUserRole = userData.role;
 
-                document.getElementById('userInfoContainer').style.display = 'flex';
-                userNameEl.textContent = currentUserData.displayName || user.email;
-                userRoleEl.textContent = currentUserRole;
-                userRoleEl.className = 'px-2 py-0.5 text-xs font-semibold text-white rounded-full';
-                switch (currentUserRole) {
+                // Update header UI
+                authContainer.style.display = 'none';
+                signOutBtn.style.display = 'block';
+                userInfoContainer.style.display = 'flex';
+                userNameEl.textContent = userData.displayName || user.email;
+                userRoleEl.textContent = userData.role;
+                // Add role-based coloring for header
+                userRoleEl.className = 'px-2.5 py-1 text-xs font-bold text-white rounded-full';
+                 switch (currentUserRole) {
                     case 'admin': userRoleEl.classList.add('bg-violet-500'); break;
                     case 'contributor': userRoleEl.classList.add('bg-green-500'); break;
                     default: userRoleEl.classList.add('bg-blue-500'); break;
                 }
-                
-                if (["admin", "contributor"].includes(currentUserRole)) {
-                    loadingState.style.display = 'none';
-                    contributorContent.style.display = 'block';
-                    loadContributorPosts();
+
+                if (currentUserRole === 'contributor' || currentUserRole === 'admin') {
+                    postCreationSection.style.display = 'block';
+                    authPrompt.style.display = 'none';
+                    attachFirestoreListeners();
                 } else {
-                    redirectToHome("Access denied. Contributors and Admins only.");
+                    postCreationSection.style.display = 'none';
+                    authPrompt.style.display = 'block';
+                    postList.innerHTML = ''; // Clear posts if user doesn't have access
                 }
-            } else {
-                 redirectToHome("User data not found.");
             }
         } else {
-            redirectToHome("You must be signed in to view this page.");
+            // Not signed in or anonymous
+            currentUserRole = null;
+            postCreationSection.style.display = 'none';
+            authPrompt.style.display = 'block';
+            postList.innerHTML = '';
+
+            // Update header UI
+            authContainer.style.display = 'flex';
+            signOutBtn.style.display = 'none';
+            userInfoContainer.style.display = 'none';
+
+            if (!user) { // If logged out, sign in anonymously to listen for auth changes
+                 signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
+            }
         }
     });
+    
+    signOutBtn.addEventListener("click", () => signOut(auth));
 
-    function redirectToHome(message) {
-        console.log(message);
-        alert(message);
-        window.location.href = window.location.href.replace("contributor.html", "index.html");
-    }
+    // --- Firestore Listeners ---
+    function attachFirestoreListeners() {
+        // Fetch all users to map author IDs to names
+        const usersColRef = collection(db, "users");
+        onSnapshot(usersColRef, (snapshot) => {
+            snapshot.forEach(doc => {
+                usersDataCache[doc.id] = doc.data();
+            });
+            renderPosts(); // Re-render posts if user data changes
+        });
 
-    // --- Post Management ---
-    function loadContributorPosts() {
-        const postsRef = collection(db, "contributorPosts");
-        const q = query(postsRef, orderBy("createdAt", "desc"));
+        // Listen for contributor posts
+        const postsColRef = collection(db, "contributorPosts");
+        const q = query(postsColRef, orderBy("createdAt", "desc"));
         onSnapshot(q, (snapshot) => {
             postDocsCache = snapshot.docs;
-            renderContributorPosts();
+            renderPosts();
         });
     }
-    
-    function renderContributorPosts() {
-        postList.innerHTML = "";
-        postDocsCache.forEach((docSnap) => {
-            const post = docSnap.data();
-            const postId = docSnap.id;
-            const authorData = usersDataCache[post.authorId] || { displayName: 'Unknown' };
 
-            const postEl = document.createElement("div");
-            postEl.className = 'bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md fade-in';
+    // --- Post Rendering ---
+    function renderPosts() {
+        if (!postList) return;
+        postList.innerHTML = '';
+        postDocsCache.forEach(doc => {
+            const post = doc.data();
+            const postId = doc.id;
+            const authorData = usersDataCache[post.authorId];
+            
+            if (!authorData) return;
+
+            const postEl = document.createElement('div');
+            postEl.className = 'card p-5';
             const timestamp = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now';
             
+            const role = authorData.role || 'newbie';
+            let roleColor = 'bg-blue-500';
+            if (role === 'admin') roleColor = 'bg-violet-500';
+            if (role === 'contributor') roleColor = 'bg-green-500';
+            const userStatusHTML = `<span class="ml-2 px-2.5 py-1 text-xs font-bold text-white ${roleColor} rounded-full">${role}</span>`;
+
             let adminControls = '';
             if (currentUserRole === 'admin') {
-                 adminControls = `
-                    <div class="ml-auto">
-                        <button data-post-id="${postId}" class="delete-post-btn p-1 text-gray-400 hover:text-red-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                        </button>
-                    </div>`;
+                adminControls = `
+                    <button data-post-id="${postId}" class="delete-post-btn ml-auto p-1 text-[var(--text-secondary)] hover:text-[var(--destructive)]">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                    </button>`;
             }
-            
+
             postEl.innerHTML = `
-                <div class="flex items-start">
-                    <div>
-                        <div class="font-bold text-gray-900 dark:text-white">${authorData.displayName}</div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400">${timestamp}</div>
-                    </div>
+                <div class="flex items-center">
+                    <div class="font-bold text-[var(--text-primary)]">${authorData.displayName}</div>
+                    ${userStatusHTML}
                     ${adminControls}
                 </div>
-                <h4 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400 mt-2 hover:underline cursor-pointer view-post-btn" data-post-id="${postId}">${post.title}</h4>
+                <div class="text-xs text-[var(--text-secondary)] mt-1">${timestamp}</div>
+                <h4 class="text-xl font-semibold text-[var(--text-accent)] mt-2 hover:underline cursor-pointer view-post-btn" data-post-id="${postId}">${post.title}</h4>
             `;
             postList.appendChild(postEl);
         });
     }
 
-    createBtn.addEventListener("click", async () => {
+    // --- Post Creation & Interaction ---
+    createPostBtn.addEventListener('click', async () => {
         const title = postTitleInput.value.trim();
         const content = postContentInput.value.trim();
         const user = auth.currentUser;
-        if (!title || !content || !user) {
-            showAlert("Please provide a title and content for your post.");
-            return;
-        }
-        
-        const authorName = currentUserData.displayName || user.email;
 
-        try {
-            await addDoc(collection(db, "contributorPosts"), {
+        if (title && content && user) {
+            const postsColRef = collection(db, "contributorPosts");
+            await addDoc(postsColRef, {
                 title: title,
                 content: content,
-                authorName: authorName,
                 authorId: user.uid,
-                createdAt: serverTimestamp()
+                createdAt: serverTimestamp(),
             });
-            postTitleInput.value = "";
-            postContentInput.value = "";
-        } catch (error) {
-            console.error("Error creating contributor post:", error);
-            showAlert("Could not create post. Please try again.");
+            postTitleInput.value = '';
+            postContentInput.value = '';
+        } else {
+            alert("Please provide a title and content for your post.");
         }
     });
-    
+
     postList.addEventListener('click', e => {
         const viewBtn = e.target.closest('.view-post-btn');
         const deleteBtn = e.target.closest('.delete-post-btn');
@@ -413,7 +558,7 @@
         if (viewBtn) {
             const postId = viewBtn.dataset.postId;
             const postDoc = postDocsCache.find(doc => doc.id === postId);
-            if (postDoc) {
+            if(postDoc) {
                 const post = postDoc.data();
                 const author = usersDataCache[post.authorId];
                 document.getElementById('postViewTitle').textContent = post.title;
@@ -425,296 +570,13 @@
         if (deleteBtn) {
             const postId = deleteBtn.dataset.postId;
             if (confirm('Are you sure you want to delete this post permanently?')) {
-                deleteDoc(doc(db, "contributorPosts", postId)).then(() => {
-                    showAlert('Post deleted successfully.');
-                }).catch(err => console.error("Error deleting post:", err));
+                deleteDoc(doc(db, "contributorPosts", postId)).catch(err => console.error("Error deleting post:", err));
             }
         }
     });
-
+    
     closePostViewModal.addEventListener('click', () => postViewModal.style.display = 'none');
-    
-    // --- Rich Text Editor Logic for Messaging ---
-    function applyStyle(editor, command, value = null) {
-        editor.focus();
-        document.execCommand(command, false, value);
-    }
-    
-    const colors = ['#000000', '#EF4444', '#F97316', '#EAB308', '#22C55E', '#3B82F6', '#8B5CF6', '#FFFFFF', '#DC2626', '#EA580C', '#D97706', '#16A34A', '#2563EB', '#7C3AED'];
-    
-    function createPalette(paletteContainer, command, editor) {
-        paletteContainer.innerHTML = '';
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'w-5 h-5 rounded border border-gray-400 flex items-center justify-center text-red-500';
-        removeBtn.innerHTML = '&#10005;';
-        removeBtn.title = "Remove Color";
-        removeBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const defaultColor = document.documentElement.classList.contains('dark') ? '#f9fafb' : '#1f2937';
-            applyStyle(editor, command, defaultColor);
-            paletteContainer.style.display = 'none';
-        });
-        paletteContainer.appendChild(removeBtn);
 
-        colors.forEach(color => {
-            const swatch = document.createElement('button');
-            swatch.className = 'w-5 h-5 rounded border border-gray-400';
-            swatch.style.backgroundColor = color;
-            swatch.addEventListener('click', (e) => {
-                 e.preventDefault();
-                 applyStyle(editor, command, color);
-                 paletteContainer.style.display = 'none';
-            });
-            paletteContainer.appendChild(swatch);
-        });
-    }
-
-    document.getElementById('messageColorBtn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        const palette = document.getElementById('messageColorPalette');
-        createPalette(palette, 'foreColor', messageInput);
-        palette.style.display = palette.style.display === 'none' ? 'grid' : 'none';
-    });
-
-    chatView.querySelectorAll('.rich-text-btn').forEach(btn => {
-         btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const command = e.currentTarget.dataset.command;
-            if(command){
-                applyStyle(messageInput, command);
-            }
-        });
-    });
-
-    // --- Messaging Logic ---
-    async function sendMessage(recipientId, title, contentHTML) {
-        const user = auth.currentUser;
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = contentHTML;
-        const lastMessageText = tempDiv.textContent || tempDiv.innerText || '';
-
-        if (!user || !recipientId || !lastMessageText || !title) {
-            showAlert('Message failed to send. Title and content are required.');
-            return Promise.reject('Missing information');
-        }
-
-        const conversationId = [user.uid, recipientId].sort().join('_') + `_${title}`;
-        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
-        
-        try {
-            await setDoc(doc(db, 'conversations', conversationId), {
-                participants: [user.uid, recipientId],
-                title: title,
-                lastMessage: lastMessageText,
-                lastMessageTimestamp: serverTimestamp(),
-                hiddenFor: []
-            }, { merge: true });
-
-            await addDoc(messagesRef, {
-                senderId: user.uid,
-                recipientId: recipientId,
-                content: contentHTML,
-                createdAt: serverTimestamp()
-            });
-             return Promise.resolve();
-        } catch (error) {
-            console.error("Error sending message:", error);
-            showAlert(`Message failed to send. Please check your Firestore rules.`);
-            return Promise.reject(error);
-        }
-    }
-
-    messagesBtn.addEventListener('click', () => {
-        if(auth.currentUser && !auth.currentUser.isAnonymous){
-            messagingModal.style.display = 'flex';
-            inboxView.style.display = 'block';
-            chatView.style.display = 'none';
-            loadInbox();
-        } else {
-            showAlert('Please sign in to view messages.');
-        }
-    });
-    closeMessagingModal.addEventListener('click', () => {
-         messagingModal.style.display = 'none';
-         if(messageListenerUnsubscribe) messageListenerUnsubscribe();
-         currentConversation = null;
-         messageRecipientSearch.value = '';
-    });
-    backToInboxBtn.addEventListener('click', () => {
-        inboxView.style.display = 'block';
-        chatView.style.display = 'none';
-        if(messageListenerUnsubscribe) messageListenerUnsubscribe();
-        currentConversation = null;
-        loadInbox();
-    });
-
-    messageRecipientSearch.addEventListener('input', async (e) => {
-        const searchTerm = e.target.value.trim();
-        messageRecipientResults.innerHTML = '';
-        messageRecipientResults.style.display = 'none';
-
-        if(searchTerm.length < 2) return;
-
-        const usersRef = collection(db, "users");
-        const q = query(usersRef, where('displayName', '>=', searchTerm), where('displayName', '<=', searchTerm + '\uf8ff'));
-        const querySnapshot = await getDocs(q);
-        
-        querySnapshot.forEach(doc => {
-            if(doc.id === auth.currentUser.uid) return;
-            const user = doc.data();
-            const resultEl = document.createElement('div');
-            resultEl.textContent = user.displayName;
-            resultEl.className = 'p-2 hover:bg-gray-100 dark:hover:bg-gray-500 cursor-pointer';
-            resultEl.dataset.userId = doc.id;
-            resultEl.dataset.userName = user.displayName;
-            messageRecipientResults.appendChild(resultEl);
-        });
-
-        if(!querySnapshot.empty) {
-            messageRecipientResults.style.display = 'block';
-        }
-    });
-    
-    function openChatWithUser(userId, userName, title = '') {
-        currentConversation = { recipientId: userId, recipientName: userName, title: title };
-        chatHeader.querySelector('span').textContent = currentConversation.recipientName;
-        chatTitleInput.value = title;
-        chatTitleInput.disabled = !!title; 
-        inboxView.style.display = 'none';
-        chatView.style.display = 'flex';
-        loadMessageHistory();
-    }
-
-    messageRecipientResults.addEventListener('click', (e) => {
-        const target = e.target;
-        if(target.dataset.userId) {
-            openChatWithUser(target.dataset.userId, target.dataset.userName);
-            messageRecipientSearch.value = '';
-            messageRecipientResults.style.display = 'none';
-        }
-    });
-    
-    document.getElementById('inboxView').addEventListener('click', async (e) => {
-        const chatBtn = e.target.closest('.inbox-item-content');
-        const deleteBtn = e.target.closest('.delete-conversation-btn');
-        
-        if(chatBtn) {
-             const item = chatBtn.closest('.inbox-item');
-             openChatWithUser(item.dataset.userId, item.dataset.userName, item.dataset.title);
-        }
-
-        if (deleteBtn) {
-            e.stopPropagation();
-            const item = deleteBtn.closest('.inbox-item');
-            const otherUserId = item.dataset.userId;
-            const title = item.dataset.title;
-            if (confirm(`Are you sure you want to hide this conversation with ${item.dataset.userName}? The other user will still see it.`)) {
-                const conversationId = [auth.currentUser.uid, otherUserId].sort().join('_') + `_${title}`;
-                const conversationRef = doc(db, 'conversations', conversationId);
-                
-                await updateDoc(conversationRef, {
-                    hiddenFor: arrayUnion(auth.currentUser.uid)
-                });
-                showAlert('Conversation hidden.');
-            }
-        }
-    });
-
-    async function loadInbox() {
-        if(!auth.currentUser) return;
-        const convosRef = collection(db, 'conversations');
-        const q = query(convosRef, where('participants', 'array-contains', auth.currentUser.uid), orderBy('lastMessageTimestamp', 'desc'));
-
-        onSnapshot(q, (snapshot) => {
-            urgentInboxList.innerHTML = '';
-            regularInboxList.innerHTML = '';
-
-            let hasConversations = false;
-
-            snapshot.forEach(doc => {
-                const convo = doc.data();
-                if(convo.hiddenFor && convo.hiddenFor.includes(auth.currentUser.uid)) return;
-                hasConversations = true;
-
-                const otherUserId = convo.participants.find(id => id !== auth.currentUser.uid);
-                const otherUserData = usersDataCache[otherUserId];
-
-                if(otherUserData) {
-                    const convoEl = document.createElement('div');
-                    convoEl.className = 'inbox-item p-3 border-b dark:border-gray-600 flex justify-between items-center';
-                    convoEl.dataset.userId = otherUserId;
-                    convoEl.dataset.userName = otherUserData.displayName;
-                    convoEl.dataset.title = convo.title;
-                    
-                    const timestamp = convo.lastMessageTimestamp ? convo.lastMessageTimestamp.toDate().toLocaleString() : '';
-
-                    convoEl.innerHTML = `
-                        <div class="flex-grow cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 inbox-item-content p-2 rounded-md">
-                            <p class="font-bold text-gray-800 dark:text-gray-200">${convo.title}</p>
-                             <p class="text-sm text-gray-600 dark:text-gray-400">with ${otherUserData.displayName}</p>
-                        </div>
-                         <div class="text-xs text-gray-400 text-right pl-2">
-                            <p>${timestamp}</p>
-                            <button class="text-red-500 hover:text-red-700 mt-1 delete-conversation-btn">
-                               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                            </button>
-                        </div>
-                    `;
-                    if (convo.title === "NOTICE!") {
-                        urgentInboxList.appendChild(convoEl);
-                    } else {
-                        regularInboxList.appendChild(convoEl);
-                    }
-                }
-            });
-
-            document.getElementById('urgentInboxContainer').style.display = urgentInboxList.hasChildNodes() ? 'block' : 'none';
-            if(!hasConversations) {
-                 regularInboxList.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 p-4">No conversations yet.</p>`;
-            }
-        });
-    }
-
-    function loadMessageHistory(){
-        if(messageListenerUnsubscribe) messageListenerUnsubscribe();
-        if(!currentConversation) return;
-
-        const conversationId = [auth.currentUser.uid, currentConversation.recipientId].sort().join('_') + `_${currentConversation.title}`;
-        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
-        const q = query(messagesRef, orderBy('createdAt'));
-
-        messageListenerUnsubscribe = onSnapshot(q, (snapshot) => {
-            messageHistory.innerHTML = '';
-            snapshot.forEach(doc => {
-                const msg = doc.data();
-                const msgEl = document.createElement('div');
-                const isSender = msg.senderId === auth.currentUser.uid;
-                
-                msgEl.className = `p-2 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-indigo-500 text-white ml-auto' : 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 mr-auto'}`;
-                
-                msgEl.innerHTML = msg.content;
-
-                messageHistory.appendChild(msgEl);
-            });
-            messageHistory.scrollTop = messageHistory.scrollHeight;
-        });
-    }
-
-    sendMessageBtn.addEventListener('click', async () => {
-        const contentHTML = messageInput.innerHTML;
-        const title = chatTitleInput.value.trim();
-
-        if(messageInput.textContent.trim() && currentConversation && title) {
-            try {
-                await sendMessage(currentConversation.recipientId, title, contentHTML);
-                messageInput.innerHTML = '';
-                showAlert('Message sent successfully!');
-            } catch(e) { /* showAlert is handled in sendMessage */ }
-        } else {
-            showAlert("Please provide a title and message content.");
-        }
-    });
 </script>
 </body>
 </html>
-
