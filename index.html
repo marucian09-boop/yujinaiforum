@@ -84,7 +84,7 @@
   <!-- Main Content -->
   <main class="flex-grow max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Create Post Section -->
-    <section id="create-post-section" class="bg-white p-6 rounded-lg shadow-md mb-8 hidden">
+    <section id="createPostSection" class="bg-white p-6 rounded-lg shadow-md mb-8 hidden">
       <h2 class="text-xl font-bold mb-4">Create a New Post</h2>
       <input type="text" id="postTitle" placeholder="Post Title" maxlength="120" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition mb-4">
       <textarea id="postContent" placeholder="Write something..." class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition h-32 resize-none"></textarea>
@@ -93,24 +93,10 @@
       </button>
     </section>
 
-    <!-- Authentication Section -->
-    <section id="authSection" class="bg-white p-6 rounded-lg shadow-md mb-8">
-        <h2 class="text-xl font-bold mb-4 text-center">Create Account or Sign In</h2>
-        <div class="space-y-4">
-            <input type="text" id="signupUsername" placeholder="Username" maxlength="20" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-            <input type="email" id="signupEmail" placeholder="Email" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-            <input type="password" id="signupPassword" placeholder="Password" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-            <button id="signupBtn" class="w-full px-6 py-2 text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition font-semibold">Sign Up with Email</button>
-        </div>
-        <div class="my-4 flex items-center">
-            <hr class="w-full border-gray-300">
-            <h3 class="px-2 text-gray-500 font-semibold">Or</h3>
-            <hr class="w-full border-gray-300">
-        </div>
-        <button id="googleSignInBtn" class="w-full flex items-center justify-center px-6 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-            <svg class="w-5 h-5 mr-2" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 23.4 172.9 61.9l-76.3 64.5C308.6 102.3 282.7 92 248.3 92c-82.8 0-150.5 66.6-150.5 148.4s67.7 148.4 150.5 148.4c97.2 0 130.3-72.9 135.2-109.2H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path></svg>
-            Sign in with Google
-        </button>
+     <!-- Logged out prompt -->
+    <section id="loggedOutPrompt" class="bg-white p-6 rounded-lg shadow-md mb-8 text-center">
+        <h2 class="text-xl font-bold mb-2">Join the Conversation!</h2>
+        <p class="text-gray-600 mb-4">Please sign in to create new posts and engage with the community.</p>
     </section>
 
     <!-- Posts Section -->
@@ -124,12 +110,12 @@
   </main>
 </div>
 
-<!-- Modal -->
+<!-- Post Modal -->
 <div id="postModal" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden flex items-center justify-center p-4">
   <div class="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
     <div class="p-5 border-b border-gray-200 flex justify-between items-center">
         <h2 id="modalTitle" class="text-2xl font-bold">Loading...</h2>
-        <button class="close-modal-btn text-gray-400 hover:text-gray-600 transition">&times;</button>
+        <button class="close-post-modal text-gray-400 hover:text-gray-600 transition text-2xl">&times;</button>
     </div>
     <div id="modalBody" class="p-6 overflow-y-auto modal-content prose max-w-none">
       <p>Loading content...</p>
@@ -137,9 +123,58 @@
   </div>
 </div>
 
+<!-- Auth Modal -->
+<div id="authModal" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-2xl w-full max-w-md relative">
+        <button class="close-auth-modal absolute top-3 right-4 text-gray-400 hover:text-gray-600 transition text-2xl">&times;</button>
+        <div class="border-b">
+            <nav class="flex -mb-px">
+                <button id="signInTab" class="w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm border-blue-500 text-blue-600">
+                    Sign In
+                </button>
+                <button id="signUpTab" class="w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    Sign Up
+                </button>
+            </nav>
+        </div>
+        
+        <!-- Sign In Form -->
+        <div id="signInForm" class="p-6">
+            <div class="space-y-4">
+                <input type="email" id="signInEmail" placeholder="Email" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <input type="password" id="signInPassword" placeholder="Password" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <button id="signInEmailBtn" class="w-full px-6 py-2 text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 transition font-semibold">Sign In</button>
+            </div>
+        </div>
+
+        <!-- Sign Up Form -->
+        <div id="signUpForm" class="p-6 hidden">
+             <div class="space-y-4">
+                <input type="text" id="signUpUsername" placeholder="Username" maxlength="20" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <input type="email" id="signUpEmail" placeholder="Email" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <input type="password" id="signUpPassword" placeholder="Password" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <button id="signUpBtn" class="w-full px-6 py-2 text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 transition font-semibold">Create Account</button>
+            </div>
+        </div>
+
+        <div class="px-6 pb-6">
+            <div class="my-4 flex items-center">
+                <hr class="w-full border-gray-300">
+                <h3 class="px-2 text-gray-500 font-semibold text-sm">Or</h3>
+                <hr class="w-full border-gray-300">
+            </div>
+            <button id="googleSignInBtn" class="w-full flex items-center justify-center px-6 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                <svg class="w-5 h-5 mr-2" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 23.4 172.9 61.9l-76.3 64.5C308.6 102.3 282.7 92 248.3 92c-82.8 0-150.5 66.6-150.5 148.4s67.7 148.4 150.5 148.4c97.2 0 130.3-72.9 135.2-109.2H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path></svg>
+                Sign in with Google
+            </button>
+        </div>
+    </div>
+</div>
+
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, createUserWithEmailAndPassword, updateProfile, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, getDocs, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
   import { getDatabase, ref, onDisconnect, set, onValue, serverTimestamp as dbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
@@ -165,17 +200,30 @@
   const postListEl = document.getElementById("postList");
   const totalMembersEl = document.getElementById("totalMembers");
   const onlineVisitorsEl = document.getElementById("onlineVisitors");
-  const createPostSection = document.getElementById('create-post-section');
-  const authSection = document.getElementById('authSection');
-  const modal = document.getElementById('postModal');
+  const createPostSection = document.getElementById('createPostSection');
+  const loggedOutPrompt = document.getElementById('loggedOutPrompt');
+  const roleBadgeEl = document.getElementById("roleBadge");
+
+  // Post Modal Elements
+  const postModal = document.getElementById('postModal');
   const modalTitle = document.getElementById('modalTitle');
   const modalBody = document.getElementById('modalBody');
-  const closeModalBtns = document.querySelectorAll('.close-modal-btn');
-  const roleBadgeEl = document.getElementById("roleBadge");
-  const signupUsernameEl = document.getElementById("signupUsername");
-  const signupEmailEl = document.getElementById("signupEmail");
-  const signupPasswordEl = document.getElementById("signupPassword");
-  const signupBtn = document.getElementById("signupBtn");
+  const closePostModalBtn = document.querySelector('.close-post-modal');
+
+  // Auth Modal Elements
+  const authModal = document.getElementById('authModal');
+  const closeAuthModalBtn = document.querySelector('.close-auth-modal');
+  const signInTab = document.getElementById('signInTab');
+  const signUpTab = document.getElementById('signUpTab');
+  const signInForm = document.getElementById('signInForm');
+  const signUpForm = document.getElementById('signUpForm');
+  const signInEmailEl = document.getElementById('signInEmail');
+  const signInPasswordEl = document.getElementById('signInPassword');
+  const signInEmailBtn = document.getElementById('signInEmailBtn');
+  const signUpUsernameEl = document.getElementById("signUpUsername");
+  const signUpEmailEl = document.getElementById("signUpEmail");
+  const signUpPasswordEl = document.getElementById("signUpPassword");
+  const signUpBtn = document.getElementById("signUpBtn");
   const googleSignInBtn = document.getElementById("googleSignInBtn");
 
 
@@ -244,7 +292,8 @@
       signInBtn.classList.add("hidden");
       signOutBtn.classList.remove("hidden");
       createPostSection.classList.remove('hidden');
-      authSection.classList.add('hidden');
+      loggedOutPrompt.classList.add('hidden');
+      authModal.classList.add('hidden');
       trackPresence(user);
       updateTotalMembers();
 
@@ -264,7 +313,7 @@
       signInBtn.classList.remove("hidden");
       signOutBtn.classList.add("hidden");
       createPostSection.classList.add('hidden');
-      authSection.classList.remove('hidden');
+      loggedOutPrompt.classList.remove('hidden');
     }
     validatePostForm();
   });
@@ -274,10 +323,10 @@
     return regex.test(pw);
   }
 
-  signupBtn.addEventListener("click", async () => {
-    const username = signupUsernameEl.value.trim();
-    const email = signupEmailEl.value.trim();
-    const password = signupPasswordEl.value;
+  signUpBtn.addEventListener("click", async () => {
+    const username = signUpUsernameEl.value.trim();
+    const email = signUpEmailEl.value.trim();
+    const password = signUpPasswordEl.value;
 
     if (!username) return showNotification("Please enter a username.", true);
     if (!email) return showNotification("Please enter an email.", true);
@@ -303,6 +352,20 @@
     }
   });
 
+  signInEmailBtn.addEventListener('click', async () => {
+    const email = signInEmailEl.value.trim();
+    const password = signInPasswordEl.value;
+    if (!email || !password) return showNotification("Please enter email and password.", true);
+
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        showNotification("Signed in successfully!");
+    } catch (err) {
+        console.error(err);
+        showNotification(err.message, true);
+    }
+  });
+
   googleSignInBtn.addEventListener("click", async () => {
     try {
       const result = await signInWithPopup(auth, provider);
@@ -321,10 +384,6 @@
       console.error(err);
       showNotification(err.message, true);
     }
-  });
-
-  signInBtn.addEventListener('click', () => {
-    authSection.scrollIntoView({ behavior: 'smooth' });
   });
 
   signOutBtn.addEventListener("click", () => signOut(auth));
@@ -353,7 +412,6 @@
           onlineVisitorsEl.textContent = 0;
       }
   });
-
 
   // --- Firestore ---
   async function updateTotalMembers() {
@@ -420,7 +478,7 @@
   function openPostModal(postId) {
     modalTitle.textContent = 'Loading...';
     modalBody.innerHTML = '<p>Loading content...</p>';
-    modal.classList.remove('hidden');
+    postModal.classList.remove('hidden');
 
     if (currentUnsubscribePost) currentUnsubscribePost();
     
@@ -444,20 +502,53 @@
     });
   }
 
-  function closeModal() {
-    modal.classList.add('hidden');
+  function closePostModal() {
+    postModal.classList.add('hidden');
     if (currentUnsubscribePost) {
       currentUnsubscribePost();
       currentUnsubscribePost = null;
     }
   }
 
-  closeModalBtns.forEach(btn => btn.addEventListener('click', closeModal));
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
+    function openAuthModal() {
+        authModal.classList.remove('hidden');
+    }
+
+    function closeAuthModal() {
+        authModal.classList.add('hidden');
+    }
+
+  closePostModalBtn.addEventListener('click', closePostModal);
+  signInBtn.addEventListener('click', openAuthModal);
+  closeAuthModalBtn.addEventListener('click', closeAuthModal);
+  
+  signInTab.addEventListener('click', () => {
+    signInTab.classList.add('border-blue-500', 'text-blue-600');
+    signInTab.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+    signUpTab.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+    signUpTab.classList.remove('border-blue-500', 'text-blue-600');
+    signInForm.classList.remove('hidden');
+    signUpForm.classList.add('hidden');
+  });
+
+  signUpTab.addEventListener('click', () => {
+    signUpTab.classList.add('border-blue-500', 'text-blue-600');
+    signUpTab.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+    signInTab.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+    signInTab.classList.remove('border-blue-500', 'text-blue-600');
+    signUpForm.classList.remove('hidden');
+    signInForm.classList.add('hidden');
+  });
+
+  postModal.addEventListener('click', (e) => {
+    if (e.target === postModal) closePostModal();
+  });
+   authModal.addEventListener('click', (e) => {
+    if (e.target === authModal) closeAuthModal();
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+    if (e.key === 'Escape' && !postModal.classList.contains('hidden')) closePostModal();
+    if (e.key === 'Escape' && !authModal.classList.contains('hidden')) closeAuthModal();
   });
 
   // --- Initial Load ---
