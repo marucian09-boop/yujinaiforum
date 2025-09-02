@@ -1214,7 +1214,7 @@
                 title: title,
                 lastMessage: lastMessageText,
                 lastMessageTimestamp: serverTimestamp(),
-                hiddenFor: [],
+                deletedBy: [],
                 lastReadBy: [user.uid]
             }, { merge: true });
 
@@ -1222,7 +1222,8 @@
                 senderId: user.uid,
                 recipientId: recipientId,
                 content: contentHTML,
-                createdAt: serverTimestamp()
+                createdAt: serverTimestamp(),
+                reactions: {}
             });
               return Promise.resolve();
         } catch (error) {
@@ -1308,7 +1309,13 @@
     });
     
     async function openChatWithUser(userId, userName, title = '') {
-        currentConversation = { recipientId: userId, recipientName: userName, title: title };
+        const conversationId = [auth.currentUser.uid, userId].sort().join('_') + `_${title}`;
+        currentConversation = { 
+            recipientId: userId, 
+            recipientName: userName, 
+            title: title,
+            conversationId: conversationId 
+        };
         chatHeader.querySelector('span').textContent = currentConversation.recipientName;
         chatTitleInput.value = title;
         chatTitleInput.disabled = !!title; // Disable title input if it's an existing conversation
@@ -1316,7 +1323,6 @@
         chatView.style.display = 'flex';
 
         if(title){ // Only mark as read if it's an existing conversation
-             const conversationId = [auth.currentUser.uid, userId].sort().join('_') + `_${title}`;
              const conversationRef = doc(db, 'conversations', conversationId);
              await updateDoc(conversationRef, {
                  lastReadBy: arrayUnion(auth.currentUser.uid)
@@ -1349,12 +1355,12 @@
             const item = deleteBtn.closest('.inbox-item');
             const otherUserId = item.dataset.userId;
             const title = item.dataset.title;
-            if (confirm(`Are you sure you want to hide this conversation with ${item.dataset.userName}? The other user will still see it.`)) {
+            if (confirm(`Are you sure you want to hide this conversation with ${item.dataset.userName}? You won't be able to see it, but the other user will.`)) {
                 const conversationId = [auth.currentUser.uid, otherUserId].sort().join('_') + `_${title}`;
                 const conversationRef = doc(db, 'conversations', conversationId);
                 
                 await updateDoc(conversationRef, {
-                    hiddenFor: arrayUnion(auth.currentUser.uid)
+                    deletedBy: arrayUnion(auth.currentUser.uid)
                 });
 
                 showAlert('Conversation hidden.');
@@ -1376,7 +1382,7 @@
             snapshot.forEach(doc => {
                 const convo = doc.data();
 
-                if(convo.hiddenFor && convo.hiddenFor.includes(auth.currentUser.uid)){
+                if(convo.deletedBy && convo.deletedBy.includes(auth.currentUser.uid)){
                     return;
                 }
                 hasConversations = true;
@@ -1421,26 +1427,101 @@
         });
     }
 
+    async function handleReaction(messageId, reaction) {
+        const user = auth.currentUser;
+        if (!user || !currentConversation || !currentConversation.conversationId) return;
+
+        const msgRef = doc(db, `conversations/${currentConversation.conversationId}/messages`, messageId);
+
+        try {
+            const msgDoc = await getDoc(msgRef);
+            if (!msgDoc.exists()) return;
+
+            const msgData = msgDoc.data();
+            const reactions = msgData.reactions || {};
+            const reactionArray = reactions[reaction] || [];
+
+            const userIndex = reactionArray.indexOf(user.uid);
+
+            if (userIndex > -1) {
+                reactionArray.splice(userIndex, 1);
+            } else {
+                reactionArray.push(user.uid);
+            }
+
+            if (reactionArray.length === 0) {
+                delete reactions[reaction];
+            } else {
+                reactions[reaction] = reactionArray;
+            }
+
+            await updateDoc(msgRef, { reactions: reactions });
+        } catch (error) {
+            console.error("Error handling reaction:", error);
+            showAlert("Could not update reaction.");
+        }
+    }
+
+    messageHistory.addEventListener('click', (e) => {
+        const reactionBtn = e.target.closest('.reaction-btn');
+        if (reactionBtn) {
+            const messageId = reactionBtn.dataset.messageId;
+            const reaction = reactionBtn.dataset.reaction;
+            handleReaction(messageId, reaction);
+        }
+    });
+
     function loadMessageHistory(){
         if(messageListenerUnsubscribe) messageListenerUnsubscribe();
         if(!currentConversation) return;
 
-        const conversationId = [auth.currentUser.uid, currentConversation.recipientId].sort().join('_') + `_${currentConversation.title}`;
-        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
+        const messagesRef = collection(db, `conversations/${currentConversation.conversationId}/messages`);
         const q = query(messagesRef, orderBy('createdAt'));
 
         messageListenerUnsubscribe = onSnapshot(q, (snapshot) => {
             messageHistory.innerHTML = '';
             snapshot.forEach(doc => {
                 const msg = doc.data();
-                const msgEl = document.createElement('div');
+                const msgId = doc.id;
                 const isSender = msg.senderId === auth.currentUser.uid;
                 
-                msgEl.className = `p-2 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-[var(--accent-primary)] text-white ml-auto' : 'bg-[var(--bg-secondary)] text-[var(--text-primary)] mr-auto'}`;
-                
-                msgEl.innerHTML = msg.content;
+                const msgContainer = document.createElement('div');
+                msgContainer.className = `flex flex-col my-1 max-w-xs ${isSender ? 'ml-auto items-end' : 'mr-auto items-start'}`;
 
-                messageHistory.appendChild(msgEl);
+                const bubble = document.createElement('div');
+                bubble.className = `p-2 rounded-lg break-words ${isSender ? 'bg-[var(--accent-primary)] text-white' : 'bg-[var(--bg-secondary)] text-[var(--text-primary)]'}`;
+                bubble.innerHTML = msg.content;
+
+                const reactionsContainer = document.createElement('div');
+                reactionsContainer.className = 'flex items-center space-x-1 mt-1';
+
+                if (msg.reactions) {
+                    Object.entries(msg.reactions).forEach(([reaction, userIds]) => {
+                        if (userIds.length > 0) {
+                            const reactionBadge = document.createElement('button');
+                            reactionBadge.className = 'reaction-btn text-xs px-2 py-0.5 rounded-full border border-[var(--border-primary)] bg-[var(--bg-tertiary)] hover:bg-[var(--border-primary)]';
+                            reactionBadge.textContent = `${reaction} ${userIds.length}`;
+                            reactionBadge.dataset.messageId = msgId;
+                            reactionBadge.dataset.reaction = reaction;
+                            reactionsContainer.appendChild(reactionBadge);
+                        }
+                    });
+                }
+                
+                const addReactionBtn = document.createElement('button');
+                addReactionBtn.className = 'reaction-btn text-xs px-1.5 py-0.5 rounded-full border border-transparent hover:border-[var(--border-primary)]';
+                addReactionBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[var(--text-secondary)]" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 001.414 1.414L10 9.414l.293.293a1 1 0 001.414-1.414l-1-1z" clip-rule="evenodd" />
+                    </svg>`;
+                addReactionBtn.title = "React";
+                addReactionBtn.dataset.messageId = msgId;
+                addReactionBtn.dataset.reaction = '👍'; // Default reaction
+                reactionsContainer.appendChild(addReactionBtn);
+                
+                msgContainer.appendChild(bubble);
+                msgContainer.appendChild(reactionsContainer);
+                messageHistory.appendChild(msgContainer);
             });
             messageHistory.scrollTop = messageHistory.scrollHeight;
         });
@@ -1454,7 +1535,6 @@
             try {
                 await sendMessage(currentConversation.recipientId, title, contentHTML);
                 messageInput.innerHTML = '';
-                showAlert('Message sent successfully!');
             } catch(e) { /* showAlert is handled in sendMessage */ }
         } else {
             showAlert("Please provide a title and message content.");
@@ -1591,3 +1671,4 @@
 </script>
 </body>
 </html>
+
