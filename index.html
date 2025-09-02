@@ -1202,6 +1202,7 @@
             inboxView.style.display = 'block';
             chatView.style.display = 'none';
             loadInbox();
+            localStorage.setItem('messagingModalOpen', 'true');
         } else {
             showAlert('Please sign in to view messages.');
         }
@@ -1212,6 +1213,7 @@
          if(inboxListenerUnsubscribe) inboxListenerUnsubscribe();
          currentConversation = null;
          messageRecipientSearch.value = '';
+         localStorage.setItem('messagingModalOpen', 'false');
     });
     backToInboxBtn.addEventListener('click', () => {
         inboxView.style.display = 'block';
@@ -1534,6 +1536,16 @@
         }
     });
 
+    window.addEventListener('load', () => {
+        const unsubscribeOnLoad = onAuthStateChanged(auth, (user) => {
+            unsubscribeOnLoad(); // Ensure this runs only once
+            if (user && !user.isAnonymous && localStorage.getItem('messagingModalOpen') === 'true') {
+                messagesBtn.click();
+            }
+        });
+    });
+
 </script>
 </body>
 </html>
+
