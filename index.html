@@ -360,7 +360,6 @@
       const userDocRef = doc(db, usersPath, user.uid);
       const userDocSnap = await getDoc(userDocRef);
       if (!userDocSnap.exists()) {
-          // Create user doc if it doesn't exist (e.g., after Google sign-in)
           const username = user.displayName || `user-${user.uid.slice(0,5)}`;
           const role = user.email === "yujinbussinessmatter@gmail.com" ? "admin" : "newbie";
           await setDoc(userDocRef, {
@@ -600,6 +599,63 @@
     sendMessageBtn.disabled = true;
   });
 
+  // --- Auth & Account Functions ---
+    signInBtn.addEventListener('click', () => authModal.classList.remove('hidden'));
+    signOutBtn.addEventListener('click', () => signOut(auth));
+
+    signInTab.addEventListener('click', () => {
+        signInForm.classList.remove('hidden'); signUpForm.classList.add('hidden');
+        signInTab.classList.add('border-blue-500', 'text-blue-600');
+        signUpTab.classList.remove('border-blue-500', 'text-blue-600');
+    });
+    signUpTab.addEventListener('click', () => {
+        signUpForm.classList.remove('hidden'); signInForm.classList.add('hidden');
+        signUpTab.classList.add('border-blue-500', 'text-blue-600');
+        signInTab.classList.remove('border-blue-500', 'text-blue-600');
+    });
+
+    googleSignInBtn.addEventListener('click', async () => {
+        try {
+            await signInWithPopup(auth, provider);
+            authModal.classList.add('hidden');
+            showNotification('Signed in with Google successfully!');
+        } catch (error) {
+            showNotification(error.message, true);
+        }
+    });
+
+    signInEmailBtn.addEventListener('click', async () => {
+        const email = signInEmailEl.value;
+        const password = signInPasswordEl.value;
+        if (!email || !password) return showNotification('Please enter email and password.', true);
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            authModal.classList.add('hidden');
+            showNotification('Signed in successfully!');
+        } catch (error) {
+            showNotification(error.message, true);
+        }
+    });
+
+    signUpBtn.addEventListener('click', async () => {
+        const username = signUpUsernameEl.value.trim();
+        const email = signUpEmailEl.value.trim();
+        const password = signUpPasswordEl.value;
+        if (!username || !email || !password) return showNotification('Please fill all fields.', true);
+        
+        const userQuery = query(collection(db, usersPath), where("displayName", "==", username));
+        if (!(await getDocs(userQuery)).empty) return showNotification("Username is already taken.", true);
+        
+        try {
+            await createUserWithEmailAndPassword(auth, email, password);
+            // onAuthStateChanged will handle creating the user doc
+            authModal.classList.add('hidden');
+            showNotification('Account created successfully!');
+        } catch (error) {
+            showNotification(error.message, true);
+        }
+    });
+
   // --- Other Functions ---
   function validatePostForm() {
     const isSignedIn = auth.currentUser && !auth.currentUser.isAnonymous;
@@ -624,7 +680,7 @@
   }
 
   createPostBtn.addEventListener("click", async () => {
-    if (!validatePostForm()) return showNotification("You cannot post.", true);
+    if (createPostBtn.disabled) return showNotification("You cannot post.", true);
     const title = postTitleEl.value.trim();
     const content = postContentEl.value.trim();
     if (!title || !content) return showNotification("Title and content are required.", true);
@@ -637,10 +693,90 @@
   });
   
   // Modals Open/Close
-  function openPostModal(postId) { /* ... */ } // Placeholder
-  function openAdminModal(userId) { /* ... */ } // Placeholder
-  // ... other event listeners for auth, profile, etc. ...
+  document.querySelectorAll('.close-modal-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => e.target.closest('.fixed').classList.add('hidden'));
+  });
+
+  function openPostModal(postId) {
+      postModal.classList.remove('hidden');
+      if(currentUnsubscribePost) currentUnsubscribePost();
+      currentUnsubscribePost = onSnapshot(doc(db, postsPath, postId), (docSnap) => {
+          if(docSnap.exists()){
+              const data = docSnap.data();
+              modalTitle.textContent = data.title;
+              modalBody.innerHTML = `<p class="text-sm text-gray-500 mb-4">By ${usersDataCache[data.authorId]?.displayName || 'Unknown'} on ${data.createdAt?.toDate().toLocaleString()}</p><div>${data.content.replace(/\n/g, '<br>')}</div>`;
+          }
+      });
+  } 
+
+  async function openAdminModal(userId) {
+      targetUserIdForAdmin = userId;
+      const user = usersDataCache[userId];
+      if (user) {
+          adminModalUsername.textContent = user.displayName;
+          adminModal.classList.remove('hidden');
+      }
+  }
   
+  userEmailEl.addEventListener('click', async () => {
+    if(!currentUserData) return;
+    const postSnap = await getDocs(query(collection(db, postsPath), where("authorId", "==", auth.currentUser.uid)));
+    profilePostCount.textContent = postSnap.size;
+    changeUsernameSection.style.display = (currentUserData.role === 'admin' || currentUserData.role === 'contributor') ? 'block' : 'none';
+    userProfileModal.classList.remove('hidden');
+  });
+
+    changeUsernameBtn.addEventListener('click', async () => {
+        const newUsername = newUsernameInput.value.trim();
+        if (!newUsername) return showNotification("Username cannot be empty.", true);
+
+        const q = query(collection(db, usersPath), where("displayName", "==", newUsername));
+        if (!(await getDocs(q)).empty) return showNotification("Username is taken.", true);
+
+        const batch = writeBatch(db);
+        batch.update(doc(db, usersPath, auth.currentUser.uid), { displayName: newUsername });
+        const postsSnap = await getDocs(query(collection(db, postsPath), where("authorId", "==", auth.currentUser.uid)));
+        postsSnap.forEach(postDoc => batch.update(postDoc.ref, { authorEmail: newUsername }));
+        await batch.commit();
+        showNotification("Username updated!");
+        userProfileModal.classList.add('hidden');
+    });
+  
+    closeAccountBtn.addEventListener('click', async () => {
+        if (!confirm("Are you sure? This will rename your posts and ban you permanently.")) return;
+        const batch = writeBatch(db);
+        batch.update(doc(db, usersPath, auth.currentUser.uid), { displayName: "[Deleted User]", banned: true });
+        const postsSnap = await getDocs(query(collection(db, postsPath), where("authorId", "==", auth.currentUser.uid)));
+        postsSnap.forEach(postDoc => batch.update(postDoc.ref, { authorName: "[Deleted User]" }));
+        await batch.commit();
+        signOut(auth);
+        showNotification("Account closed.");
+    });
+  
+    sendWarningBtn.addEventListener('click', async () => {
+        const msg = warningMessage.value.trim();
+        if (!targetUserIdForAdmin || !msg) return;
+        const threadId = [auth.currentUser.uid, targetUserIdForAdmin].sort().join('_');
+        const convoRef = doc(db, conversationsPath, threadId);
+        await setDoc(convoRef, { participants: [auth.currentUser.uid, targetUserIdForAdmin] }, { merge: true });
+        await addDoc(collection(convoRef, 'messages'), {
+            senderId: auth.currentUser.uid, content: `<strong>OFFICIAL WARNING:</strong> ${msg}`, createdAt: serverTimestamp()
+        });
+        showNotification("Warning sent.");
+        adminModal.classList.add('hidden');
+    });
+
+    banUserBtn.addEventListener('click', async () => {
+        await updateDoc(doc(db, usersPath, targetUserIdForAdmin), {banned: true});
+        showNotification("User banned.");
+        adminModal.classList.add('hidden');
+    });
+    unbanUserBtn.addEventListener('click', async () => {
+        await updateDoc(doc(db, usersPath, targetUserIdForAdmin), {banned: false});
+        showNotification("User unbanned.");
+        adminModal.classList.add('hidden');
+    });
+
 </script>
 </body>
 </html>
