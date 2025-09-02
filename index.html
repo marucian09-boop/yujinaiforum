@@ -239,14 +239,14 @@
     <!-- Header -->
     <header class="bg-[var(--bg-secondary)]/80 backdrop-blur-lg sticky top-0 z-40 border-b border-[var(--border-primary)]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20">
+            <div class="flex flex-col sm:flex-row items-center justify-between py-4 sm:h-20">
                 <div class="flex items-center space-x-3">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-8 w-8 text-[var(--text-accent)]">
                         <path d="M4.913 2.658c1.072.454 1.99 1.374 2.536 2.446l.004-.001.002.001.002.001c.148.28.275.57.382.868H20.25a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75H3.75a.75.75 0 0 1-.75-.75V8.118c0-.35.07-.68.2-1l.001-.002.002-.003c.15-.29.32-.563.504-.815.42-.575.92-1.077 1.488-1.487l.002-.001.002-.002.001-.001A4.5 4.5 0 0 1 8.25 3.75h5.385c1.47 0 2.82.553 3.82 1.513l.002.002.001.001c.49.49.9 1.06 1.18 1.688l.002.003.001.002c.07.16.12.33.15.5H8.25a3 3 0 0 0-3 3v4.5a.75.75 0 0 1-1.5 0v-4.5a4.5 4.5 0 0 1 1.163-3.142Z"></path>
                     </svg>
                     <h1 class="text-2xl font-bold text-[var(--text-primary)]">CommunityHub</h1>
                 </div>
-                <div class="flex items-center space-x-4">
+                <div class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 mt-4 sm:mt-0">
                     <div id="userInfoContainer" class="hidden items-center space-x-3 cursor-pointer group">
                         <span id="userName" class="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--text-accent)] transition-colors"></span>
                         <span id="userRole" class="px-2.5 py-1 text-xs font-bold text-white rounded-full"></span>
@@ -282,7 +282,7 @@
     <!-- Navigation -->
     <nav class="bg-[var(--bg-secondary)] border-b border-[var(--border-primary)]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center space-x-2 h-14">
+            <div class="flex flex-wrap justify-center sm:justify-start items-center space-x-2 h-auto sm:h-14 py-2 sm:py-0">
                 <a href="./index.html" class="px-3 py-2 text-sm font-medium text-[var(--text-secondary)] rounded-md hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors">Home</a>
                 <a href="#" id="messagesBtn" class="px-3 py-2 text-sm font-medium text-[var(--text-secondary)] rounded-md hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors">Messages</a>
                 <a href="./contributor.html" class="px-3 py-2 text-sm font-medium text-[var(--text-secondary)] rounded-md hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors">Contributor Section</a>
@@ -331,9 +331,9 @@
                 <input type="text" id="postTitle" placeholder="Post Title" class="form-input">
                 <textarea id="postContent" placeholder="What's on your mind?" class="form-input h-32" disabled></textarea>
             </div>
-            <div class="mt-4 flex items-center justify-between">
-                <button id="createPostBtn" class="btn btn-primary" disabled>Create Post</button>
-                <p id="auth-prompt" class="text-sm text-[var(--destructive)] font-medium">Please sign in to create a post.</p>
+            <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <button id="createPostBtn" class="btn btn-primary w-full sm:w-auto" disabled>Create Post</button>
+                <p id="auth-prompt" class="text-sm text-[var(--destructive)] font-medium text-center sm:text-left">Please sign in to create a post.</p>
             </div>
         </section>
 
@@ -347,7 +347,7 @@
     </main>
     
     <!-- Modals -->
-    <div id="userProfileModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50">
+    <div id="userProfileModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-md modal-content-animation">
             <div class="flex justify-between items-start mb-4">
                 <h3 class="text-lg font-bold text-[var(--text-primary)]">User Profile</h3>
@@ -368,7 +368,7 @@
         </div>
     </div>
 
-    <div id="postViewModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50">
+    <div id="postViewModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-2xl relative flex flex-col max-h-[85vh] modal-content-animation">
             <div class="flex-shrink-0">
                 <button id="closePostViewModal" class="absolute top-3 right-3 btn btn-ghost !p-1 h-8 w-8 z-10">&times;</button>
@@ -381,7 +381,7 @@
         </div>
     </div>
 
-    <div id="messagingModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50">
+    <div id="messagingModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-lg h-3/4 flex flex-col modal-content-animation">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold text-[var(--text-primary)]">Direct Messages</h3>
@@ -419,7 +419,7 @@
         </div>
     </div>
 
-    <div id="signInModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50">
+    <div id="signInModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-sm modal-content-animation">
             <div class="flex justify-between items-start mb-4"><h3 class="text-lg font-bold text-[var(--text-primary)]">Sign In</h3><button id="closeSignInModal" class="btn btn-ghost !p-1 h-8 w-8">&times;</button></div>
             <div class="space-y-4">
@@ -433,7 +433,7 @@
         </div>
     </div>
 
-    <div id="usernameModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50">
+    <div id="usernameModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-sm modal-content-animation">
             <h3 class="text-lg font-bold text-[var(--text-primary)] mb-4">Choose a Username</h3>
             <p class="text-sm text-[var(--text-secondary)] mb-4">This will be your public name in the forum.</p>
@@ -443,7 +443,7 @@
         </div>
     </div>
     
-    <div id="adminModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50">
+    <div id="adminModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-md modal-content-animation">
             <h3 class="text-lg font-bold text-[var(--text-primary)] mb-2">Manage User</h3>
             <p id="adminModalUsername" class="text-sm font-medium text-[var(--text-accent)] mb-4"></p>
@@ -466,7 +466,7 @@
         </div>
     </div>
 
-    <div id="alertModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50">
+    <div id="alertModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-sm text-center modal-content-animation">
             <p id="alertMessage" class="text-[var(--text-primary)] mb-4"></p>
             <button id="closeAlertModal" class="btn btn-primary">OK</button>
@@ -919,8 +919,8 @@
             }
 
             postEl.innerHTML = `
-                <div class="flex items-start">
-                    <div class="flex items-center">
+                <div class="flex items-start flex-wrap">
+                    <div class="flex items-center mb-2 sm:mb-0">
                         <div class="font-bold text-[var(--text-primary)]">${authorData.displayName}</div>
                         ${userStatusHTML}
                     </div>
