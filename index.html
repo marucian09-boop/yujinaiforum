@@ -231,58 +231,6 @@
         opacity: 0.7;
     }
 
-    /* --- Added CSS from User --- */
-    .reactions {
-        opacity: 0;
-        transition: opacity 0.2s ease;
-    }
-    .message-bubble:hover .reactions {
-        opacity: 1;
-    }
-    .reactions button {
-        background: none;
-        border: none;
-        font-size: 1.2rem;
-        cursor: pointer;
-        margin-right: 4px;
-        transition: transform 0.2s ease;
-    }
-    .reactions button:hover {
-        transform: scale(1.2);
-    }
-
-    .reaction {
-        margin-right: 6px;
-        font-size: 0.9rem;
-        background-color: var(--bg-tertiary);
-        padding: 2px 6px;
-        border-radius: 10px;
-        border: 1px solid var(--border-primary);
-    }
-
-    .inbox-wrapper {
-        padding: 1rem;
-        background: #fefefe;
-        border-radius: 12px;
-        box-shadow: 0 0 8px rgba(0,0,0,0.05);
-    }
-
-    .inbox-thread {
-        padding: 0.75rem;
-        border-bottom: 1px solid var(--border-primary);
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: background-color 0.2s ease;
-    }
-
-    .inbox-thread:hover {
-        background-color: var(--bg-tertiary);
-    }
-    .message-bubble {
-        position: relative;
-    }
 </style>
 </head>
 <body>
@@ -368,12 +316,9 @@
         </div>
         
         <!-- Search Section -->
-        <section id="search-section" class="mb-8">
-            <div class="relative">
-                 <input type="text" id="postSearchInput" placeholder="Search for a post..." class="form-input pl-10">
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-            </div>
-            <div id="postSearchResults" class="mt-2 bg-[var(--bg-secondary)] rounded-lg shadow-lg border border-[var(--border-primary)]" style="display: none;"></div>
+        <section id="search-section" class="mb-8 flex flex-col sm:flex-row gap-2">
+            <input type="text" id="searchInput" placeholder="Search by keyword in title or content..." class="form-input flex-grow">
+            <button id="searchBtn" class="btn btn-primary">Search</button>
         </section>
 
         <!-- Post Creation Section -->
@@ -399,6 +344,32 @@
     </main>
     
     <!-- Modals -->
+    <div id="confirmModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-sm text-center modal-content-animation">
+            <p id="confirmMessage" class="text-[var(--text-primary)] mb-6"></p>
+            <div class="flex justify-end space-x-4">
+                <button id="confirmCancelBtn" class="btn btn-secondary">Cancel</button>
+                <button id="confirmOkBtn" class="btn btn-danger">OK</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="editPostModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-2xl modal-content-animation">
+            <div class="flex justify-between items-start mb-4">
+                <h3 class="text-lg font-bold text-[var(--text-primary)]">Edit Post</h3>
+                <button id="closeEditPostModal" class="btn btn-ghost !p-1 h-8 w-8">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <input type="text" id="editPostTitle" placeholder="Post Title" class="form-input">
+                <textarea id="editPostContent" placeholder="What's on your mind?" class="form-input h-48"></textarea>
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button id="saveEditBtn" class="btn btn-success">Save Changes</button>
+            </div>
+        </div>
+    </div>
+    
     <div id="userProfileModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-md modal-content-animation">
             <div class="flex justify-between items-start mb-4">
@@ -585,6 +556,12 @@
     // Post Elements
     const postViewModal = document.getElementById('postViewModal');
     const closePostViewModal = document.getElementById('closePostViewModal');
+    const editPostModal = document.getElementById('editPostModal');
+    const closeEditPostModal = document.getElementById('closeEditPostModal');
+    const editPostTitleInput = document.getElementById('editPostTitle');
+    const editPostContentInput = document.getElementById('editPostContent');
+    const saveEditBtn = document.getElementById('saveEditBtn');
+
 
     // Messaging Elements
     const messagesBtn = document.getElementById('messagesBtn');
@@ -621,9 +598,11 @@
     let postDocsCache = [];
     let currentConversation = null;
     let messageListenerUnsubscribe = null;
+    let inboxListenerUnsubscribe = null;
     let currentUserData = null;
+    let currentEditingPostId = null;
     
-    // --- Custom Alert Modal ---
+    // --- Custom Alert & Confirm Modals ---
     const alertModal = document.getElementById('alertModal');
     const alertMessage = document.getElementById('alertMessage');
     const closeAlertModal = document.getElementById('closeAlertModal');
@@ -634,99 +613,23 @@
     }
     closeAlertModal.onclick = () => alertModal.style.display = 'none';
 
-    // --- Reactions Feature ---
-    async function reactToMessage(emoji, messageId, currentUserData) {
-        if (!currentUserData || !currentUserData.email) {
-            showAlert("You must be signed in to react.");
-            return;
-        }
-        if (!currentConversation || !currentConversation.id) return;
+    function showConfirm(message, onConfirm) {
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmMessage = document.getElementById('confirmMessage');
+        const confirmOkBtn = document.getElementById('confirmOkBtn');
+        const confirmCancelBtn = document.getElementById('confirmCancelBtn');
 
-        const messageRef = doc(db, `conversations/${currentConversation.id}/messages`, messageId);
-        const snap = await getDoc(messageRef);
-        if (!snap.exists()) return;
-        const data = snap.data();
+        confirmMessage.textContent = message;
+        confirmModal.style.display = 'flex';
 
-        const updated = { ...(data.reactions || {}) };
-        if (!updated[emoji]) {
-            updated[emoji] = [];
-        }
+        confirmOkBtn.onclick = () => {
+            confirmModal.style.display = 'none';
+            onConfirm();
+        };
 
-        const userIndex = updated[emoji].indexOf(currentUserData.email);
-        if (userIndex > -1) {
-            updated[emoji].splice(userIndex, 1);
-            if (updated[emoji].length === 0) {
-                delete updated[emoji];
-            }
-        } else {
-            updated[emoji].push(currentUserData.email);
-        }
-        await updateDoc(messageRef, { reactions: updated });
-    }
-
-    function initReactions() {
-        document.addEventListener("click", (e) => {
-            const btn = e.target.closest("[data-emoji]");
-            if (!btn || !currentUserData) return;
-            const emoji = btn.dataset.emoji;
-            const messageId = btn.dataset.messageId;
-            reactToMessage(emoji, messageId, currentUserData);
-        });
-    }
-
-    // --- Moderation Feature ---
-    function initSwipeToDelete() {
-        const container = document.getElementById("messageHistory");
-        if (!container) return;
-        
-        let startX = 0;
-        let targetMessage = null;
-
-        container.addEventListener("touchstart", e => {
-            const messageBubble = e.target.closest(".message-bubble");
-            if (messageBubble) {
-                startX = e.touches[0].clientX;
-                targetMessage = messageBubble;
-            }
-        }, { passive: true });
-
-        container.addEventListener("touchend", async e => {
-            if (!targetMessage || currentUserRole !== 'admin') {
-                targetMessage = null;
-                return;
-            };
-
-            const endX = e.changedTouches[0].clientX;
-            if (startX - endX > 100) { 
-                const messageId = targetMessage.dataset.messageId;
-                const conversationId = targetMessage.dataset.conversationId;
-
-                if (messageId && conversationId) {
-                    targetMessage.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-                    targetMessage.style.opacity = '0';
-                    targetMessage.style.transform = 'translateX(-100px)';
-                    
-                    setTimeout(async () => {
-                        try {
-                            await deleteDoc(doc(db, `conversations/${conversationId}/messages`, messageId));
-                            await addDoc(collection(db, "logs"), {
-                                action: "delete_message",
-                                moderator: currentUserData.email,
-                                messageId: messageId,
-                                conversationId: conversationId,
-                                timestamp: serverTimestamp()
-                            });
-                        } catch (err) {
-                            console.error("Error deleting message:", err);
-                            showAlert("Failed to delete message.");
-                            targetMessage.style.opacity = '1';
-                            targetMessage.style.transform = 'translateX(0)';
-                        }
-                    }, 500);
-                }
-            }
-            targetMessage = null;
-        });
+        confirmCancelBtn.onclick = () => {
+            confirmModal.style.display = 'none';
+        };
     }
 
     // --- Dark Mode ---
@@ -947,8 +850,6 @@
 
             setupPresence(user);
             attachFirestoreListeners();
-            initReactions();
-            initSwipeToDelete();
             
             if (user.isAnonymous) {
                 authContainer.style.display = 'flex';
@@ -1041,6 +942,7 @@
             const postEl = document.createElement('div');
             postEl.className = 'card p-5';
             const timestamp = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now';
+            const editedTimestampText = post.editedAt ? `(edited ${post.editedAt.toDate().toLocaleString()})` : '';
 
             let userStatusHTML = '';
             const role = authorData.role || 'newbie';
@@ -1052,30 +954,38 @@
                 if (role === 'contributor') roleColor = 'bg-green-500';
                 userStatusHTML = `<span class="ml-2 px-2.5 py-1 text-xs font-bold text-white ${roleColor} rounded-full">${role}</span>`;
             }
-            
-            let adminControls = '';
-            if (currentUserRole === 'admin') {
-                adminControls = `
-                    <div class="ml-auto flex items-center space-x-2">
-                         <button data-author-id="${post.authorId}" data-author-name="${authorData.displayName}" class="manage-user-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]">
-                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
-                        </button>
-                        <button data-post-id="${postId}" class="delete-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--destructive)]">
-                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                        </button>
-                    </div>`;
-            }
 
+            const canEdit = auth.currentUser && (auth.currentUser.uid === post.authorId || currentUserRole === 'admin');
+            
             postEl.innerHTML = `
                 <div class="flex items-start flex-wrap">
                     <div class="flex items-center mb-2 sm:mb-0">
                         <div class="font-bold text-[var(--text-primary)]">${authorData.displayName}</div>
                         ${userStatusHTML}
                     </div>
-                    ${adminControls}
+                    <div class="ml-auto flex items-center space-x-2">
+                        ${canEdit ? `
+                            <button data-post-id="${postId}" class="edit-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]" title="Edit Post">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
+                            </button>` : ''}
+                        ${currentUserRole === 'admin' ? `
+                            <button data-post-id="${postId}" data-pinned="${post.pinned}" class="pin-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]" title="${post.pinned ? 'Unpin Post' : 'Pin Post'}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5.586l2.293-2.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 9.586V4a1 1 0 011-1z" clip-rule="evenodd" /><path d="M3 12a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" /></svg>
+                            </button>
+                            <button data-author-id="${post.authorId}" data-author-name="${authorData.displayName}" class="manage-user-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]" title="Manage User">
+                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
+                            </button>
+                            <button data-post-id="${postId}" class="delete-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--destructive)]" title="Delete Post">
+                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                            </button>
+                        ` : ''}
+                    </div>
                 </div>
-                <div class="text-xs text-[var(--text-secondary)]">${timestamp}</div>
-                <h4 class="text-xl font-semibold text-[var(--text-accent)] mt-2 hover:underline cursor-pointer view-post-btn" data-post-id="${postId}">${post.title}</h4>
+                <div class="text-xs text-[var(--text-secondary)]">${timestamp} <span class="italic">${editedTimestampText}</span></div>
+                <h4 class="text-xl font-semibold text-[var(--text-accent)] mt-2 hover:underline cursor-pointer view-post-btn flex items-center gap-2" data-post-id="${postId}">
+                    ${post.pinned ? '<span class="text-xl" title="Pinned Post">📌</span>' : ''}
+                    <span>${post.title}</span>
+                </h4>
             `;
             postList.appendChild(postEl);
         });
@@ -1105,7 +1015,10 @@
         const postsColRef = collection(db, "posts");
         const q = query(postsColRef, orderBy("createdAt", "desc"));
         const postsUnsub = onSnapshot(q, (snapshot) => {
+            if (isSearching) return; // Don't overwrite search results
             postDocsCache = snapshot.docs;
+            // Sort pinned posts to the top
+            postDocsCache.sort((a, b) => (b.data().pinned ? 1 : 0) - (a.data().pinned ? 1 : 0));
             renderPosts(); // Render posts with latest post data
         });
 
@@ -1126,6 +1039,7 @@
                     authorId: user.uid,
                     authorName: currentUserData.displayName,
                     createdAt: serverTimestamp(),
+                    pinned: false,
                 });
                 document.getElementById("postTitle").value = '';
                 document.getElementById("postContent").value = '';
@@ -1141,6 +1055,8 @@
         const viewBtn = e.target.closest('.view-post-btn');
         const deleteBtn = e.target.closest('.delete-post-btn');
         const manageBtn = e.target.closest('.manage-user-btn');
+        const editBtn = e.target.closest('.edit-post-btn');
+        const pinBtn = e.target.closest('.pin-post-btn');
 
         if (viewBtn) {
             const postId = viewBtn.dataset.postId;
@@ -1156,11 +1072,11 @@
         }
         if (deleteBtn) {
             const postId = deleteBtn.dataset.postId;
-            if (confirm('Are you sure you want to delete this post permanently?')) {
+            showConfirm('Are you sure you want to delete this post permanently?', () => {
                 deleteDoc(doc(db, "posts", postId)).then(() => {
                     showAlert('Post deleted successfully.');
                 }).catch(err => console.error("Error deleting post:", err));
-            }
+            });
         }
         if (manageBtn) {
             const userId = manageBtn.dataset.authorId;
@@ -1168,6 +1084,18 @@
             if(userName) {
                 openAdminModal(userId, userName);
             }
+        }
+        if (editBtn) {
+            const postId = editBtn.dataset.postId;
+            const postDoc = postDocsCache.find(doc => doc.id === postId);
+            if (postDoc) {
+                openEditModal(postDoc.data(), postId);
+            }
+        }
+        if (pinBtn) {
+            const postId = pinBtn.dataset.postId;
+            const shouldPin = pinBtn.dataset.pinned !== 'true';
+            togglePin(postId, shouldPin);
         }
     });
     closePostViewModal.addEventListener('click', () => postViewModal.style.display = 'none');
@@ -1309,8 +1237,7 @@
                 senderId: user.uid,
                 recipientId: recipientId,
                 content: contentHTML,
-                createdAt: serverTimestamp(),
-                reactions: {}
+                createdAt: serverTimestamp()
             });
               return Promise.resolve();
         } catch (error) {
@@ -1350,6 +1277,7 @@
             inboxView.style.display = 'block';
             chatView.style.display = 'none';
             loadInbox();
+            localStorage.setItem('messagingModalOpen', 'true');
         } else {
             showAlert('Please sign in to view messages.');
         }
@@ -1357,8 +1285,10 @@
     closeMessagingModal.addEventListener('click', () => {
          messagingModal.style.display = 'none';
          if(messageListenerUnsubscribe) messageListenerUnsubscribe();
+         if(inboxListenerUnsubscribe) inboxListenerUnsubscribe();
          currentConversation = null;
          messageRecipientSearch.value = '';
+         localStorage.setItem('messagingModalOpen', 'false');
     });
     backToInboxBtn.addEventListener('click', () => {
         inboxView.style.display = 'block';
@@ -1395,15 +1325,16 @@
         }
     });
     
-    async function openChatWithUser(userId, userName, title = '', conversationId = null) {
-        currentConversation = { recipientId: userId, recipientName: userName, title: title, id: conversationId };
+    async function openChatWithUser(userId, userName, title = '') {
+        currentConversation = { recipientId: userId, recipientName: userName, title: title };
         chatHeader.querySelector('span').textContent = currentConversation.recipientName;
         chatTitleInput.value = title;
-        chatTitleInput.disabled = !!title; 
+        chatTitleInput.disabled = !!title; // Disable title input if it's an existing conversation
         inboxView.style.display = 'none';
         chatView.style.display = 'flex';
 
-        if(conversationId){ 
+        if(title){ // Only mark as read if it's an existing conversation
+             const conversationId = [auth.currentUser.uid, userId].sort().join('_') + `_${title}`;
              const conversationRef = doc(db, 'conversations', conversationId);
              await updateDoc(conversationRef, {
                  lastReadBy: arrayUnion(auth.currentUser.uid)
@@ -1427,15 +1358,17 @@
         const deleteBtn = e.target.closest('.delete-conversation-btn');
         
         if(chatBtn) {
-             const item = chatBtn.closest('.inbox-thread');
-             openChatWithUser(item.dataset.userId, item.dataset.userName, item.dataset.title, item.dataset.conversationId);
+             const item = chatBtn.closest('.inbox-item');
+             openChatWithUser(item.dataset.userId, item.dataset.userName, item.dataset.title);
         }
 
         if (deleteBtn) {
             e.stopPropagation();
-            const item = deleteBtn.closest('.inbox-thread');
-            const conversationId = item.dataset.conversationId;
-            if (confirm(`Are you sure you want to hide this conversation with ${item.dataset.userName}? The other user will still see it.`)) {
+            const item = deleteBtn.closest('.inbox-item');
+            const otherUserId = item.dataset.userId;
+            const title = item.dataset.title;
+            showConfirm(`Are you sure you want to hide this conversation with ${item.dataset.userName}? The other user will still see it.`, async () => {
+                const conversationId = [auth.currentUser.uid, otherUserId].sort().join('_') + `_${title}`;
                 const conversationRef = doc(db, 'conversations', conversationId);
                 
                 await updateDoc(conversationRef, {
@@ -1443,16 +1376,21 @@
                 });
 
                 showAlert('Conversation hidden.');
-            }
+            });
         }
     });
 
     async function loadInbox() {
         if(!auth.currentUser) return;
+        
+        if(inboxListenerUnsubscribe) {
+            inboxListenerUnsubscribe();
+        }
+
         const convosRef = collection(db, 'conversations');
         const q = query(convosRef, where('participants', 'array-contains', auth.currentUser.uid), orderBy('lastMessageTimestamp', 'desc'));
 
-        onSnapshot(q, (snapshot) => {
+        inboxListenerUnsubscribe = onSnapshot(q, (snapshot) => {
             urgentInboxList.innerHTML = '';
             regularInboxList.innerHTML = '';
 
@@ -1471,17 +1409,16 @@
 
                 if(otherUserData) {
                     const convoEl = document.createElement('div');
-                    convoEl.className = 'inbox-thread';
+                    convoEl.className = 'inbox-item p-3 border-b border-[var(--border-primary)] flex justify-between items-center';
                     convoEl.dataset.userId = otherUserId;
                     convoEl.dataset.userName = otherUserData.displayName;
                     convoEl.dataset.title = convo.title;
-                    convoEl.dataset.conversationId = doc.id;
                     
                     const timestamp = convo.lastMessageTimestamp ? convo.lastMessageTimestamp.toDate().toLocaleString() : '';
                     const isUnread = convo.lastReadBy && !convo.lastReadBy.includes(auth.currentUser.uid);
 
                     convoEl.innerHTML = `
-                        <div class="flex-grow cursor-pointer inbox-item-content p-2 rounded-md">
+                        <div class="flex-grow cursor-pointer hover:bg-[var(--bg-tertiary)] inbox-item-content p-2 rounded-md">
                             <p class="font-bold text-[var(--text-primary)]">${convo.title} ${isUnread ? '<span class="ml-2 px-2.5 py-1 text-xs font-bold text-white bg-blue-500 rounded-full">new</span>' : ''}</p>
                              <p class="text-sm text-[var(--text-secondary)]">with ${otherUserData.displayName}</p>
                         </div>
@@ -1511,11 +1448,7 @@
         if(messageListenerUnsubscribe) messageListenerUnsubscribe();
         if(!currentConversation) return;
 
-        if (!currentConversation.id) {
-            currentConversation.id = [auth.currentUser.uid, currentConversation.recipientId].sort().join('_') + `_${currentConversation.title}`;
-        }
-        
-        const conversationId = currentConversation.id;
+        const conversationId = [auth.currentUser.uid, currentConversation.recipientId].sort().join('_') + `_${currentConversation.title}`;
         const messagesRef = collection(db, `conversations/${conversationId}/messages`);
         const q = query(messagesRef, orderBy('createdAt'));
 
@@ -1526,33 +1459,10 @@
                 const msgEl = document.createElement('div');
                 const isSender = msg.senderId === auth.currentUser.uid;
                 
-                msgEl.className = `message-bubble p-2 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-[var(--accent-primary)] text-white ml-auto' : 'bg-[var(--bg-secondary)] text-[var(--text-primary)] mr-auto'}`;
-                msgEl.dataset.messageId = doc.id;
-                msgEl.dataset.conversationId = conversationId;
+                msgEl.className = `p-2 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-[var(--accent-primary)] text-white ml-auto' : 'bg-[var(--bg-secondary)] text-[var(--text-primary)] mr-auto'}`;
                 
-                let reactionsHTML = '<div class="flex items-center mt-1 flex-wrap">';
-                Object.entries(msg.reactions || {}).forEach(([emoji, users]) => {
-                    if (users.length > 0) {
-                         reactionsHTML += `<span class="reaction">${emoji} ${users.length}</span>`;
-                    }
-                });
-                reactionsHTML += '</div>';
+                msgEl.innerHTML = msg.content;
 
-                const reactionButtonsHTML = `
-                    <div class="reactions absolute -top-5 ${isSender ? 'left-2' : 'right-2'} bg-[var(--bg-secondary)] shadow-md rounded-full p-1 border border-[var(--border-primary)] flex">
-                        <button data-emoji="👍" data-message-id="${doc.id}">👍</button>
-                        <button data-emoji="❤️" data-message-id="${doc.id}">❤️</button>
-                        <button data-emoji="😂" data-message-id="${doc.id}">😂</button>
-                    </div>
-                `;
-
-                msgEl.innerHTML = `
-                    <div class="relative">
-                        ${reactionButtonsHTML}
-                        <div>${msg.content}</div>
-                        ${Object.keys(msg.reactions || {}).length > 0 ? reactionsHTML : ''}
-                    </div>
-                `;
                 messageHistory.appendChild(msgEl);
             });
             messageHistory.scrollTop = messageHistory.scrollHeight;
@@ -1567,7 +1477,7 @@
             try {
                 await sendMessage(currentConversation.recipientId, title, contentHTML);
                 messageInput.innerHTML = '';
-                // Don't show alert, it's disruptive. The message appearing is feedback enough.
+                showAlert('Message sent successfully!');
             } catch(e) { /* showAlert is handled in sendMessage */ }
         } else {
             showAlert("Please provide a title and message content.");
@@ -1665,11 +1575,11 @@
         }
     });
 
-    closeAccountBtn.addEventListener('click', async () => {
+    closeAccountBtn.addEventListener('click', () => {
         const user = auth.currentUser;
         if (!user || user.isAnonymous) return;
 
-        if (confirm("Are you sure you want to close your account? This action will rename all your posts to '[Deleted User]' and permanently ban you from posting. This cannot be undone.")) {
+        showConfirm("Are you sure you want to close your account? This action will rename all your posts to '[Deleted User]' and permanently ban you. This cannot be undone.", async () => {
             const batch = writeBatch(db);
             const userRef = doc(db, "users", user.uid);
             batch.update(userRef, { displayName: "[Deleted User]", banned: true });
@@ -1698,9 +1608,191 @@
                 console.error("Error closing account:", error);
                 showAlert("Failed to close account. Please try again.");
             }
+        });
+    });
+
+    window.addEventListener('load', () => {
+        const unsubscribeOnLoad = onAuthStateChanged(auth, (user) => {
+            unsubscribeOnLoad(); // Ensure this runs only once
+            if (user && !user.isAnonymous && localStorage.getItem('messagingModalOpen') === 'true') {
+                messagesBtn.click();
+            }
+        });
+    });
+
+    // --- Search Logic ---
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    let isSearching = false;
+
+    function highlightMatch(text, keyword) {
+      if (!text) return '';
+      const regex = new RegExp(`(${keyword})`, 'gi');
+      return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-600 rounded">$1</mark>');
+    }
+
+    searchBtn.addEventListener('click', async () => {
+        const keyword = searchInput.value.trim().toLowerCase();
+        
+        if (!keyword) {
+            isSearching = false;
+            const postsColRef = collection(db, "posts");
+            const q = query(postsColRef, orderBy("createdAt", "desc"));
+            onSnapshot(q, (snapshot) => {
+                postDocsCache = snapshot.docs;
+                postDocsCache.sort((a, b) => (b.data().pinned ? 1 : 0) - (a.data().pinned ? 1 : 0));
+                renderPosts();
+            });
+            return;
+        }
+        
+        isSearching = true;
+        postList.innerHTML = `<p class="text-center text-[var(--text-secondary)]">Searching...</p>`;
+        
+        try {
+            const postsSnap = await getDocs(collection(db, "posts"));
+            const contribSnap = await getDocs(collection(db, "contributorPosts"));
+            const allDocs = [...postsSnap.docs, ...contribSnap.docs];
+
+            let filtered = allDocs.filter(doc => {
+                const data = doc.data();
+                return (
+                    data.title?.toLowerCase().includes(keyword) ||
+                    data.content?.toLowerCase().includes(keyword)
+                );
+            });
+
+            postList.innerHTML = ''; // Clear results
+
+            if (filtered.length === 0) {
+                postList.innerHTML = `<p class="text-center text-[var(--text-secondary)]">No matching posts found for "${searchInput.value}".</p>`;
+                return;
+            }
+
+            // Sort pinned posts to the top of search results as well
+            filtered.sort((a, b) => (b.data().pinned ? 1 : 0) - (a.data().pinned ? 1 : 0));
+
+            filtered.forEach(doc => {
+                const post = doc.data();
+                const postId = doc.id;
+                const authorData = usersDataCache[post.authorId];
+                
+                if (!authorData) return;
+
+                const postEl = document.createElement('div');
+                postEl.className = 'card p-5';
+                const timestamp = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now';
+                const editedTimestampText = post.editedAt ? `(edited ${post.editedAt.toDate().toLocaleString()})` : '';
+
+                let userStatusHTML = '';
+                const role = authorData.role || 'newbie';
+                if (authorData.banned) {
+                     userStatusHTML = `<span class="ml-2 px-2.5 py-1 text-xs font-bold text-white bg-red-600 rounded-full">Banned</span>`;
+                } else {
+                    let roleColor = 'bg-blue-500';
+                    if (role === 'admin') roleColor = 'bg-violet-500';
+                    if (role === 'contributor') roleColor = 'bg-green-500';
+                    userStatusHTML = `<span class="ml-2 px-2.5 py-1 text-xs font-bold text-white ${roleColor} rounded-full">${role}</span>`;
+                }
+                
+                const canEdit = auth.currentUser && (auth.currentUser.uid === post.authorId || currentUserRole === 'admin');
+
+                const title = highlightMatch(post.title, keyword);
+                const contentSnippet = post.content.length > 150 ? post.content.substring(0, 150) + '...' : post.content;
+                const highlightedSnippet = highlightMatch(contentSnippet, keyword);
+
+                postEl.innerHTML = `
+                    <div class="flex items-start flex-wrap">
+                        <div class="flex items-center mb-2 sm:mb-0">
+                            <div class="font-bold text-[var(--text-primary)]">${authorData.displayName}</div>
+                            ${userStatusHTML}
+                        </div>
+                         <div class="ml-auto flex items-center space-x-2">
+                            ${canEdit ? `
+                                <button data-post-id="${postId}" class="edit-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]" title="Edit Post">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
+                                </button>` : ''}
+                            ${currentUserRole === 'admin' ? `
+                                <button data-post-id="${postId}" data-pinned="${post.pinned}" class="pin-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]" title="${post.pinned ? 'Unpin Post' : 'Pin Post'}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5.586l2.293-2.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 9.586V4a1 1 0 011-1z" clip-rule="evenodd" /><path d="M3 12a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" /></svg>
+                                </button>
+                                <button data-author-id="${post.authorId}" data-author-name="${authorData.displayName}" class="manage-user-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]" title="Manage User">
+                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
+                                </button>
+                                <button data-post-id="${postId}" class="delete-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--destructive)]" title="Delete Post">
+                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <div class="text-xs text-[var(--text-secondary)]">${timestamp} <span class="italic">${editedTimestampText}</span></div>
+                    <h4 class="text-xl font-semibold text-[var(--text-accent)] mt-2 hover:underline cursor-pointer view-post-btn flex items-center gap-2" data-post-id="${postId}">
+                        ${post.pinned ? '<span class="text-xl" title="Pinned Post">📌</span>' : ''}
+                        <span>${title}</span>
+                    </h4>
+                    <p class="text-[var(--text-secondary)] mt-2">${highlightedSnippet}</p>
+                `;
+                postList.appendChild(postEl);
+            });
+
+        } catch(error) {
+            console.error("Error during search:", error);
+            postList.innerHTML = `<p class="text-center text-[var(--destructive)]">An error occurred during search.</p>`;
         }
     });
+    
+    // --- Post Editing & Pinning ---
+    closeEditPostModal.onclick = () => {
+        editPostModal.style.display = 'none';
+        currentEditingPostId = null;
+    };
+    
+    async function togglePin(postId, shouldPin) {
+        const postRef = doc(db, "posts", postId);
+        try {
+            await updateDoc(postRef, { pinned: shouldPin });
+        } catch (e) {
+            console.error("Error toggling pin status:", e);
+            showAlert("Failed to update pin status.");
+        }
+    }
+
+    function openEditModal(post, postId) {
+        currentEditingPostId = postId;
+        editPostTitleInput.value = post.title;
+        editPostContentInput.value = post.content;
+        editPostModal.style.display = 'flex';
+    }
+
+    async function savePostEdit() {
+        if (!currentEditingPostId) return;
+        
+        const title = editPostTitleInput.value.trim();
+        const content = editPostContentInput.value.trim();
+
+        if (!title || !content) {
+            showAlert("Title and content cannot be empty.");
+            return;
+        }
+
+        const postRef = doc(db, "posts", currentEditingPostId);
+        try {
+            await updateDoc(postRef, {
+                title,
+                content,
+                editedAt: serverTimestamp()
+            });
+            editPostModal.style.display = 'none';
+            currentEditingPostId = null;
+        } catch(e) {
+            console.error("Error saving post edit:", e);
+            showAlert("Failed to save changes.");
+        }
+    }
+
+    saveEditBtn.addEventListener('click', savePostEdit);
 
 </script>
 </body>
 </html>
+
