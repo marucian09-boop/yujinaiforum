@@ -446,6 +446,10 @@
             <div class="w-1/3 border-r border-[var(--border-primary)] flex flex-col">
                 <div class="p-4 border-b border-[var(--border-primary)]">
                     <h2 class="text-xl font-bold">Messages</h2>
+                    <div class="relative mt-2">
+                        <input type="text" id="userSearchInput" placeholder="Start a new chat..." class="form-input w-full text-sm py-1">
+                        <div id="userSearchResults" class="absolute top-full left-0 right-0 bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-b-lg z-20 max-h-48 overflow-y-auto" style="display: none;"></div>
+                    </div>
                 </div>
                 <div id="conversation-list" class="flex-grow overflow-y-auto">
                     <!-- Conversation cards will be injected here -->
@@ -568,6 +572,8 @@
     const messagesBtn = document.getElementById('messagesBtn');
     const messagingModal = document.getElementById('messagingModal');
     const closeMessagingModal = document.getElementById('closeMessagingModal');
+    const userSearchInput = document.getElementById('userSearchInput');
+    const userSearchResults = document.getElementById('userSearchResults');
 
     // --- Custom Alert Modal ---
     const alertModal = document.getElementById('alertModal');
@@ -761,6 +767,65 @@
           }
           await updateDoc(messageRef, { reactions: updated });
         }
+    });
+    
+    userSearchInput.addEventListener('input', async (e) => {
+        const searchTerm = e.target.value.trim();
+        userSearchResults.innerHTML = '';
+        if (searchTerm.length < 1) {
+            userSearchResults.style.display = 'none';
+            return;
+        }
+
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where('displayName', '>=', searchTerm), where('displayName', '<=', searchTerm + '\uf8ff'));
+        
+        try {
+            const querySnapshot = await getDocs(q);
+            querySnapshot.forEach(doc => {
+                const user = doc.data();
+                if (doc.id === auth.currentUser.uid) return;
+                
+                const resultEl = document.createElement('div');
+                resultEl.className = 'p-2 hover:bg-[var(--bg-tertiary)] cursor-pointer';
+                resultEl.textContent = user.displayName;
+                resultEl.dataset.userId = doc.id;
+                userSearchResults.appendChild(resultEl);
+            });
+            userSearchResults.style.display = querySnapshot.empty ? 'none' : 'block';
+        } catch (error) {
+            console.error("Error searching users:", error);
+        }
+    });
+
+    userSearchResults.addEventListener('click', async (e) => {
+        const resultEl = e.target.closest('[data-user-id]');
+        if (!resultEl) return;
+
+        const selectedUserId = resultEl.dataset.userId;
+        if (!currentUserData) {
+            showToast("You must be logged in to start a chat.", "error");
+            return;
+        }
+
+        userSearchInput.value = '';
+        userSearchResults.style.display = 'none';
+        
+        const participants = [currentUserData.uid, selectedUserId].sort();
+        const conversationId = participants.join('_');
+
+        const convoRef = doc(db, 'conversations', conversationId);
+        const convoSnap = await getDoc(convoRef);
+
+        if (!convoSnap.exists()) {
+            await setDoc(convoRef, {
+                participants: participants,
+                lastMessage: "New conversation started.",
+                lastMessageTimestamp: serverTimestamp()
+            });
+        }
+
+        loadConversation(conversationId, currentUserData);
     });
     // --- END INBOX LOGIC ---
 
@@ -983,3 +1048,4 @@
 </script>
 </body>
 </html>
+
