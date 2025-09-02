@@ -93,12 +93,23 @@
       </button>
     </section>
 
-    <!-- Login Prompt Section -->
-    <section id="login-prompt-section" class="bg-white p-6 rounded-lg shadow-md mb-8 text-center">
-        <h2 class="text-xl font-bold mb-2">Join the Conversation!</h2>
-        <p class="text-gray-600 mb-4">Please sign in to create new posts and engage with the community.</p>
-        <button id="promptSignInBtn" class="px-6 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
-              Sign In with Google
+    <!-- Authentication Section -->
+    <section id="authSection" class="bg-white p-6 rounded-lg shadow-md mb-8">
+        <h2 class="text-xl font-bold mb-4 text-center">Create Account or Sign In</h2>
+        <div class="space-y-4">
+            <input type="text" id="signupUsername" placeholder="Username" maxlength="20" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+            <input type="email" id="signupEmail" placeholder="Email" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+            <input type="password" id="signupPassword" placeholder="Password" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+            <button id="signupBtn" class="w-full px-6 py-2 text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition font-semibold">Sign Up with Email</button>
+        </div>
+        <div class="my-4 flex items-center">
+            <hr class="w-full border-gray-300">
+            <h3 class="px-2 text-gray-500 font-semibold">Or</h3>
+            <hr class="w-full border-gray-300">
+        </div>
+        <button id="googleSignInBtn" class="w-full flex items-center justify-center px-6 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+            <svg class="w-5 h-5 mr-2" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 23.4 172.9 61.9l-76.3 64.5C308.6 102.3 282.7 92 248.3 92c-82.8 0-150.5 66.6-150.5 148.4s67.7 148.4 150.5 148.4c97.2 0 130.3-72.9 135.2-109.2H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path></svg>
+            Sign in with Google
         </button>
     </section>
 
@@ -128,7 +139,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, createUserWithEmailAndPassword, updateProfile, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, getDocs, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
   import { getDatabase, ref, onDisconnect, set, onValue, serverTimestamp as dbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
@@ -146,7 +157,6 @@
 
   // --- DOM Elements ---
   const signInBtn = document.getElementById("signInBtn");
-  const promptSignInBtn = document.getElementById("promptSignInBtn");
   const signOutBtn = document.getElementById("signOutBtn");
   const userEmailEl = document.getElementById("userEmail");
   const createPostBtn = document.getElementById("createPostBtn");
@@ -156,12 +166,18 @@
   const totalMembersEl = document.getElementById("totalMembers");
   const onlineVisitorsEl = document.getElementById("onlineVisitors");
   const createPostSection = document.getElementById('create-post-section');
-  const loginPromptSection = document.getElementById('login-prompt-section');
+  const authSection = document.getElementById('authSection');
   const modal = document.getElementById('postModal');
   const modalTitle = document.getElementById('modalTitle');
   const modalBody = document.getElementById('modalBody');
   const closeModalBtns = document.querySelectorAll('.close-modal-btn');
   const roleBadgeEl = document.getElementById("roleBadge");
+  const signupUsernameEl = document.getElementById("signupUsername");
+  const signupEmailEl = document.getElementById("signupEmail");
+  const signupPasswordEl = document.getElementById("signupPassword");
+  const signupBtn = document.getElementById("signupBtn");
+  const googleSignInBtn = document.getElementById("googleSignInBtn");
+
 
   // --- Paths ---
   const usersPath = `artifacts/${appId}/public/data/users`;
@@ -170,68 +186,29 @@
 
   let currentUnsubscribePost = null;
 
-  // Enable/disable Create Post button automatically
+  // --- UI Functions ---
+  function showNotification(message, isError = false) {
+    const notification = document.createElement('div');
+    notification.textContent = message;
+    notification.className = `fixed top-5 right-5 p-4 rounded-lg shadow-lg text-white z-[100] transition-transform transform translate-x-full ${isError ? 'bg-red-500' : 'bg-green-500'}`;
+    document.body.appendChild(notification);
+    
+    requestAnimationFrame(() => {
+        notification.classList.remove('translate-x-full');
+    });
+
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        notification.addEventListener('transitionend', () => notification.remove());
+    }, 3000);
+  }
+
   function validatePostForm() {
     const hasTitle = postTitleEl.value.trim().length > 0;
     const hasContent = postContentEl.value.trim().length > 0;
     const isSignedIn = auth.currentUser && !auth.currentUser.isAnonymous;
     createPostBtn.disabled = !(hasTitle && hasContent && isSignedIn);
   }
-
-  // --- AUTH + PRESENCE + CREATE POST BUTTON CONTROL =====
-  const initAuth = async () => {
-    try {
-      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-        await signInWithCustomToken(auth, __initial_auth_token);
-      } else {
-        await signInAnonymously(auth);
-      }
-    } catch (error) {
-      console.error("Authentication failed:", error);
-    }
-  };
-  
-  onAuthStateChanged(auth, async (user) => {
-    if (user && !user.isAnonymous) {
-      userEmailEl.textContent = user.email;
-      signInBtn.classList.add("hidden");
-      signOutBtn.classList.remove("hidden");
-      createPostSection.classList.remove('hidden');
-      loginPromptSection.classList.add('hidden');
-      trackPresence(user);
-      updateTotalMembers();
-
-      // Auto-promote this email to admin
-      if (user.email === "yujinbussinessmatter@gmail.com") {
-        await setDoc(doc(db, usersPath, user.uid), {
-          email: user.email,
-          displayName: user.displayName || "",
-          role: "admin",
-          banned: false,
-          lastLogin: serverTimestamp()
-        }, { merge: true });
-      }
-
-      // Fetch role from Firestore
-      const userDoc = await getDoc(doc(db, usersPath, user.uid));
-      if (userDoc.exists()) {
-        const role = userDoc.data().role || "newbie";
-        updateRoleBadge(role);
-      } else {
-        updateRoleBadge("newbie");
-      }
-
-    } else {
-      userEmailEl.textContent = "";
-      roleBadgeEl.innerHTML = "";
-      roleBadgeEl.className = "";
-      signInBtn.classList.remove("hidden");
-      signOutBtn.classList.add("hidden");
-      createPostSection.classList.add('hidden');
-      loginPromptSection.classList.remove('hidden');
-    }
-    validatePostForm();
-  });
 
   function updateRoleBadge(role) {
     roleBadgeEl.className = "role-badge"; // reset classes
@@ -247,56 +224,126 @@
     }
   }
 
-  const handleSignIn = async () => {
+  // --- AUTH ---
+  const initAuth = async () => {
     try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        // Save or update user doc in Firestore
-        await setDoc(doc(db, usersPath, user.uid), {
-            email: user.email,
-            displayName: user.displayName || "",
-            role: "member",
-            banned: false,
-            lastLogin: serverTimestamp()
-        }, { merge: true });
+      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+        await signInWithCustomToken(auth, __initial_auth_token);
+      } else {
+        await signInAnonymously(auth);
+      }
     } catch (error) {
-        console.error("Sign-in error:", error);
+      console.error("Authentication failed:", error);
     }
   };
+  
+  onAuthStateChanged(auth, async (user) => {
+    if (user && !user.isAnonymous) {
+      // User is signed in
+      userEmailEl.textContent = user.displayName || user.email;
+      signInBtn.classList.add("hidden");
+      signOutBtn.classList.remove("hidden");
+      createPostSection.classList.remove('hidden');
+      authSection.classList.add('hidden');
+      trackPresence(user);
+      updateTotalMembers();
 
-  signInBtn.addEventListener("click", handleSignIn);
-  promptSignInBtn.addEventListener("click", handleSignIn);
+      const userDoc = await getDoc(doc(db, usersPath, user.uid));
+      if (userDoc.exists()) {
+        const role = userDoc.data().role || "newbie";
+        updateRoleBadge(role);
+      } else {
+        updateRoleBadge("newbie");
+      }
+
+    } else {
+      // User is signed out or anonymous
+      userEmailEl.textContent = "";
+      roleBadgeEl.innerHTML = "";
+      roleBadgeEl.className = "";
+      signInBtn.classList.remove("hidden");
+      signOutBtn.classList.add("hidden");
+      createPostSection.classList.add('hidden');
+      authSection.classList.remove('hidden');
+    }
+    validatePostForm();
+  });
+
+  function isStrongPassword(pw) {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+    return regex.test(pw);
+  }
+
+  signupBtn.addEventListener("click", async () => {
+    const username = signupUsernameEl.value.trim();
+    const email = signupEmailEl.value.trim();
+    const password = signupPasswordEl.value;
+
+    if (!username) return showNotification("Please enter a username.", true);
+    if (!email) return showNotification("Please enter an email.", true);
+    if (!isStrongPassword(password)) {
+      return showNotification("Password must be at least 8 characters, include uppercase, lowercase, number, and special character.", true);
+    }
+
+    try {
+      const userCred = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCred.user, { displayName: username });
+
+      await setDoc(doc(db, usersPath, userCred.user.uid), {
+        email,
+        displayName: username,
+        role: "newbie",
+        banned: false,
+        lastLogin: serverTimestamp()
+      });
+      showNotification("Account created successfully!");
+    } catch (err) {
+      console.error(err);
+      showNotification(err.message, true);
+    }
+  });
+
+  googleSignInBtn.addEventListener("click", async () => {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      const role = (user.email === "yujinbussinessmatter@gmail.com") ? "admin" : "newbie";
+
+      await setDoc(doc(db, usersPath, user.uid), {
+        email: user.email,
+        displayName: user.displayName || "",
+        role,
+        banned: false,
+        lastLogin: serverTimestamp()
+      }, { merge: true });
+    } catch (err) {
+      console.error(err);
+      showNotification(err.message, true);
+    }
+  });
+
+  signInBtn.addEventListener('click', () => {
+    authSection.scrollIntoView({ behavior: 'smooth' });
+  });
+
   signOutBtn.addEventListener("click", () => signOut(auth));
 
-  postTitleEl.addEventListener("input", validatePostForm);
-  postContentEl.addEventListener("input", validatePostForm);
-
+  // --- Presence ---
   function trackPresence(user) {
     if (!user) return;
     const userStatusRef = ref(rtdb, `${statusPath}/${user.uid}`);
-    
-    const isOfflineForDatabase = {
-      state: 'offline',
-      last_changed: dbServerTimestamp(),
-    };
-
-    const isOnlineForDatabase = {
-      state: 'online',
-      last_changed: dbServerTimestamp(),
-      email: user.email
-    };
+    const isOfflineForDatabase = { state: 'offline', last_changed: dbServerTimestamp() };
+    const isOnlineForDatabase = { state: 'online', last_changed: dbServerTimestamp(), email: user.email };
 
     onValue(ref(rtdb, '.info/connected'), (snapshot) => {
-      if (snapshot.val() === false) {
-        return;
-      }
+      if (snapshot.val() === false) return;
       onDisconnect(userStatusRef).set(isOfflineForDatabase).then(() => {
         set(userStatusRef, isOnlineForDatabase);
       });
     });
   }
 
-  // Listen for online user count
   onValue(ref(rtdb, statusPath), (snapshot) => {
       if (snapshot.exists()){
           const statuses = snapshot.val();
@@ -315,34 +362,28 @@
     totalMembersEl.textContent = snapshot.size;
   }
   
+  postTitleEl.addEventListener("input", validatePostForm);
+  postContentEl.addEventListener("input", validatePostForm);
+
   createPostBtn.addEventListener("click", async () => {
     const user = auth.currentUser;
     if (!user || user.isAnonymous) return;
-
     const title = postTitleEl.value.trim();
     const content = postContentEl.value.trim();
-
-    if (!title || !content) {
-      alert("Please enter a title and content.");
-      return;
-    }
+    if (!title || !content) return showNotification("Please enter a title and content.", true);
 
     createPostBtn.disabled = true;
     createPostBtn.textContent = "Posting...";
 
     try {
       await addDoc(collection(db, postsPath), {
-        title,
-        content,
-        authorId: user.uid,
-        authorEmail: user.email,
-        createdAt: serverTimestamp(),
+        title, content, authorId: user.uid, authorEmail: user.email, createdAt: serverTimestamp(),
       });
       postTitleEl.value = '';
       postContentEl.value = '';
     } catch (error) {
       console.error("Error creating post:", error);
-      alert("Failed to create post. Please try again.");
+      showNotification("Failed to create post. Please try again.", true);
     } finally {
       createPostBtn.textContent = "Create Post";
       validatePostForm();
@@ -362,14 +403,11 @@
       const postDiv = document.createElement('div');
       postDiv.className = 'bg-white p-5 rounded-lg shadow-md hover:shadow-lg transition cursor-pointer';
       postDiv.setAttribute('data-id', docSnap.id);
-
       const postDate = data.createdAt?.toDate().toLocaleString() || 'Just now';
-
       postDiv.innerHTML = `
         <h3 class="text-lg font-bold text-gray-900">${data.title || 'Untitled Post'}</h3>
         <p class="text-sm text-gray-500 mb-2">By ${data.authorEmail || 'Unknown'} on ${postDate}</p>
-        <p class="text-gray-700">${(data.content || '').slice(0, 150)}...</p>
-      `;
+        <p class="text-gray-700">${(data.content || '').slice(0, 150)}...</p>`;
       postDiv.addEventListener('click', () => openPostModal(docSnap.id));
       postListEl.appendChild(postDiv);
     });
@@ -394,8 +432,7 @@
         const postDate = data.createdAt?.toDate().toLocaleString() || 'Just now';
         modalBody.innerHTML = `
           <p class="text-sm text-gray-500 mb-4">By ${data.authorEmail || 'Unknown'} on ${postDate}</p>
-          <div class="prose-p:mb-4 prose-headings:font-bold">${data.content.replace(/\n/g, '<br>')}</div>
-        `;
+          <div class="prose-p:mb-4 prose-headings:font-bold">${data.content.replace(/\n/g, '<br>')}</div>`;
       } else {
         modalTitle.textContent = 'Error';
         modalBody.innerHTML = '<p>Post not found. It may have been deleted.</p>';
@@ -430,5 +467,4 @@
 
 </body>
 </html>
-
 
