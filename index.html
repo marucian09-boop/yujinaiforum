@@ -53,7 +53,7 @@
       <h2 class="text-xl font-bold mb-4">Create a New Post</h2>
       <input type="text" id="postTitle" placeholder="Post Title" maxlength="120" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition mb-4">
       <textarea id="postContent" placeholder="Write something..." class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition h-32 resize-none"></textarea>
-      <button id="createPostBtn" class="mt-4 w-full sm:w-auto px-6 py-2 text-white bg-green-600 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition font-semibold">
+      <button id="createPostBtn" disabled class="mt-4 w-full sm:w-auto px-6 py-2 text-white bg-green-600 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed">
         Create Post
       </button>
     </section>
@@ -93,7 +93,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithRedirect, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
   import { getDatabase, ref, onDisconnect, set, onValue, serverTimestamp as dbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
@@ -134,7 +134,15 @@
 
   let currentUnsubscribePost = null;
 
-  // --- Authentication ---
+  // Enable/disable Create Post button automatically
+  function validatePostForm() {
+    const hasTitle = postTitleEl.value.trim().length > 0;
+    const hasContent = postContentEl.value.trim().length > 0;
+    const isSignedIn = auth.currentUser && !auth.currentUser.isAnonymous;
+    createPostBtn.disabled = !(hasTitle && hasContent && isSignedIn);
+  }
+
+  // --- AUTH + PRESENCE + CREATE POST BUTTON CONTROL =====
   const initAuth = async () => {
     try {
       if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -147,7 +155,7 @@
     }
   };
   
-  onAuthStateChanged(auth, async (user) => {
+  onAuthStateChanged(auth, (user) => {
     if (user && !user.isAnonymous) {
       // User is signed in
       userEmailEl.textContent = user.email;
@@ -155,12 +163,8 @@
       signOutBtn.classList.remove("hidden");
       createPostSection.classList.remove('hidden');
       loginPromptSection.classList.add('hidden');
-      
-      // Add or update user in Firestore
-      const userRef = doc(db, usersPath, user.uid);
-      await setDoc(userRef, { email: user.email, lastLogin: serverTimestamp() }, { merge: true });
-
       trackPresence(user);
+      updateTotalMembers();
     } else {
       // User is signed out or anonymous
       userEmailEl.textContent = "";
@@ -169,15 +173,33 @@
       createPostSection.classList.add('hidden');
       loginPromptSection.classList.remove('hidden');
     }
-    updateTotalMembers();
+    validatePostForm();
   });
 
-  signInBtn.addEventListener("click", () => signInWithRedirect(auth, provider));
-  promptSignInBtn.addEventListener("click", () => signInWithRedirect(auth, provider));
+  const handleSignIn = async () => {
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        // Save or update user doc in Firestore
+        await setDoc(doc(db, usersPath, user.uid), {
+            email: user.email,
+            displayName: user.displayName || "",
+            role: "member",
+            banned: false,
+            lastLogin: serverTimestamp()
+        }, { merge: true });
+    } catch (error) {
+        console.error("Sign-in error:", error);
+    }
+  };
+
+  signInBtn.addEventListener("click", handleSignIn);
+  promptSignInBtn.addEventListener("click", handleSignIn);
   signOutBtn.addEventListener("click", () => signOut(auth));
 
+  postTitleEl.addEventListener("input", validatePostForm);
+  postContentEl.addEventListener("input", validatePostForm);
 
-  // --- Presence (Realtime Database) ---
   function trackPresence(user) {
     if (!user) return;
     const userStatusRef = ref(rtdb, `${statusPath}/${user.uid}`);
@@ -251,8 +273,8 @@
       console.error("Error creating post:", error);
       alert("Failed to create post. Please try again.");
     } finally {
-      createPostBtn.disabled = false;
       createPostBtn.textContent = "Create Post";
+      validatePostForm();
     }
   });
 
