@@ -179,12 +179,13 @@
     <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg h-3/4 flex flex-col">
         <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-bold">Direct Messages</h3><button id="closeMessagingModal" class="text-2xl font-light">&times;</button></div>
         <div id="inboxView" class="h-full flex flex-col"><div class="relative mb-2">
-                <input type="text" id="messageRecipientSearch" placeholder="Search for user..." class="w-full px-3 py-2 border rounded-md">
+                <input type="text" id="messageRecipientSearch" placeholder="Search for user to start a new chat..." class="w-full px-3 py-2 border rounded-md">
                 <div id="messageRecipientResults" class="absolute w-full bg-white border rounded-md mt-1 z-10" style="display: none;"></div>
         </div>
         <div id="inboxList" class="flex-grow overflow-y-auto"></div></div>
         <div id="chatView" class="h-full flex-col" style="display: none;">
             <button id="backToInboxBtn" class="mb-2 text-sm text-blue-600 hover:underline">&larr; Back to Inbox</button>
+             <div id="chatHeader" class="mb-2"><p id="messagingWith" class="text-sm">Chat with: <span class="font-bold"></span></p></div>
             <div id="messageHistory" class="flex-grow overflow-y-auto bg-gray-50 p-2 rounded-md mb-2 flex flex-col"></div>
             <div class="flex"><div id="messageInput" contenteditable="true" placeholder="Type your message..." class="flex-grow p-2 border rounded-l-md h-24 overflow-y-auto"></div>
             <button id="sendMessageBtn" class="px-4 py-2 text-white bg-blue-600 rounded-r-md hover:bg-blue-700 self-end">Send</button></div>
@@ -344,6 +345,15 @@
       roleBadgeEl.classList.add("newbie");
     }
   }
+  
+  function attachFirestoreListeners() {
+      const usersUnsub = onSnapshot(collection(db, usersPath), (snapshot) => {
+        totalMembersEl.textContent = snapshot.size;
+        snapshot.forEach(doc => {
+            usersDataCache[doc.id] = doc.data();
+        });
+      });
+  }
 
   onAuthStateChanged(auth, async (user) => {
     if (user && !user.isAnonymous) {
@@ -368,7 +378,7 @@
       loggedOutPrompt.classList.add('hidden');
       authModal.classList.add('hidden');
       trackPresence(user);
-      updateTotalMembers();
+      attachFirestoreListeners();
       updateRoleBadge(currentUserData.role || 'newbie');
 
     } else {
@@ -387,21 +397,16 @@
     validatePostForm();
   });
   
-  function isStrongPassword(pw) { /* ... same as before ... */ return true; }
+  function isStrongPassword(pw) { return true; }
 
   signUpBtn.addEventListener("click", async () => {
     const username = signUpUsernameEl.value.trim();
     const email = signUpEmailEl.value.trim();
     const password = signUpPasswordEl.value;
-
     if (!username || !email || !password) return showNotification("Please fill all fields.", true);
     
-    const usersRef = collection(db, usersPath);
-    const q = query(usersRef, where("displayName", "==", username));
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-      return showNotification("Username is already taken.", true);
-    }
+    const q = query(collection(db, usersPath), where("displayName", "==", username));
+    if (!(await getDocs(q)).empty) return showNotification("Username is already taken.", true);
 
     try {
       const userCred = await createUserWithEmailAndPassword(auth, email, password);
@@ -436,22 +441,24 @@
 
   signOutBtn.addEventListener("click", () => signOut(auth));
 
-  function trackPresence(user) { /* ... same as before ... */ }
-  onValue(ref(rtdb, statusPath), (snapshot) => {
-    onlineVisitorsEl.textContent = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
-  });
-
-  async function updateTotalMembers() {
-    const snapshot = await getDocs(collection(db, usersPath));
-    totalMembersEl.textContent = snapshot.size;
+  function trackPresence(user) {
+    if (!user) return;
+    const myConnectionsRef = ref(rtdb, `status/${user.uid}`);
+    onValue(ref(rtdb, '.info/connected'), (snap) => {
+        if (snap.val() === true) {
+            set(myConnectionsRef, { online: true, last_changed: dbServerTimestamp() });
+            onDisconnect(myConnectionsRef).remove();
+        }
+    });
   }
+
+  onValue(ref(rtdb, statusPath), (snapshot) => {
+    onlineVisitorsEl.textContent = snapshot.exists() ? snapshot.size : 0;
+  });
   
   createPostBtn.addEventListener("click", async () => {
     const user = auth.currentUser;
-    if (!user || user.isAnonymous || !currentUserData || currentUserData.banned) {
-        showNotification("You cannot create posts.", true);
-        return;
-    }
+    if (!user || !currentUserData || currentUserData.banned) return showNotification("You cannot create posts.", true);
     const title = postTitleEl.value.trim();
     const content = postContentEl.value.trim();
     if (!title || !content) return showNotification("Title and content are required.", true);
@@ -464,24 +471,28 @@
     } catch (error) { showNotification("Failed to create post.", true); }
   });
 
-  const q = query(collection(db, postsPath), orderBy("createdAt", "desc"));
-  onSnapshot(q, (snapshot) => {
+  onSnapshot(query(collection(db, postsPath), orderBy("createdAt", "desc")), (snapshot) => {
     postListEl.innerHTML = snapshot.empty ? '<div class="text-center text-gray-500 py-10">No posts yet.</div>' : '';
     snapshot.forEach(docSnap => {
       const data = docSnap.data();
       const postDiv = document.createElement('div');
-      postDiv.className = 'bg-white p-5 rounded-lg shadow-md hover:shadow-lg transition cursor-pointer';
+      postDiv.className = 'bg-white p-5 rounded-lg shadow-md hover:shadow-lg transition';
       postDiv.innerHTML = `
-        <div class="flex justify-between items-center">
-          <h3 class="text-lg font-bold text-gray-900">${data.title || 'Untitled Post'}</h3>
-          ${currentUserData?.role === 'admin' ? `<button data-post-id="${docSnap.id}" data-author-id="${data.authorId}" class="manage-user-btn p-1 text-gray-400 hover:text-blue-500">&hellip;</button>` : ''}
+        <div class="flex justify-between items-start">
+          <div>
+            <h3 class="text-lg font-bold text-gray-900 cursor-pointer view-post-btn">${data.title || 'Untitled Post'}</h3>
+            <p class="text-sm text-gray-500 mb-2">By ${data.authorEmail || 'Unknown'} on ${data.createdAt?.toDate().toLocaleString() || ''}</p>
+          </div>
+          ${currentUserData?.role === 'admin' ? `<button data-author-id="${data.authorId}" class="manage-user-btn p-2 text-gray-400 hover:text-blue-500 rounded-full"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg></button>` : ''}
         </div>
-        <p class="text-sm text-gray-500 mb-2">By ${data.authorEmail || 'Unknown'} on ${data.createdAt?.toDate().toLocaleString() || ''}</p>
-        <p class="text-gray-700">${(data.content || '').slice(0, 150)}...</p>`;
+        <p class="text-gray-700 mt-2">${(data.content || '').slice(0, 150)}...</p>`;
+      
       postDiv.addEventListener('click', (e) => {
-        if (e.target.closest('.manage-user-btn')) {
-            openAdminModal(e.target.closest('.manage-user-btn').dataset.authorId);
-        } else {
+        const manageBtn = e.target.closest('.manage-user-btn');
+        const viewBtn = e.target.closest('.view-post-btn');
+        if (manageBtn) {
+            openAdminModal(manageBtn.dataset.authorId);
+        } else if (viewBtn) {
             openPostModal(docSnap.id);
         }
       });
@@ -489,7 +500,6 @@
     });
   });
 
-  // --- Modal Logic ---
   function openPostModal(postId) {
     postModal.classList.remove('hidden');
     if (currentUnsubscribePost) currentUnsubscribePost();
@@ -506,14 +516,8 @@
 
   function closeModal(modalElement) {
     modalElement.classList.add('hidden');
-    if (modalElement === postModal && currentUnsubscribePost) {
-        currentUnsubscribePost();
-        currentUnsubscribePost = null;
-    }
-    if (modalElement === messagingModal && messageListenerUnsubscribe) {
-        messageListenerUnsubscribe();
-        messageListenerUnsubscribe = null;
-    }
+    if (modalElement === postModal && currentUnsubscribePost) currentUnsubscribePost();
+    if (modalElement === messagingModal && messageListenerUnsubscribe) messageListenerUnsubscribe();
   }
   
   [closePostModalBtn, closeAuthModalBtn, closeUserProfileModal, closeAdminModal, closeMessagingModal].forEach(btn => {
@@ -523,26 +527,56 @@
       modal.addEventListener('click', e => { if(e.target === modal) closeModal(modal); });
   });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-        [postModal, authModal, userProfileModal, adminModal, messagingModal].forEach(modal => {
-            if (!modal.classList.contains('hidden')) closeModal(modal);
-        });
-    }
+    if (e.key === 'Escape') [postModal, authModal, userProfileModal, adminModal, messagingModal].forEach(m => closeModal(m));
   });
   
   signInBtn.addEventListener('click', () => authModal.classList.remove('hidden'));
-  signInTab.addEventListener('click', () => { /*... tab logic ...*/ });
-  signUpTab.addEventListener('click', () => { /*... tab logic ...*/ });
+  signInTab.addEventListener('click', () => {
+    signInForm.classList.remove('hidden'); signUpForm.classList.add('hidden');
+    signInTab.classList.add('border-blue-500', 'text-blue-600');
+    signUpTab.classList.remove('border-blue-500', 'text-blue-600');
+  });
+  signUpTab.addEventListener('click', () => {
+    signUpForm.classList.remove('hidden'); signInForm.classList.add('hidden');
+    signUpTab.classList.add('border-blue-500', 'text-blue-600');
+    signInTab.classList.remove('border-blue-500', 'text-blue-600');
+  });
 
-  // User Profile Logic
-  userEmailEl.addEventListener('click', () => {
-    if(currentUserData) userProfileModal.classList.remove('hidden');
+  userEmailEl.addEventListener('click', async () => {
+    if(!currentUserData) return;
+    const postSnap = await getDocs(query(collection(db, postsPath), where("authorId", "==", auth.currentUser.uid)));
+    profilePostCount.textContent = postSnap.size;
+    changeUsernameSection.style.display = (currentUserData.role === 'admin' || currentUserData.role === 'contributor') ? 'block' : 'none';
+    userProfileModal.classList.remove('hidden');
   });
   
-  changeUsernameBtn.addEventListener('click', async () => { /* ... username change logic ... */ });
-  closeAccountBtn.addEventListener('click', async () => { /* ... close account logic ... */ });
+  changeUsernameBtn.addEventListener('click', async () => {
+    const newUsername = newUsernameInput.value.trim();
+    if (!newUsername) return showNotification("Username cannot be empty.", true);
 
-  // Admin Logic
+    const q = query(collection(db, usersPath), where("displayName", "==", newUsername));
+    if (!(await getDocs(q)).empty) return showNotification("Username is taken.", true);
+
+    const batch = writeBatch(db);
+    batch.update(doc(db, usersPath, auth.currentUser.uid), { displayName: newUsername });
+    const postsSnap = await getDocs(query(collection(db, postsPath), where("authorId", "==", auth.currentUser.uid)));
+    postsSnap.forEach(postDoc => batch.update(postDoc.ref, { authorEmail: newUsername }));
+    await batch.commit();
+    showNotification("Username updated!");
+    closeModal(userProfileModal);
+  });
+  
+  closeAccountBtn.addEventListener('click', async () => {
+    if (!confirm("Are you sure? This will rename your posts and ban you permanently.")) return;
+    const batch = writeBatch(db);
+    batch.update(doc(db, usersPath, auth.currentUser.uid), { displayName: "[Deleted User]", banned: true });
+    const postsSnap = await getDocs(query(collection(db, postsPath), where("authorId", "==", auth.currentUser.uid)));
+    postsSnap.forEach(postDoc => batch.update(postDoc.ref, { authorEmail: "[Deleted User]" }));
+    await batch.commit();
+    signOut(auth);
+    showNotification("Account closed.");
+  });
+
   async function openAdminModal(userId) {
     targetUserIdForAdmin = userId;
     const userDoc = await getDoc(doc(db, usersPath, userId));
@@ -552,18 +586,13 @@
     }
   }
   sendWarningBtn.addEventListener('click', async () => {
-    if (!targetUserIdForAdmin || !warningMessage.value.trim()) return;
-    const convoId = [auth.currentUser.uid, targetUserIdForAdmin].sort().join('_') + "_OFFICIAL_WARNING";
+    const msg = warningMessage.value.trim();
+    if (!targetUserIdForAdmin || !msg) return;
+    const convoId = [auth.currentUser.uid, targetUserIdForAdmin].sort().join('_');
+    await setDoc(doc(db, conversationsPath, convoId), { participants: [auth.currentUser.uid, targetUserIdForAdmin] }, { merge: true });
     await addDoc(collection(db, conversationsPath, convoId, 'messages'), {
-        senderId: auth.currentUser.uid,
-        content: `<strong>OFFICIAL WARNING:</strong> ${warningMessage.value}`,
-        createdAt: serverTimestamp()
+        senderId: auth.currentUser.uid, content: `<strong>OFFICIAL WARNING:</strong> ${msg}`, createdAt: serverTimestamp()
     });
-    await setDoc(doc(db, conversationsPath, convoId), {
-        participants: [auth.currentUser.uid, targetUserIdForAdmin],
-        lastMessage: "OFFICIAL WARNING",
-        lastMessageTimestamp: serverTimestamp()
-    }, {merge: true});
     showNotification("Warning sent.");
     closeModal(adminModal);
   });
@@ -578,36 +607,107 @@
     closeModal(adminModal);
   });
 
-  // Messaging Logic
   messagesBtn.addEventListener('click', () => {
-    if(currentUserData) messagingModal.classList.remove('hidden');
-    loadInbox();
+    if(currentUserData) {
+        messagingModal.classList.remove('hidden');
+        loadInbox();
+    }
   });
   backToInboxBtn.addEventListener('click', () => {
-    chatView.style.display = 'none';
-    inboxView.style.display = 'flex';
+    chatView.style.display = 'none'; inboxView.style.display = 'flex';
     if(messageListenerUnsubscribe) messageListenerUnsubscribe();
   });
-  messageRecipientSearch.addEventListener('input', async (e) => { /* ... search logic ... */ });
-  messageRecipientResults.addEventListener('click', (e) => {
-    const userId = e.target.dataset.userId;
-    const userName = e.target.dataset.userName;
-    if (userId && userName) openChat(userId, userName);
-  });
+  
+  messageRecipientSearch.addEventListener('input', async (e) => {
+    const term = e.target.value.trim().toLowerCase();
+    messageRecipientResults.innerHTML = '';
+    if (term.length < 2) { messageRecipientResults.style.display = 'none'; return; }
+    
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where('displayName', '>=', term), where('displayName', '<=', term + '\uf8ff'));
+    const snapshot = await getDocs(q);
 
-  function loadInbox() { /* ... inbox loading logic ... */ }
-  function openChat(userId, userName) { /* ... open chat logic ... */ }
+    snapshot.forEach(doc => {
+        if (doc.id === auth.currentUser.uid) return;
+        const user = doc.data();
+        const div = document.createElement('div');
+        div.textContent = user.displayName;
+        div.className = 'p-2 hover:bg-gray-100 cursor-pointer';
+        div.dataset.userId = doc.id;
+        div.dataset.userName = user.displayName;
+        messageRecipientResults.appendChild(div);
+    });
+    messageRecipientResults.style.display = snapshot.empty ? 'none' : 'block';
+  });
+  
+  messageRecipientResults.addEventListener('click', (e) => {
+    if (e.target.dataset.userId) {
+        openChat(e.target.dataset.userId, e.target.dataset.userName);
+        messageRecipientSearch.value = '';
+        messageRecipientResults.style.display = 'none';
+    }
+  });
+  
+  function loadInbox() {
+    const q = query(collection(db, conversationsPath), where('participants', 'array-contains', auth.currentUser.uid));
+    onSnapshot(q, (snapshot) => {
+        inboxList.innerHTML = snapshot.empty ? '<p class="text-center text-gray-500 p-4">No conversations yet.</p>' : '';
+        snapshot.forEach(doc => {
+            const convo = doc.data();
+            const otherUserId = convo.participants.find(id => id !== auth.currentUser.uid);
+            const otherUser = usersDataCache[otherUserId];
+            if (!otherUser) return;
+
+            const div = document.createElement('div');
+            div.className = 'p-3 border-b hover:bg-gray-50 cursor-pointer';
+            div.dataset.userId = otherUserId;
+            div.dataset.userName = otherUser.displayName;
+            div.innerHTML = `<p class="font-bold">${otherUser.displayName}</p><p class="text-sm text-gray-600">${convo.lastMessage || '...'}</p>`;
+            div.addEventListener('click', () => openChat(otherUserId, otherUser.displayName));
+            inboxList.appendChild(div);
+        });
+    });
+  }
+
+  function openChat(userId, userName) {
+    currentConversation = { recipientId: userId, recipientName: userName };
+    document.querySelector('#messagingWith span').textContent = userName;
+    inboxView.style.display = 'none'; chatView.style.display = 'flex';
+    if(messageListenerUnsubscribe) messageListenerUnsubscribe();
+
+    const convoId = [auth.currentUser.uid, userId].sort().join('_');
+    const messagesRef = collection(db, conversationsPath, convoId, 'messages');
+    const q = query(messagesRef, orderBy('createdAt'));
+    
+    messageListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+        messageHistory.innerHTML = '';
+        snapshot.forEach(doc => {
+            const msg = doc.data();
+            const div = document.createElement('div');
+            const isSender = msg.senderId === auth.currentUser.uid;
+            div.className = `p-2 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-blue-500 text-white ml-auto' : 'bg-gray-200 mr-auto'}`;
+            div.innerHTML = msg.content;
+            messageHistory.appendChild(div);
+        });
+        messageHistory.scrollTop = messageHistory.scrollHeight;
+    });
+  }
 
   sendMessageBtn.addEventListener('click', async () => {
-    if (!currentConversation || !messageInput.textContent.trim()) return;
+    const content = messageInput.innerHTML;
+    if (!currentConversation || !content.trim()) return;
+    
     const { recipientId } = currentConversation;
     const convoId = [auth.currentUser.uid, recipientId].sort().join('_');
-    // Simplified: in a real app, you'd handle conversation creation/selection
-    await addDoc(collection(db, conversationsPath, convoId, 'messages'), {
-        senderId: auth.currentUser.uid,
-        content: messageInput.innerHTML,
-        createdAt: serverTimestamp()
-    });
+    const messagesRef = collection(db, conversationsPath, convoId, 'messages');
+    
+    await addDoc(messagesRef, { senderId: auth.currentUser.uid, content, createdAt: serverTimestamp() });
+    await setDoc(doc(db, conversationsPath, convoId), {
+        participants: [auth.currentUser.uid, recipientId],
+        lastMessage: messageInput.textContent,
+        lastMessageTimestamp: serverTimestamp()
+    }, { merge: true });
+    
     messageInput.innerHTML = '';
   });
 
