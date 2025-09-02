@@ -231,6 +231,58 @@
         opacity: 0.7;
     }
 
+    /* --- Added CSS from User --- */
+    .reactions {
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+    .message-bubble:hover .reactions {
+        opacity: 1;
+    }
+    .reactions button {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        margin-right: 4px;
+        transition: transform 0.2s ease;
+    }
+    .reactions button:hover {
+        transform: scale(1.2);
+    }
+
+    .reaction {
+        margin-right: 6px;
+        font-size: 0.9rem;
+        background-color: var(--bg-tertiary);
+        padding: 2px 6px;
+        border-radius: 10px;
+        border: 1px solid var(--border-primary);
+    }
+
+    .inbox-wrapper {
+        padding: 1rem;
+        background: #fefefe;
+        border-radius: 12px;
+        box-shadow: 0 0 8px rgba(0,0,0,0.05);
+    }
+
+    .inbox-thread {
+        padding: 0.75rem;
+        border-bottom: 1px solid var(--border-primary);
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background-color 0.2s ease;
+    }
+
+    .inbox-thread:hover {
+        background-color: var(--bg-tertiary);
+    }
+    .message-bubble {
+        position: relative;
+    }
 </style>
 </head>
 <body>
@@ -582,6 +634,100 @@
     }
     closeAlertModal.onclick = () => alertModal.style.display = 'none';
 
+    // --- Reactions Feature ---
+    async function reactToMessage(emoji, messageId, currentUserData) {
+        if (!currentUserData || !currentUserData.email) {
+            showAlert("You must be signed in to react.");
+            return;
+        }
+        if (!currentConversation || !currentConversation.id) return;
+
+        const messageRef = doc(db, `conversations/${currentConversation.id}/messages`, messageId);
+        const snap = await getDoc(messageRef);
+        if (!snap.exists()) return;
+        const data = snap.data();
+
+        const updated = { ...(data.reactions || {}) };
+        if (!updated[emoji]) {
+            updated[emoji] = [];
+        }
+
+        const userIndex = updated[emoji].indexOf(currentUserData.email);
+        if (userIndex > -1) {
+            updated[emoji].splice(userIndex, 1);
+            if (updated[emoji].length === 0) {
+                delete updated[emoji];
+            }
+        } else {
+            updated[emoji].push(currentUserData.email);
+        }
+        await updateDoc(messageRef, { reactions: updated });
+    }
+
+    function initReactions() {
+        document.addEventListener("click", (e) => {
+            const btn = e.target.closest("[data-emoji]");
+            if (!btn || !currentUserData) return;
+            const emoji = btn.dataset.emoji;
+            const messageId = btn.dataset.messageId;
+            reactToMessage(emoji, messageId, currentUserData);
+        });
+    }
+
+    // --- Moderation Feature ---
+    function initSwipeToDelete() {
+        const container = document.getElementById("messageHistory");
+        if (!container) return;
+        
+        let startX = 0;
+        let targetMessage = null;
+
+        container.addEventListener("touchstart", e => {
+            const messageBubble = e.target.closest(".message-bubble");
+            if (messageBubble) {
+                startX = e.touches[0].clientX;
+                targetMessage = messageBubble;
+            }
+        }, { passive: true });
+
+        container.addEventListener("touchend", async e => {
+            if (!targetMessage || currentUserRole !== 'admin') {
+                targetMessage = null;
+                return;
+            };
+
+            const endX = e.changedTouches[0].clientX;
+            if (startX - endX > 100) { 
+                const messageId = targetMessage.dataset.messageId;
+                const conversationId = targetMessage.dataset.conversationId;
+
+                if (messageId && conversationId) {
+                    targetMessage.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    targetMessage.style.opacity = '0';
+                    targetMessage.style.transform = 'translateX(-100px)';
+                    
+                    setTimeout(async () => {
+                        try {
+                            await deleteDoc(doc(db, `conversations/${conversationId}/messages`, messageId));
+                            await addDoc(collection(db, "logs"), {
+                                action: "delete_message",
+                                moderator: currentUserData.email,
+                                messageId: messageId,
+                                conversationId: conversationId,
+                                timestamp: serverTimestamp()
+                            });
+                        } catch (err) {
+                            console.error("Error deleting message:", err);
+                            showAlert("Failed to delete message.");
+                            targetMessage.style.opacity = '1';
+                            targetMessage.style.transform = 'translateX(0)';
+                        }
+                    }, 500);
+                }
+            }
+            targetMessage = null;
+        });
+    }
 
     // --- Dark Mode ---
     function applyDarkMode(isDark) {
@@ -801,6 +947,8 @@
 
             setupPresence(user);
             attachFirestoreListeners();
+            initReactions();
+            initSwipeToDelete();
             
             if (user.isAnonymous) {
                 authContainer.style.display = 'flex';
@@ -1161,7 +1309,8 @@
                 senderId: user.uid,
                 recipientId: recipientId,
                 content: contentHTML,
-                createdAt: serverTimestamp()
+                createdAt: serverTimestamp(),
+                reactions: {}
             });
               return Promise.resolve();
         } catch (error) {
@@ -1246,16 +1395,15 @@
         }
     });
     
-    async function openChatWithUser(userId, userName, title = '') {
-        currentConversation = { recipientId: userId, recipientName: userName, title: title };
+    async function openChatWithUser(userId, userName, title = '', conversationId = null) {
+        currentConversation = { recipientId: userId, recipientName: userName, title: title, id: conversationId };
         chatHeader.querySelector('span').textContent = currentConversation.recipientName;
         chatTitleInput.value = title;
-        chatTitleInput.disabled = !!title; // Disable title input if it's an existing conversation
+        chatTitleInput.disabled = !!title; 
         inboxView.style.display = 'none';
         chatView.style.display = 'flex';
 
-        if(title){ // Only mark as read if it's an existing conversation
-             const conversationId = [auth.currentUser.uid, userId].sort().join('_') + `_${title}`;
+        if(conversationId){ 
              const conversationRef = doc(db, 'conversations', conversationId);
              await updateDoc(conversationRef, {
                  lastReadBy: arrayUnion(auth.currentUser.uid)
@@ -1279,17 +1427,15 @@
         const deleteBtn = e.target.closest('.delete-conversation-btn');
         
         if(chatBtn) {
-             const item = chatBtn.closest('.inbox-item');
-             openChatWithUser(item.dataset.userId, item.dataset.userName, item.dataset.title);
+             const item = chatBtn.closest('.inbox-thread');
+             openChatWithUser(item.dataset.userId, item.dataset.userName, item.dataset.title, item.dataset.conversationId);
         }
 
         if (deleteBtn) {
             e.stopPropagation();
-            const item = deleteBtn.closest('.inbox-item');
-            const otherUserId = item.dataset.userId;
-            const title = item.dataset.title;
+            const item = deleteBtn.closest('.inbox-thread');
+            const conversationId = item.dataset.conversationId;
             if (confirm(`Are you sure you want to hide this conversation with ${item.dataset.userName}? The other user will still see it.`)) {
-                const conversationId = [auth.currentUser.uid, otherUserId].sort().join('_') + `_${title}`;
                 const conversationRef = doc(db, 'conversations', conversationId);
                 
                 await updateDoc(conversationRef, {
@@ -1325,16 +1471,17 @@
 
                 if(otherUserData) {
                     const convoEl = document.createElement('div');
-                    convoEl.className = 'inbox-item p-3 border-b border-[var(--border-primary)] flex justify-between items-center';
+                    convoEl.className = 'inbox-thread';
                     convoEl.dataset.userId = otherUserId;
                     convoEl.dataset.userName = otherUserData.displayName;
                     convoEl.dataset.title = convo.title;
+                    convoEl.dataset.conversationId = doc.id;
                     
                     const timestamp = convo.lastMessageTimestamp ? convo.lastMessageTimestamp.toDate().toLocaleString() : '';
                     const isUnread = convo.lastReadBy && !convo.lastReadBy.includes(auth.currentUser.uid);
 
                     convoEl.innerHTML = `
-                        <div class="flex-grow cursor-pointer hover:bg-[var(--bg-tertiary)] inbox-item-content p-2 rounded-md">
+                        <div class="flex-grow cursor-pointer inbox-item-content p-2 rounded-md">
                             <p class="font-bold text-[var(--text-primary)]">${convo.title} ${isUnread ? '<span class="ml-2 px-2.5 py-1 text-xs font-bold text-white bg-blue-500 rounded-full">new</span>' : ''}</p>
                              <p class="text-sm text-[var(--text-secondary)]">with ${otherUserData.displayName}</p>
                         </div>
@@ -1364,7 +1511,11 @@
         if(messageListenerUnsubscribe) messageListenerUnsubscribe();
         if(!currentConversation) return;
 
-        const conversationId = [auth.currentUser.uid, currentConversation.recipientId].sort().join('_') + `_${currentConversation.title}`;
+        if (!currentConversation.id) {
+            currentConversation.id = [auth.currentUser.uid, currentConversation.recipientId].sort().join('_') + `_${currentConversation.title}`;
+        }
+        
+        const conversationId = currentConversation.id;
         const messagesRef = collection(db, `conversations/${conversationId}/messages`);
         const q = query(messagesRef, orderBy('createdAt'));
 
@@ -1375,10 +1526,33 @@
                 const msgEl = document.createElement('div');
                 const isSender = msg.senderId === auth.currentUser.uid;
                 
-                msgEl.className = `p-2 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-[var(--accent-primary)] text-white ml-auto' : 'bg-[var(--bg-secondary)] text-[var(--text-primary)] mr-auto'}`;
+                msgEl.className = `message-bubble p-2 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-[var(--accent-primary)] text-white ml-auto' : 'bg-[var(--bg-secondary)] text-[var(--text-primary)] mr-auto'}`;
+                msgEl.dataset.messageId = doc.id;
+                msgEl.dataset.conversationId = conversationId;
                 
-                msgEl.innerHTML = msg.content;
+                let reactionsHTML = '<div class="flex items-center mt-1 flex-wrap">';
+                Object.entries(msg.reactions || {}).forEach(([emoji, users]) => {
+                    if (users.length > 0) {
+                         reactionsHTML += `<span class="reaction">${emoji} ${users.length}</span>`;
+                    }
+                });
+                reactionsHTML += '</div>';
 
+                const reactionButtonsHTML = `
+                    <div class="reactions absolute -top-5 ${isSender ? 'left-2' : 'right-2'} bg-[var(--bg-secondary)] shadow-md rounded-full p-1 border border-[var(--border-primary)] flex">
+                        <button data-emoji="👍" data-message-id="${doc.id}">👍</button>
+                        <button data-emoji="❤️" data-message-id="${doc.id}">❤️</button>
+                        <button data-emoji="😂" data-message-id="${doc.id}">😂</button>
+                    </div>
+                `;
+
+                msgEl.innerHTML = `
+                    <div class="relative">
+                        ${reactionButtonsHTML}
+                        <div>${msg.content}</div>
+                        ${Object.keys(msg.reactions || {}).length > 0 ? reactionsHTML : ''}
+                    </div>
+                `;
                 messageHistory.appendChild(msgEl);
             });
             messageHistory.scrollTop = messageHistory.scrollHeight;
@@ -1393,7 +1567,7 @@
             try {
                 await sendMessage(currentConversation.recipientId, title, contentHTML);
                 messageInput.innerHTML = '';
-                showAlert('Message sent successfully!');
+                // Don't show alert, it's disruptive. The message appearing is feedback enough.
             } catch(e) { /* showAlert is handled in sendMessage */ }
         } else {
             showAlert("Please provide a title and message content.");
