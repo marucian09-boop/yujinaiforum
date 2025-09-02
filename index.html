@@ -316,12 +316,9 @@
         </div>
         
         <!-- Search Section -->
-        <section id="search-section" class="mb-8">
-            <div class="relative">
-                 <input type="text" id="postSearchInput" placeholder="Search for a post..." class="form-input pl-10">
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-            </div>
-            <div id="postSearchResults" class="mt-2 bg-[var(--bg-secondary)] rounded-lg shadow-lg border border-[var(--border-primary)]" style="display: none;"></div>
+        <section id="search-section" class="mb-8 flex flex-col sm:flex-row gap-2">
+            <input type="text" id="searchInput" placeholder="Search by keyword in title or content..." class="form-input flex-grow">
+            <button id="searchBtn" class="btn btn-primary">Search</button>
         </section>
 
         <!-- Post Creation Section -->
@@ -958,6 +955,7 @@
         const postsColRef = collection(db, "posts");
         const q = query(postsColRef, orderBy("createdAt", "desc"));
         const postsUnsub = onSnapshot(q, (snapshot) => {
+            if (isSearching) return; // Don't overwrite search results
             postDocsCache = snapshot.docs;
             renderPosts(); // Render posts with latest post data
         });
@@ -1543,6 +1541,109 @@
                 messagesBtn.click();
             }
         });
+    });
+
+    // --- Search Logic ---
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    let isSearching = false;
+
+    function highlightMatch(text, keyword) {
+      if (!text) return '';
+      const regex = new RegExp(`(${keyword})`, 'gi');
+      return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-600 rounded">$1</mark>');
+    }
+
+    searchBtn.addEventListener('click', async () => {
+        const keyword = searchInput.value.trim().toLowerCase();
+        
+        if (!keyword) {
+            isSearching = false;
+            renderPosts(); // Render all posts if search is cleared
+            return;
+        }
+        
+        isSearching = true;
+        postList.innerHTML = `<p class="text-center text-[var(--text-secondary)]">Searching...</p>`;
+        
+        try {
+            const postsSnap = await getDocs(collection(db, "posts"));
+            const contribSnap = await getDocs(collection(db, "contributorPosts"));
+            const allDocs = [...postsSnap.docs, ...contribSnap.docs];
+
+            const filtered = allDocs.filter(doc => {
+                const data = doc.data();
+                return (
+                    data.title?.toLowerCase().includes(keyword) ||
+                    data.content?.toLowerCase().includes(keyword)
+                );
+            });
+
+            postList.innerHTML = ''; // Clear results
+
+            if (filtered.length === 0) {
+                postList.innerHTML = `<p class="text-center text-[var(--text-secondary)]">No matching posts found for "${searchInput.value}".</p>`;
+                return;
+            }
+
+            filtered.forEach(doc => {
+                const post = doc.data();
+                const postId = doc.id;
+                const authorData = usersDataCache[post.authorId];
+                
+                if (!authorData) return;
+
+                const postEl = document.createElement('div');
+                postEl.className = 'card p-5';
+                const timestamp = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now';
+
+                let userStatusHTML = '';
+                const role = authorData.role || 'newbie';
+                if (authorData.banned) {
+                     userStatusHTML = `<span class="ml-2 px-2.5 py-1 text-xs font-bold text-white bg-red-600 rounded-full">Banned</span>`;
+                } else {
+                    let roleColor = 'bg-blue-500';
+                    if (role === 'admin') roleColor = 'bg-violet-500';
+                    if (role === 'contributor') roleColor = 'bg-green-500';
+                    userStatusHTML = `<span class="ml-2 px-2.5 py-1 text-xs font-bold text-white ${roleColor} rounded-full">${role}</span>`;
+                }
+                
+                let adminControls = '';
+                if (currentUserRole === 'admin') {
+                    adminControls = `
+                        <div class="ml-auto flex items-center space-x-2">
+                             <button data-author-id="${post.authorId}" data-author-name="${authorData.displayName}" class="manage-user-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]">
+                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
+                            </button>
+                            <button data-post-id="${postId}" class="delete-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--destructive)]">
+                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>`;
+                }
+
+                const title = highlightMatch(post.title, keyword);
+                const contentSnippet = post.content.length > 150 ? post.content.substring(0, 150) + '...' : post.content;
+                const highlightedSnippet = highlightMatch(contentSnippet, keyword);
+
+                postEl.innerHTML = `
+                    <div class="flex items-start flex-wrap">
+                        <div class="flex items-center mb-2 sm:mb-0">
+                            <div class="font-bold text-[var(--text-primary)]">${authorData.displayName}</div>
+                            ${userStatusHTML}
+                        </div>
+                        ${adminControls}
+                    </div>
+                    <div class="text-xs text-[var(--text-secondary)]">${timestamp}</div>
+                    <h4 class="text-xl font-semibold text-[var(--text-accent)] mt-2 hover:underline cursor-pointer view-post-btn" data-post-id="${postId}">${title}</h4>
+                    <p class="text-[var(--text-secondary)] mt-2">${highlightedSnippet}</p>
+                `;
+                postList.appendChild(postEl);
+            });
+
+        } catch(error) {
+            console.error("Error during search:", error);
+            postList.innerHTML = `<p class="text-center text-[var(--destructive)]">An error occurred during search.</p>`;
+        }
     });
 
 </script>
