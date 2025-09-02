@@ -344,6 +344,22 @@
     </main>
     
     <!-- Modals -->
+    <div id="editPostModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-2xl modal-content-animation">
+            <div class="flex justify-between items-start mb-4">
+                <h3 class="text-lg font-bold text-[var(--text-primary)]">Edit Post</h3>
+                <button id="closeEditPostModal" class="btn btn-ghost !p-1 h-8 w-8">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <input type="text" id="editPostTitle" placeholder="Post Title" class="form-input">
+                <textarea id="editPostContent" placeholder="What's on your mind?" class="form-input h-48"></textarea>
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button id="saveEditBtn" class="btn btn-success">Save Changes</button>
+            </div>
+        </div>
+    </div>
+    
     <div id="userProfileModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
         <div class="card p-6 w-full max-w-md modal-content-animation">
             <div class="flex justify-between items-start mb-4">
@@ -530,6 +546,12 @@
     // Post Elements
     const postViewModal = document.getElementById('postViewModal');
     const closePostViewModal = document.getElementById('closePostViewModal');
+    const editPostModal = document.getElementById('editPostModal');
+    const closeEditPostModal = document.getElementById('closeEditPostModal');
+    const editPostTitleInput = document.getElementById('editPostTitle');
+    const editPostContentInput = document.getElementById('editPostContent');
+    const saveEditBtn = document.getElementById('saveEditBtn');
+
 
     // Messaging Elements
     const messagesBtn = document.getElementById('messagesBtn');
@@ -568,6 +590,7 @@
     let messageListenerUnsubscribe = null;
     let inboxListenerUnsubscribe = null;
     let currentUserData = null;
+    let currentEditingPostId = null;
     
     // --- Custom Alert Modal ---
     const alertModal = document.getElementById('alertModal');
@@ -891,6 +914,7 @@
             const postEl = document.createElement('div');
             postEl.className = 'card p-5';
             const timestamp = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now';
+            const editedTimestampText = post.editedAt ? `(edited ${post.editedAt.toDate().toLocaleString()})` : '';
 
             let userStatusHTML = '';
             const role = authorData.role || 'newbie';
@@ -902,30 +926,38 @@
                 if (role === 'contributor') roleColor = 'bg-green-500';
                 userStatusHTML = `<span class="ml-2 px-2.5 py-1 text-xs font-bold text-white ${roleColor} rounded-full">${role}</span>`;
             }
-            
-            let adminControls = '';
-            if (currentUserRole === 'admin') {
-                adminControls = `
-                    <div class="ml-auto flex items-center space-x-2">
-                         <button data-author-id="${post.authorId}" data-author-name="${authorData.displayName}" class="manage-user-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]">
-                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
-                        </button>
-                        <button data-post-id="${postId}" class="delete-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--destructive)]">
-                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                        </button>
-                    </div>`;
-            }
 
+            const canEdit = auth.currentUser && (auth.currentUser.uid === post.authorId || currentUserRole === 'admin');
+            
             postEl.innerHTML = `
                 <div class="flex items-start flex-wrap">
                     <div class="flex items-center mb-2 sm:mb-0">
                         <div class="font-bold text-[var(--text-primary)]">${authorData.displayName}</div>
                         ${userStatusHTML}
                     </div>
-                    ${adminControls}
+                    <div class="ml-auto flex items-center space-x-2">
+                        ${canEdit ? `
+                            <button data-post-id="${postId}" class="edit-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]" title="Edit Post">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
+                            </button>` : ''}
+                        ${currentUserRole === 'admin' ? `
+                            <button data-post-id="${postId}" data-pinned="${post.pinned}" class="pin-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]" title="${post.pinned ? 'Unpin Post' : 'Pin Post'}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5.586l2.293-2.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 9.586V4a1 1 0 011-1z" clip-rule="evenodd" /><path d="M3 12a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" /></svg>
+                            </button>
+                            <button data-author-id="${post.authorId}" data-author-name="${authorData.displayName}" class="manage-user-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]" title="Manage User">
+                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
+                            </button>
+                            <button data-post-id="${postId}" class="delete-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--destructive)]" title="Delete Post">
+                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                            </button>
+                        ` : ''}
+                    </div>
                 </div>
-                <div class="text-xs text-[var(--text-secondary)]">${timestamp}</div>
-                <h4 class="text-xl font-semibold text-[var(--text-accent)] mt-2 hover:underline cursor-pointer view-post-btn" data-post-id="${postId}">${post.title}</h4>
+                <div class="text-xs text-[var(--text-secondary)]">${timestamp} <span class="italic">${editedTimestampText}</span></div>
+                <h4 class="text-xl font-semibold text-[var(--text-accent)] mt-2 hover:underline cursor-pointer view-post-btn flex items-center gap-2" data-post-id="${postId}">
+                    ${post.pinned ? '<span class="text-xl" title="Pinned Post">📌</span>' : ''}
+                    <span>${post.title}</span>
+                </h4>
             `;
             postList.appendChild(postEl);
         });
@@ -957,6 +989,8 @@
         const postsUnsub = onSnapshot(q, (snapshot) => {
             if (isSearching) return; // Don't overwrite search results
             postDocsCache = snapshot.docs;
+            // Sort pinned posts to the top
+            postDocsCache.sort((a, b) => (b.data().pinned ? 1 : 0) - (a.data().pinned ? 1 : 0));
             renderPosts(); // Render posts with latest post data
         });
 
@@ -977,6 +1011,7 @@
                     authorId: user.uid,
                     authorName: currentUserData.displayName,
                     createdAt: serverTimestamp(),
+                    pinned: false,
                 });
                 document.getElementById("postTitle").value = '';
                 document.getElementById("postContent").value = '';
@@ -992,6 +1027,8 @@
         const viewBtn = e.target.closest('.view-post-btn');
         const deleteBtn = e.target.closest('.delete-post-btn');
         const manageBtn = e.target.closest('.manage-user-btn');
+        const editBtn = e.target.closest('.edit-post-btn');
+        const pinBtn = e.target.closest('.pin-post-btn');
 
         if (viewBtn) {
             const postId = viewBtn.dataset.postId;
@@ -1019,6 +1056,18 @@
             if(userName) {
                 openAdminModal(userId, userName);
             }
+        }
+        if (editBtn) {
+            const postId = editBtn.dataset.postId;
+            const postDoc = postDocsCache.find(doc => doc.id === postId);
+            if (postDoc) {
+                openEditModal(postDoc.data(), postId);
+            }
+        }
+        if (pinBtn) {
+            const postId = pinBtn.dataset.postId;
+            const shouldPin = pinBtn.dataset.pinned !== 'true';
+            togglePin(postId, shouldPin);
         }
     });
     closePostViewModal.addEventListener('click', () => postViewModal.style.display = 'none');
@@ -1645,6 +1694,57 @@
             postList.innerHTML = `<p class="text-center text-[var(--destructive)]">An error occurred during search.</p>`;
         }
     });
+    
+    // --- Post Editing & Pinning ---
+    closeEditPostModal.onclick = () => {
+        editPostModal.style.display = 'none';
+        currentEditingPostId = null;
+    };
+    
+    async function togglePin(postId, shouldPin) {
+        const postRef = doc(db, "posts", postId);
+        try {
+            await updateDoc(postRef, { pinned: shouldPin });
+        } catch (e) {
+            console.error("Error toggling pin status:", e);
+            showAlert("Failed to update pin status.");
+        }
+    }
+
+    function openEditModal(post, postId) {
+        currentEditingPostId = postId;
+        editPostTitleInput.value = post.title;
+        editPostContentInput.value = post.content;
+        editPostModal.style.display = 'flex';
+    }
+
+    async function savePostEdit() {
+        if (!currentEditingPostId) return;
+        
+        const title = editPostTitleInput.value.trim();
+        const content = editPostContentInput.value.trim();
+
+        if (!title || !content) {
+            showAlert("Title and content cannot be empty.");
+            return;
+        }
+
+        const postRef = doc(db, "posts", currentEditingPostId);
+        try {
+            await updateDoc(postRef, {
+                title,
+                content,
+                editedAt: serverTimestamp()
+            });
+            editPostModal.style.display = 'none';
+            currentEditingPostId = null;
+        } catch(e) {
+            console.error("Error saving post edit:", e);
+            showAlert("Failed to save changes.");
+        }
+    }
+
+    saveEditBtn.addEventListener('click', savePostEdit);
 
 </script>
 </body>
