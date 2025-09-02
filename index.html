@@ -231,7 +231,7 @@
         opacity: 0.7;
     }
 
-    /* --- Added CSS from User --- */
+    /* --- Messaging & Reactions UI --- */
     .reactions {
         opacity: 0;
         transition: opacity 0.2s ease;
@@ -280,8 +280,38 @@
     .inbox-thread:hover {
         background-color: var(--bg-tertiary);
     }
+
     .message-bubble {
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        border-radius: 12px;
+        padding: 10px;
         position: relative;
+        animation: fadeIn 0.3s ease-in;
+    }
+
+    .message-bubble.admin {
+        border-left: 4px solid var(--accent-primary);
+    }
+    
+    .delete-msg-btn {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-secondary);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .message-bubble:hover .delete-msg-btn {
+        opacity: 0.6;
+    }
+    .delete-msg-btn:hover {
+        opacity: 1;
+        color: var(--destructive);
     }
 </style>
 </head>
@@ -729,6 +759,29 @@
         });
     }
 
+    // --- Soft Delete Listener ---
+    function initSoftDelete() {
+        document.addEventListener("click", async (e) => {
+            const btn = e.target.closest(".delete-msg-btn");
+            if (!btn || !auth.currentUser) return;
+
+            const messageId = btn.dataset.id;
+            const conversationId = currentConversation?.id;
+
+            if (!messageId || !conversationId) return;
+
+            const messageRef = doc(db, `conversations/${conversationId}/messages`, messageId);
+            try {
+                await updateDoc(messageRef, {
+                    deletedBy: arrayUnion(auth.currentUser.uid)
+                });
+            } catch(err) {
+                console.error("Error deleting message:", err);
+                showAlert("Failed to delete message.");
+            }
+        });
+    }
+
     // --- Dark Mode ---
     function applyDarkMode(isDark) {
         document.documentElement.classList.toggle('dark', isDark);
@@ -949,6 +1002,7 @@
             attachFirestoreListeners();
             initReactions();
             initSwipeToDelete();
+            initSoftDelete();
             
             if (user.isAnonymous) {
                 authContainer.style.display = 'flex';
@@ -1310,7 +1364,8 @@
                 recipientId: recipientId,
                 content: contentHTML,
                 createdAt: serverTimestamp(),
-                reactions: {}
+                reactions: {},
+                deletedBy: []
             });
               return Promise.resolve();
         } catch (error) {
@@ -1506,6 +1561,14 @@
             }
         });
     }
+    
+    function renderReactions(reactions) {
+        if (!reactions || Object.keys(reactions).length === 0) return '';
+        const reactionsHTML = Object.entries(reactions)
+            .map(([emoji, users]) => users.length > 0 ? `<span class="reaction">${emoji} ${users.length}</span>` : '')
+            .join('');
+        return `<div class="flex items-center mt-1 flex-wrap">${reactionsHTML}</div>`;
+    }
 
     function loadMessageHistory(){
         if(messageListenerUnsubscribe) messageListenerUnsubscribe();
@@ -1523,20 +1586,18 @@
             messageHistory.innerHTML = '';
             snapshot.forEach(doc => {
                 const msg = doc.data();
+                if (msg.deletedBy?.includes(auth.currentUser.uid)) return;
+
                 const msgEl = document.createElement('div');
                 const isSender = msg.senderId === auth.currentUser.uid;
+                const senderData = usersDataCache[msg.senderId];
+                const isAdminSender = senderData?.role === 'admin';
                 
-                msgEl.className = `message-bubble p-2 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-[var(--accent-primary)] text-white ml-auto' : 'bg-[var(--bg-secondary)] text-[var(--text-primary)] mr-auto'}`;
+                msgEl.className = `message-bubble my-1 max-w-xs break-words ${isSender ? 'bg-[var(--accent-primary)] text-white ml-auto' : 'text-[var(--text-primary)] mr-auto'} ${isAdminSender ? 'admin' : ''}`;
                 msgEl.dataset.messageId = doc.id;
                 msgEl.dataset.conversationId = conversationId;
                 
-                let reactionsHTML = '<div class="flex items-center mt-1 flex-wrap">';
-                Object.entries(msg.reactions || {}).forEach(([emoji, users]) => {
-                    if (users.length > 0) {
-                         reactionsHTML += `<span class="reaction">${emoji} ${users.length}</span>`;
-                    }
-                });
-                reactionsHTML += '</div>';
+                const renderedReactionsHTML = renderReactions(msg.reactions);
 
                 const reactionButtonsHTML = `
                     <div class="reactions absolute -top-5 ${isSender ? 'left-2' : 'right-2'} bg-[var(--bg-secondary)] shadow-md rounded-full p-1 border border-[var(--border-primary)] flex">
@@ -1546,11 +1607,14 @@
                     </div>
                 `;
 
+                const deleteButtonHTML = `<button class="delete-msg-btn" data-id="${doc.id}">🗑️</button>`;
+
                 msgEl.innerHTML = `
                     <div class="relative">
                         ${reactionButtonsHTML}
+                        ${deleteButtonHTML}
                         <div>${msg.content}</div>
-                        ${Object.keys(msg.reactions || {}).length > 0 ? reactionsHTML : ''}
+                        ${renderedReactionsHTML}
                     </div>
                 `;
                 messageHistory.appendChild(msgEl);
@@ -1704,3 +1768,4 @@
 </script>
 </body>
 </html>
+
