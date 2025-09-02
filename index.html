@@ -569,6 +569,7 @@
     let postDocsCache = [];
     let currentConversation = null;
     let messageListenerUnsubscribe = null;
+    let inboxListenerUnsubscribe = null;
     let currentUserData = null;
     
     // --- Custom Alert Modal ---
@@ -1208,6 +1209,7 @@
     closeMessagingModal.addEventListener('click', () => {
          messagingModal.style.display = 'none';
          if(messageListenerUnsubscribe) messageListenerUnsubscribe();
+         if(inboxListenerUnsubscribe) inboxListenerUnsubscribe();
          currentConversation = null;
          messageRecipientSearch.value = '';
     });
@@ -1303,10 +1305,15 @@
 
     async function loadInbox() {
         if(!auth.currentUser) return;
+        
+        if(inboxListenerUnsubscribe) {
+            inboxListenerUnsubscribe();
+        }
+
         const convosRef = collection(db, 'conversations');
         const q = query(convosRef, where('participants', 'array-contains', auth.currentUser.uid), orderBy('lastMessageTimestamp', 'desc'));
 
-        onSnapshot(q, (snapshot) => {
+        inboxListenerUnsubscribe = onSnapshot(q, (snapshot) => {
             urgentInboxList.innerHTML = '';
             regularInboxList.innerHTML = '';
 
@@ -1530,4 +1537,3 @@
 </script>
 </body>
 </html>
-
