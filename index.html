@@ -559,17 +559,107 @@
     closeInboxModal.onclick = () => inboxModal.style.display = 'none';
     closeChatModal.onclick = () => { chatModal.style.display = 'none'; if (messageListenerUnsubscribe) messageListenerUnsubscribe(); currentChatRecipient = null; };
     function getRoleUI(role) { let badgeColor = 'bg-blue-500'; let gradientClass = 'gradient-text-newbie'; if (role === 'admin') { badgeColor = 'bg-violet-500'; gradientClass = 'gradient-text-admin'; } else if (role === 'contributor') { badgeColor = 'bg-green-500'; gradientClass = 'gradient-text-contributor'; } return { badgeColor, gradientClass }; }
-    function renderMembersList() { if (!memberList || inboxModal.style.display === 'none') return; memberList.innerHTML = ''; const hardcodedUsers = { 'sampleAdmin1': { displayName: 'AdminUser', role: 'admin' }, 'sampleContrib1': { displayName: 'TopContributor', role: 'contributor' }, 'sampleNewbie1': { displayName: 'NewUser', role: 'newbie' }, }; const combinedUsers = {...usersDataCache, ...hardcodedUsers}; Object.entries(combinedUsers).forEach(([uid, userData]) => { if (uid === auth.currentUser?.uid) return; const isOnline = onlineUsers[uid]?.online || (uid.startsWith('sample') && Math.random() > 0.5); const { badgeColor, gradientClass } = getRoleUI(userData.role); const memberEl = document.createElement('div'); memberEl.className = 'flex items-center p-2 rounded-lg hover:bg-[var(--bg-tertiary)] cursor-pointer'; memberEl.dataset.uid = uid; memberEl.dataset.name = userData.displayName; memberEl.innerHTML = ` <div class="flex-shrink-0 mr-3"> <div class="${isOnline ? 'online-indicator' : 'offline-indicator'}"></div> </div> <div class="flex-grow"> <p class="font-bold ${gradientClass}">${userData.displayName}</p> <p class="text-xs text-[var(--text-secondary)] capitalize">${userData.role || 'newbie'}</p> </div> <span class="px-2 py-0.5 text-xs font-bold text-white rounded-full ${badgeColor}">${userData.role || 'newbie'}</span> `; memberEl.onclick = () => openChat(uid, userData.displayName); memberList.appendChild(memberEl); }); }
+    
+    function renderMembersList() {
+        if (!memberList || inboxModal.style.display === 'none') return;
+        memberList.innerHTML = '';
+        Object.entries(usersDataCache).forEach(([uid, userData]) => {
+            if (uid === auth.currentUser?.uid) return;
+            const isOnline = onlineUsers[uid]?.online;
+            const { badgeColor, gradientClass } = getRoleUI(userData.role);
+            const memberEl = document.createElement('div');
+            memberEl.className = 'flex items-center p-2 rounded-lg hover:bg-[var(--bg-tertiary)] cursor-pointer';
+            memberEl.dataset.uid = uid;
+            memberEl.dataset.name = userData.displayName;
+            memberEl.innerHTML = ` <div class="flex-shrink-0 mr-3"> <div class="${isOnline ? 'online-indicator' : 'offline-indicator'}"></div> </div> <div class="flex-grow"> <p class="font-bold ${gradientClass}">${userData.displayName}</p> <p class="text-xs text-[var(--text-secondary)] capitalize">${userData.role || 'newbie'}</p> </div> <span class="px-2 py-0.5 text-xs font-bold text-white rounded-full ${badgeColor}">${userData.role || 'newbie'}</span> `;
+            memberEl.onclick = () => openChat(uid, userData.displayName);
+            memberList.appendChild(memberEl);
+        });
+    }
+
     function openChat(uid, name) { currentChatRecipient = { uid, name }; chatHeader.textContent = `Chat with ${name}`; chatModal.style.display = 'block'; inboxModal.style.display = 'none'; messageHistory.innerHTML = ''; loadMessageHistory(); }
-    async function sendChatMessage() { const content = messageInput.value.trim(); if (!content || !currentChatRecipient || !auth.currentUser) return; const conversationId = [auth.currentUser.uid, currentChatRecipient.uid].sort().join('_'); const messagesRef = collection(db, `conversations/${conversationId}/messages`); const conversationRef = doc(db, 'conversations', conversationId); try { await addDoc(messagesRef, { senderId: auth.currentUser.uid, content: content, createdAt: serverTimestamp() }); await setDoc(conversationRef, { participants: [auth.currentUser.uid, currentChatRecipient.uid], lastMessage: content, lastMessageTimestamp: serverTimestamp(), }, { merge: true }); messageInput.value = ''; showToast('Message sent successfully!', 'success'); } catch (error) { console.error("Error sending message:", error); showToast('Failed to send message.', 'error'); } }
+    
+    async function sendChatMessage() { 
+        const content = messageInput.value.trim(); 
+        if (!content || !currentChatRecipient || !auth.currentUser) return; 
+        const conversationId = [auth.currentUser.uid, currentChatRecipient.uid].sort().join('_'); 
+        const messagesRef = collection(db, `conversations/${conversationId}/messages`); 
+        const conversationRef = doc(db, 'conversations', conversationId); 
+        try { 
+            await addDoc(messagesRef, { senderId: auth.currentUser.uid, content: content, createdAt: serverTimestamp() }); 
+            await setDoc(conversationRef, { participants: [auth.currentUser.uid, currentChatRecipient.uid], lastMessage: content, lastMessageTimestamp: serverTimestamp(), }, { merge: true }); 
+            messageInput.value = ''; 
+            showToast('Message sent successfully!', 'success'); 
+        } catch (error) { 
+            console.error("Error sending message:", error); 
+            showToast('Failed to send message.', 'error'); 
+        } 
+    }
     sendMessageBtn.onclick = sendChatMessage;
-    function loadMessageHistory() { if (messageListenerUnsubscribe) messageListenerUnsubscribe(); if (!currentChatRecipient || !auth.currentUser) return; const conversationId = [auth.currentUser.uid, currentChatRecipient.uid].sort().join('_'); const messagesRef = collection(db, `conversations/${conversationId}/messages`); const q = query(messagesRef, orderBy('createdAt')); messageListenerUnsubscribe = onSnapshot(q, (snapshot) => { messageHistory.innerHTML = ''; snapshot.forEach(doc => { const msg = doc.data(); const msgEl = document.createElement('div'); const isSender = msg.senderId === auth.currentUser.uid; msgEl.className = `p-3 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-[var(--accent-primary)] text-white ml-auto' : 'bg-[var(--bg-secondary)] text-[var(--text-primary)] mr-auto shadow-sm'}`; 
-        msgEl.innerHTML = msg.content.replace(/</g, "&lt;").replace(/>/g, "&gt;"); // Basic sanitization
-        messageHistory.appendChild(msgEl);
-    }); messageHistory.scrollTop = messageHistory.scrollHeight; }); }
+
+    function loadMessageHistory() {
+        if (messageListenerUnsubscribe) messageListenerUnsubscribe();
+        if (!currentChatRecipient || !auth.currentUser) return;
+        const conversationId = [auth.currentUser.uid, currentChatRecipient.uid].sort().join('_');
+        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
+        const q = query(messagesRef, orderBy('createdAt'));
+        messageListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+            messageHistory.innerHTML = '';
+            snapshot.forEach(doc => {
+                const msg = doc.data();
+                const msgEl = document.createElement('div');
+                const isSender = msg.senderId === auth.currentUser.uid;
+                msgEl.className = `p-3 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-[var(--accent-primary)] text-white ml-auto' : 'bg-[var(--bg-secondary)] text-[var(--text-primary)] mr-auto shadow-sm'}`;
+                
+                if (msg.isWarning && msg.content) {
+                    msgEl.innerHTML = msg.content; // Render warning HTML directly
+                } else if (msg.content) {
+                    msgEl.textContent = msg.content; // Safely set content for regular messages
+                }
+                
+                messageHistory.appendChild(msgEl);
+            });
+            messageHistory.scrollTop = messageHistory.scrollHeight;
+        });
+    }
     
     // --- UPDATED Admin Warning Logic ---
-    sendWarningBtn.onclick = async () => { const messageText = warningMessage.textContent.trim(); if (!messageText || !targetUserId) { showToast('User or message is missing.', 'error'); return; } const styledContent = `<p style="background: linear-gradient(90deg, #f97316, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">${messageText.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`; const conversationId = [auth.currentUser.uid, targetUserId].sort().join('_'); const messagesRef = collection(db, `conversations/${conversationId}/messages`); const conversationRef = doc(db, 'conversations', conversationId); try { await addDoc(messagesRef, { senderId: auth.currentUser.uid, content: styledContent, isWarning: true, createdAt: serverTimestamp() }); await setDoc(conversationRef, { participants: [auth.currentUser.uid, targetUserId], lastMessage: "You have received a warning.", lastMessageTimestamp: serverTimestamp(), }, { merge: true }); showToast('Warning sent successfully.', 'success'); adminModal.style.display = 'none'; } catch (error) { console.error("Error sending warning:", error); showToast('Failed to send warning.', 'error'); } };
+    sendWarningBtn.onclick = async () => {
+        const user = auth.currentUser;
+        if (!user) {
+            showToast('You must be logged in to send a warning.', 'error');
+            return;
+        }
+        const messageText = warningMessage.textContent.trim();
+        if (!messageText || !targetUserId) {
+            showToast('User or message is missing.', 'error');
+            return;
+        }
+        const styledContent = `<p style="background: linear-gradient(90deg, #f97316, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">${messageText.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`;
+        const conversationId = [user.uid, targetUserId].sort().join('_');
+        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
+        const conversationRef = doc(db, 'conversations', conversationId);
+        try {
+            await addDoc(messagesRef, {
+                senderId: user.uid,
+                content: styledContent,
+                isWarning: true,
+                createdAt: serverTimestamp()
+            });
+            await setDoc(conversationRef, {
+                participants: [user.uid, targetUserId],
+                lastMessage: "You have received a warning.",
+                lastMessageTimestamp: serverTimestamp(),
+            }, {
+                merge: true
+            });
+            showToast('Warning sent successfully.', 'success');
+            adminModal.style.display = 'none';
+        } catch (error) {
+            console.error("Error sending warning:", error);
+            showToast('Failed to send warning.', 'error');
+        }
+    };
 
     // --- User Profile Logic (Original, kept intact) ---
     userInfoContainer.addEventListener('click', async () => { const user = auth.currentUser; if (!user || user.isAnonymous) return; const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid)); const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid)); const postSnap = await getDocs(postsQuery); const contributorSnap = await getDocs(contributorPostsQuery); profilePostCount.textContent = postSnap.size + contributorSnap.size; if (currentUserRole === 'admin' || currentUserRole === 'contributor') { const thirtyDaysInMillis = 30 * 24 * 60 * 60 * 1000; const lastChange = currentUserData.lastUsernameChange?.toMillis(); const now = Date.now(); if (lastChange && (now - lastChange < thirtyDaysInMillis)) { const daysRemaining = Math.ceil((thirtyDaysInMillis - (now - lastChange)) / (1000 * 60 * 60 * 24)); changeUsernameBtn.disabled = true; newUsernameInput.disabled = true; changeUsernameError.textContent = `You can change your username again in ${daysRemaining} days.`; changeUsernameError.style.display = 'block'; } else { changeUsernameBtn.disabled = false; newUsernameInput.disabled = false; changeUsernameError.style.display = 'none'; } changeUsernameSection.style.display = 'block'; } else { changeUsernameSection.style.display = 'none'; } userProfileModal.style.display = 'flex'; });
@@ -595,5 +685,4 @@
 </script>
 </body>
 </html>
-
 
