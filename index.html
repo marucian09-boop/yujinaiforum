@@ -601,12 +601,15 @@
             participants: [user.uid, recipientId],
             lastMessage: isWarning ? "You have received a warning" : content.substring(0, 40) + (content.length > 40 ? '...' : ''),
             lastMessageTimestamp: serverTimestamp(),
-            lastReadBy: [user.uid] // Sender has read it by default
         };
 
         try {
-            await addDoc(messagesRef, messageData);
+            // UPDATED: Create/update the conversation document BEFORE adding the message.
             await setDoc(conversationRef, conversationData, { merge: true });
+            await addDoc(messagesRef, messageData);
+            // After sending, update the lastReadBy to include the sender
+            await updateDoc(conversationRef, { lastReadBy: [user.uid] });
+            
             return { success: true };
         } catch (error) {
             console.error("Error sending message:", error);
