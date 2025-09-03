@@ -658,38 +658,80 @@
         
         conversationListenerUnsubscribe = onSnapshot(q, (snapshot) => {
             conversationList.innerHTML = '';
-            if (snapshot.empty) {
-                conversationList.innerHTML = `<p class="text-center text-[var(--text-secondary)] p-4">No conversations yet. Start a new one!</p>`;
-                return;
-            }
+            let conversationsFound = false;
             snapshot.forEach(doc => {
                 const convo = doc.data();
+                if (convo.hiddenFor && convo.hiddenFor.includes(user.uid)) {
+                    return; // Skip rendering this conversation
+                }
+                conversationsFound = true;
                 const otherUserId = convo.participants.find(id => id !== user.uid);
                 const otherUserData = usersDataCache[otherUserId];
                 if (!otherUserData) return;
 
                 const isUnread = convo.lastReadBy && !convo.lastReadBy.includes(user.uid);
                 const convoEl = document.createElement('div');
-                convoEl.className = 'flex items-center p-3 rounded-lg hover:bg-[var(--bg-tertiary)] cursor-pointer';
+                convoEl.className = 'flex items-center p-3 rounded-lg hover:bg-[var(--bg-tertiary)] cursor-pointer conversation-item';
                 convoEl.dataset.uid = otherUserId;
                 convoEl.dataset.name = otherUserData.displayName;
                 
                 convoEl.innerHTML = `
-                    <div class="flex-grow">
+                    <div class="flex-grow conversation-details">
                         <p class="font-bold text-[var(--text-primary)]">${otherUserData.displayName}</p>
                         <p class="text-sm text-[var(--text-secondary)] truncate">${convo.lastMessage}</p>
                     </div>
-                    ${isUnread ? '<div class="unread-indicator ml-2"></div>' : ''}
+                    <div class="flex flex-col items-end pl-2">
+                        ${isUnread ? '<div class="unread-indicator mb-1"></div>' : '<div class="h-[12px] mb-1"></div>'}
+                        <button class="delete-conversation-btn btn btn-ghost !p-1 h-6 w-6 text-[var(--text-secondary)] hover:text-[var(--destructive)]">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>
                 `;
-                convoEl.onclick = () => openChat(otherUserId, otherUserData.displayName);
                 conversationList.appendChild(convoEl);
             });
+
+            if (!conversationsFound) {
+                conversationList.innerHTML = `<p class="text-center text-[var(--text-secondary)] p-4">No conversations yet. Start a new one!</p>`;
+            }
         });
     }
+    
+    conversationsModal.addEventListener('click', (e) => {
+        const conversationDetails = e.target.closest('.conversation-details');
+        if (conversationDetails) {
+            const conversationEl = conversationDetails.closest('.conversation-item');
+            openChat(conversationEl.dataset.uid, conversationEl.dataset.name);
+        }
+
+        const deleteBtn = e.target.closest('.delete-conversation-btn');
+        if (deleteBtn) {
+            e.stopPropagation();
+            const conversationEl = deleteBtn.closest('.conversation-item');
+            const otherUserId = conversationEl.dataset.uid;
+            const otherUserName = conversationEl.dataset.name;
+
+            showConfirm(`Are you sure you want to hide this conversation with ${otherUserName}? You will no longer see it, but they will.`, async () => {
+                const user = auth.currentUser;
+                if (user) {
+                    const conversationId = [user.uid, otherUserId].sort().join('_');
+                    const conversationRef = doc(db, 'conversations', conversationId);
+                    try {
+                        await updateDoc(conversationRef, {
+                            hiddenFor: arrayUnion(user.uid)
+                        });
+                        showToast('Conversation hidden.', 'success');
+                    } catch (error) {
+                        console.error("Error hiding conversation:", error);
+                        showToast('Could not hide conversation.', 'error');
+                    }
+                }
+            });
+        }
+    });
 
     conversationSearch.addEventListener('input', (e) => {
         const searchTerm = e.target.value.toLowerCase();
-        document.querySelectorAll('#conversationList > div').forEach(el => {
+        document.querySelectorAll('#conversationList > .conversation-item').forEach(el => {
             const name = el.dataset.name.toLowerCase();
             el.style.display = name.includes(searchTerm) ? 'flex' : 'none';
         });
