@@ -416,7 +416,7 @@
     // Firebase imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInWithEmailAndPassword, signInAnonymously, deleteUser } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, onSnapshot, addDoc, query, orderBy, where, getDocs, updateDoc, deleteDoc, arrayUnion, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, onSnapshot, addDoc, query, orderBy, where, getDocs, updateDoc, deleteDoc, writeBatch, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
     const firebaseConfig = {
@@ -658,13 +658,12 @@
         
         conversationListenerUnsubscribe = onSnapshot(q, (snapshot) => {
             conversationList.innerHTML = '';
-            let conversationsFound = false;
+            if (snapshot.empty) {
+                conversationList.innerHTML = `<p class="text-center text-[var(--text-secondary)] p-4">No conversations yet. Start a new one!</p>`;
+                return;
+            }
             snapshot.forEach(doc => {
                 const convo = doc.data();
-                if (convo.hiddenFor && convo.hiddenFor.includes(user.uid)) {
-                    return; // Skip rendering this conversation
-                }
-                conversationsFound = true;
                 const otherUserId = convo.participants.find(id => id !== user.uid);
                 const otherUserData = usersDataCache[otherUserId];
                 if (!otherUserData) return;
@@ -689,10 +688,6 @@
                 `;
                 conversationList.appendChild(convoEl);
             });
-
-            if (!conversationsFound) {
-                conversationList.innerHTML = `<p class="text-center text-[var(--text-secondary)] p-4">No conversations yet. Start a new one!</p>`;
-            }
         });
     }
     
@@ -710,19 +705,28 @@
             const otherUserId = conversationEl.dataset.uid;
             const otherUserName = conversationEl.dataset.name;
 
-            showConfirm(`Are you sure you want to hide this conversation with ${otherUserName}? You will no longer see it, but they will.`, async () => {
+            showConfirm(`Are you sure you want to permanently delete this conversation with ${otherUserName}? This cannot be undone and will delete it for both users.`, async () => {
                 const user = auth.currentUser;
                 if (user) {
                     const conversationId = [user.uid, otherUserId].sort().join('_');
                     const conversationRef = doc(db, 'conversations', conversationId);
+                    const messagesRef = collection(db, `conversations/${conversationId}/messages`);
                     try {
-                        await updateDoc(conversationRef, {
-                            hiddenFor: arrayUnion(user.uid)
+                        // Batch delete all messages in the subcollection
+                        const messagesSnapshot = await getDocs(messagesRef);
+                        const batch = writeBatch(db);
+                        messagesSnapshot.forEach(messageDoc => {
+                            batch.delete(messageDoc.ref);
                         });
-                        showToast('Conversation hidden.', 'success');
+                        await batch.commit();
+
+                        // Delete the parent conversation document
+                        await deleteDoc(conversationRef);
+
+                        showToast('Conversation deleted.', 'success');
                     } catch (error) {
-                        console.error("Error hiding conversation:", error);
-                        showToast('Could not hide conversation.', 'error');
+                        console.error("Error deleting conversation:", error);
+                        showToast('Could not delete conversation.', 'error');
                     }
                 }
             });
