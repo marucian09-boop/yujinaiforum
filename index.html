@@ -658,12 +658,13 @@
         
         conversationListenerUnsubscribe = onSnapshot(q, (snapshot) => {
             conversationList.innerHTML = '';
-            if (snapshot.empty) {
-                conversationList.innerHTML = `<p class="text-center text-[var(--text-secondary)] p-4">No conversations yet. Start a new one!</p>`;
-                return;
-            }
+            let conversationsFound = false;
             snapshot.forEach(doc => {
                 const convo = doc.data();
+                if (convo.hiddenFor && convo.hiddenFor.includes(user.uid)) {
+                    return; // Skip rendering this conversation
+                }
+                conversationsFound = true;
                 const otherUserId = convo.participants.find(id => id !== user.uid);
                 const otherUserData = usersDataCache[otherUserId];
                 if (!otherUserData) return;
@@ -688,6 +689,10 @@
                 `;
                 conversationList.appendChild(convoEl);
             });
+
+            if (!conversationsFound) {
+                conversationList.innerHTML = `<p class="text-center text-[var(--text-secondary)] p-4">No conversations yet. Start a new one!</p>`;
+            }
         });
     }
     
@@ -705,25 +710,37 @@
             const otherUserId = conversationEl.dataset.uid;
             const otherUserName = conversationEl.dataset.name;
 
-            showConfirm(`Are you sure you want to permanently delete this conversation with ${otherUserName}? This cannot be undone and will delete it for both users.`, async () => {
+            showConfirm(`Are you sure you want to delete this conversation with ${otherUserName}? This will only hide it from your view. If the other user also deletes it, the conversation will be removed permanently.`, async () => {
                 const user = auth.currentUser;
                 if (user) {
                     const conversationId = [user.uid, otherUserId].sort().join('_');
                     const conversationRef = doc(db, 'conversations', conversationId);
-                    const messagesRef = collection(db, `conversations/${conversationId}/messages`);
                     try {
-                        // Batch delete all messages in the subcollection
-                        const messagesSnapshot = await getDocs(messagesRef);
-                        const batch = writeBatch(db);
-                        messagesSnapshot.forEach(messageDoc => {
-                            batch.delete(messageDoc.ref);
-                        });
-                        await batch.commit();
+                        const convoDoc = await getDoc(conversationRef);
+                        if (!convoDoc.exists()) {
+                            showToast('Conversation already deleted.', 'error');
+                            return;
+                        }
+                        const convoData = convoDoc.data();
 
-                        // Delete the parent conversation document
-                        await deleteDoc(conversationRef);
-
-                        showToast('Conversation deleted.', 'success');
+                        if (convoData.hiddenFor && convoData.hiddenFor.includes(otherUserId)) {
+                            // This is the second user deleting, so permanently delete.
+                            const messagesRef = collection(db, `conversations/${conversationId}/messages`);
+                            const messagesSnapshot = await getDocs(messagesRef);
+                            const batch = writeBatch(db);
+                            messagesSnapshot.forEach(messageDoc => {
+                                batch.delete(messageDoc.ref);
+                            });
+                            batch.delete(conversationRef);
+                            await batch.commit();
+                            showToast('Conversation permanently deleted.', 'success');
+                        } else {
+                            // This is the first user deleting, so just hide it.
+                            await updateDoc(conversationRef, {
+                                hiddenFor: arrayUnion(user.uid)
+                            });
+                            showToast('Conversation hidden.', 'success');
+                        }
                     } catch (error) {
                         console.error("Error deleting conversation:", error);
                         showToast('Could not delete conversation.', 'error');
