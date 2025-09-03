@@ -135,6 +135,15 @@
         0%, 100% { opacity: 1; }
         50% { opacity: 0.5; }
     }
+
+    /* --- Rich Text Editor Toolbar --- */
+    .toolbar-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; font-size: 1rem; font-weight: 600; color: var(--text-secondary); background-color: var(--bg-secondary); border: 1px solid var(--border-primary); border-radius: 0.375rem; transition: all 0.2s ease; cursor: pointer; }
+    .toolbar-btn:hover { background-color: var(--accent-primary); color: white; }
+    .toolbar-color-input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+    .toolbar-color-input-wrapper { position: relative; width: 32px; height: 32px; border: 1px solid var(--border-primary); border-radius: 0.375rem; background-color: var(--bg-secondary); overflow: hidden; }
+    .toolbar-color-input-wrapper::before { content: 'A'; font-weight: bold; color: var(--text-secondary); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    .toolbar-select { -webkit-appearance: none; -moz-appearance: none; appearance: none; background-color: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-primary); border-radius: 0.375rem; padding: 0.375rem 0.75rem; font-size: 0.875rem; cursor: pointer; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; }
+
 </style>
 </head>
 <body>
@@ -228,9 +237,26 @@
         <!-- Post Creation Section -->
         <section id="post-creation" class="card p-6">
             <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-4">Create a New Post</h2>
-            <div class="space-y-4">
-                <input type="text" id="postTitle" placeholder="Post Title" class="form-input">
-                <textarea id="postContent" placeholder="What's on your mind?" class="form-input h-32" disabled></textarea>
+            <div>
+                <input type="text" id="postTitle" placeholder="Post Title" class="form-input mb-4">
+                <div id="createPostToolbar" class="flex items-center space-x-2 p-2 bg-[var(--bg-tertiary)] rounded-t-lg border border-b-0 border-[var(--border-primary)]">
+                    <button type="button" class="toolbar-btn" data-cmd="bold" title="Bold"><b>B</b></button>
+                    <button type="button" class="toolbar-btn" data-cmd="italic" title="Italic"><i>I</i></button>
+                    <button type="button" class="toolbar-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+                    <div class="toolbar-color-input-wrapper" title="Font Color">
+                        <input type="color" data-cmd="foreColor" class="toolbar-color-input">
+                    </div>
+                    <select class="toolbar-select" data-cmd="fontName" title="Font Style">
+                        <option selected>Font</option>
+                        <option value="Inter, sans-serif">Inter</option>
+                        <option value="Arial, sans-serif">Arial</option>
+                        <option value="Courier New, monospace">Courier</option>
+                        <option value="Georgia, serif">Georgia</option>
+                        <option value="Times New Roman, serif">Times New Roman</option>
+                        <option value="Verdana, sans-serif">Verdana</option>
+                    </select>
+                </div>
+                <div id="postContent" contenteditable="false" placeholder="What's on your mind?" class="form-input h-32 rounded-t-none focus:rounded-t-none"></div>
             </div>
             <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <button id="createPostBtn" class="btn btn-primary w-full sm:w-auto" disabled>Create Post</button>
@@ -264,9 +290,26 @@
                 <h3 class="text-lg font-bold text-[var(--text-primary)]">Edit Post</h3>
                 <button id="closeEditPostModal" class="btn btn-ghost !p-1 h-8 w-8">&times;</button>
             </div>
-            <div class="space-y-4">
-                <input type="text" id="editPostTitle" placeholder="Post Title" class="form-input">
-                <textarea id="editPostContent" placeholder="What's on your mind?" class="form-input h-48"></textarea>
+            <div>
+                <input type="text" id="editPostTitle" placeholder="Post Title" class="form-input mb-4">
+                <div id="editPostToolbar" class="flex items-center space-x-2 p-2 bg-[var(--bg-tertiary)] rounded-t-lg border border-b-0 border-[var(--border-primary)]">
+                    <button type="button" class="toolbar-btn" data-cmd="bold" title="Bold"><b>B</b></button>
+                    <button type="button" class="toolbar-btn" data-cmd="italic" title="Italic"><i>I</i></button>
+                    <button type="button" class="toolbar-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+                    <div class="toolbar-color-input-wrapper" title="Font Color">
+                        <input type="color" data-cmd="foreColor" class="toolbar-color-input">
+                    </div>
+                    <select class="toolbar-select" data-cmd="fontName" title="Font Style">
+                        <option selected>Font</option>
+                        <option value="Inter, sans-serif">Inter</option>
+                        <option value="Arial, sans-serif">Arial</option>
+                        <option value="Courier New, monospace">Courier</option>
+                        <option value="Georgia, serif">Georgia</option>
+                        <option value="Times New Roman, serif">Times New Roman</option>
+                        <option value="Verdana, sans-serif">Verdana</option>
+                    </select>
+                </div>
+                <div id="editPostContent" contenteditable="true" placeholder="What's on your mind?" class="form-input h-48 rounded-t-none"></div>
             </div>
             <div class="mt-4 flex justify-end">
                 <button id="saveEditBtn" class="btn btn-success">Save Changes</button>
@@ -303,7 +346,7 @@
                 <div id="postViewMeta" class="text-sm text-[var(--text-secondary)] mb-4"></div>
             </div>
             <div class="overflow-y-auto pr-4 -mr-4">
-                <p id="postViewContent" class="text-[var(--text-primary)] whitespace-pre-wrap leading-relaxed"></p>
+                <div id="postViewContent" class="text-[var(--text-primary)] leading-relaxed"></div>
             </div>
         </div>
     </div>
@@ -538,7 +581,40 @@
     applyDarkMode(initialDarkMode);
     darkModeToggle.addEventListener("change", (e) => applyDarkMode(e.target.checked));
 
-    // --- Authentication (Original, kept intact) ---
+    // --- Rich Text Editor Functions ---
+    function formatDoc(editorId, command, value = null) {
+        const editor = document.getElementById(editorId);
+        if (editor) {
+            editor.focus();
+            document.execCommand(command, false, value);
+        }
+    }
+
+    function setupToolbar(toolbarId, editorId) {
+        const toolbar = document.getElementById(toolbarId);
+        if (!toolbar) return;
+
+        toolbar.addEventListener('click', (e) => {
+            const button = e.target.closest('button[data-cmd]');
+            if (button) {
+                formatDoc(editorId, button.dataset.cmd);
+            }
+        });
+
+        toolbar.addEventListener('change', (e) => {
+            const target = e.target;
+            if (target.matches('input[type="color"]') || target.matches('select')) {
+                if (target.value) { // Don't format if the default option is selected
+                    formatDoc(editorId, target.dataset.cmd, target.value);
+                }
+                if (target.matches('select')) {
+                    target.selectedIndex = 0; // Reset select to placeholder
+                }
+            }
+        });
+    }
+
+    // --- Authentication ---
     togglePasswordVisibilityBtn.addEventListener("click", () => { const type = signupPasswordInput.getAttribute("type") === "password" ? "text" : "password"; signupPasswordInput.setAttribute("type", type); eyeIcon.classList.toggle("hidden"); eyeSlashIcon.classList.toggle("hidden"); });
     signupPasswordInput.addEventListener("input", () => { if (passwordError.style.display === 'block') passwordError.style.display = 'none'; });
     signupUsernameInput.addEventListener("input", () => { if (signupUsernameError.style.display === 'block') signupUsernameError.style.display = 'none'; });
@@ -556,20 +632,82 @@
 
     async function handleUser(user, chosenUsername = null) { if (!user) return; const userRef = doc(db, "users", user.uid); const userDoc = await getDoc(userRef); if (!userDoc.exists()) { const isAdmin = user.email === 'yujinbussinessmatter@gmail.com'; const newUserRole = isAdmin ? 'admin' : 'newbie'; const finalUsername = isAdmin ? "Y̶U̶J̶I̶N̶" : chosenUsername; if (finalUsername) { await setDoc(userRef, { uid: user.uid, email: user.email, displayName: finalUsername, createdAt: serverTimestamp(), role: newUserRole, banned: false, warnings: [] }); } else { const usernameModal = document.getElementById("usernameModal"); usernameModal.style.display = 'flex'; document.getElementById("submitUsernameBtn").onclick = async () => { const modalUsernameInput = document.getElementById("modalUsernameInput"); const usernameError = document.getElementById("usernameError"); const newUsername = isAdmin ? "Y̶U̶J̶I̶N̶" : modalUsernameInput.value.trim(); if (!newUsername) { usernameError.textContent = "Username cannot be empty."; usernameError.style.display = "block"; return; } const usersRef = collection(db, "users"); const q = query(usersRef, where("displayName", "==", newUsername)); const querySnapshot = await getDocs(q); if (!querySnapshot.empty && !isAdmin) { usernameError.textContent = "This username is already taken."; usernameError.style.display = "block"; } else { await setDoc(userRef, { uid: user.uid, email: user.email, displayName: newUsername, createdAt: serverTimestamp(), role: newUserRole, banned: false, warnings: [] }); usernameModal.style.display = 'none'; } }; } } }
     
-    onAuthStateChanged(auth, async (user) => { if (user) { const userDocRef = doc(db, "users", user.uid); const userDocSnap = await getDoc(userDocRef); setupPresence(user); attachFirestoreListeners(); if (user.isAnonymous) { authContainer.style.display = 'flex'; signOutBtn.style.display = 'none'; userInfoContainer.style.display = 'none'; document.getElementById("postContent").disabled = true; document.getElementById("createPostBtn").disabled = true; document.getElementById("auth-prompt").style.display = 'block'; } else if (userDocSnap.exists()) { authContainer.style.display = 'none'; signOutBtn.style.display = 'block'; userInfoContainer.style.display = 'flex'; document.getElementById("postContent").disabled = false; document.getElementById("createPostBtn").disabled = false; document.getElementById("auth-prompt").style.display = 'none'; currentUserData = userDocSnap.data(); if (user.email === 'yujinbussinessmatter@gmail.com') { let updates = {}; if (currentUserData.role !== 'admin') updates.role = 'admin'; if (currentUserData.displayName !== "Y̶U̶J̶I̶N̶") updates.displayName = "Y̶U̶J̶I̶N̶"; if (Object.keys(updates).length > 0) { await updateDoc(userDocRef, updates); Object.assign(currentUserData, updates); } } currentUserRole = currentUserData.role || 'newbie'; userNameEl.textContent = currentUserData.displayName || user.email; if (currentUserData.banned) { userRoleEl.textContent = 'Banned'; userRoleEl.className = 'px-2.5 py-1 text-xs font-bold text-white rounded-full bg-red-600'; } else { userRoleEl.textContent = currentUserRole; userRoleEl.className = 'px-2.5 py-1 text-xs font-bold text-white rounded-full'; switch (currentUserRole) { case 'admin': userRoleEl.classList.add('bg-violet-500'); break; case 'contributor': userRoleEl.classList.add('bg-green-500'); break; default: userRoleEl.classList.add('bg-blue-500'); break; } } } else { userNameEl.textContent = user.email; userRoleEl.textContent = '...'; userRoleEl.classList.add('bg-gray-500'); } } else { authContainer.style.display = 'flex'; signOutBtn.style.display = 'none'; userInfoContainer.style.display = 'none'; document.getElementById("postContent").disabled = true; document.getElementById("createPostBtn").disabled = true; document.getElementById("auth-prompt").style.display = 'block'; postList.innerHTML = ''; currentUserRole = null; if(window.firestoreUnsubscribes) { window.firestoreUnsubscribes.forEach(unsub => unsub()); } signInAnonymously(auth).catch(error => { console.error("Anonymous sign-in failed:", error); }); } });
+    onAuthStateChanged(auth, async (user) => {
+        const postContentEditor = document.getElementById("postContent");
+        if (user) {
+            const userDocRef = doc(db, "users", user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            setupPresence(user);
+            attachFirestoreListeners();
+            if (user.isAnonymous) {
+                authContainer.style.display = 'flex';
+                signOutBtn.style.display = 'none';
+                userInfoContainer.style.display = 'none';
+                postContentEditor.contentEditable = false;
+                document.getElementById("createPostBtn").disabled = true;
+                document.getElementById("auth-prompt").style.display = 'block';
+            } else if (userDocSnap.exists()) {
+                authContainer.style.display = 'none';
+                signOutBtn.style.display = 'block';
+                userInfoContainer.style.display = 'flex';
+                postContentEditor.contentEditable = true;
+                document.getElementById("createPostBtn").disabled = false;
+                document.getElementById("auth-prompt").style.display = 'none';
+                currentUserData = userDocSnap.data();
+                if (user.email === 'yujinbussinessmatter@gmail.com') {
+                    let updates = {};
+                    if (currentUserData.role !== 'admin') updates.role = 'admin';
+                    if (currentUserData.displayName !== "Y̶U̶J̶I̶N̶") updates.displayName = "Y̶U̶J̶I̶N̶";
+                    if (Object.keys(updates).length > 0) {
+                        await updateDoc(userDocRef, updates);
+                        Object.assign(currentUserData, updates);
+                    }
+                }
+                currentUserRole = currentUserData.role || 'newbie';
+                userNameEl.textContent = currentUserData.displayName || user.email;
+                if (currentUserData.banned) {
+                    userRoleEl.textContent = 'Banned';
+                    userRoleEl.className = 'px-2.5 py-1 text-xs font-bold text-white rounded-full bg-red-600';
+                } else {
+                    userRoleEl.textContent = currentUserRole;
+                    userRoleEl.className = 'px-2.5 py-1 text-xs font-bold text-white rounded-full';
+                    switch (currentUserRole) {
+                        case 'admin': userRoleEl.classList.add('bg-violet-500'); break;
+                        case 'contributor': userRoleEl.classList.add('bg-green-500'); break;
+                        default: userRoleEl.classList.add('bg-blue-500'); break;
+                    }
+                }
+            } else {
+                userNameEl.textContent = user.email;
+                userRoleEl.textContent = '...';
+                userRoleEl.classList.add('bg-gray-500');
+            }
+        } else {
+            authContainer.style.display = 'flex';
+            signOutBtn.style.display = 'none';
+            userInfoContainer.style.display = 'none';
+            postContentEditor.contentEditable = false;
+            document.getElementById("createPostBtn").disabled = true;
+            document.getElementById("auth-prompt").style.display = 'block';
+            postList.innerHTML = '';
+            currentUserRole = null;
+            if(window.firestoreUnsubscribes) { window.firestoreUnsubscribes.forEach(unsub => unsub()); }
+            signInAnonymously(auth).catch(error => { console.error("Anonymous sign-in failed:", error); });
+        }
+    });
     
     // --- Presence Management ---
     function setupPresence(user) { if (!user) return; const myConnectionsRef = ref(rtdb, `status/${user.uid}`); const connectedRef = ref(rtdb, '.info/connected'); onValue(connectedRef, (snap) => { if (snap.val() === true) { set(myConnectionsRef, { online: true, last_changed: rtdbServerTimestamp() }); onDisconnect(myConnectionsRef).remove(); } }); }
     
-    // --- Post Rendering (Original, kept intact) ---
+    // --- Post Rendering ---
     function renderPosts(docsToRender) { currentRenderedDocs = docsToRender; postList.innerHTML = ''; if (docsToRender.length === 0 && isSearching) { postList.innerHTML = `<p class="text-center text-[var(--text-secondary)]">No matching posts found for "${searchInput.value}".</p>`; return; } docsToRender.forEach(doc => { const post = doc.data(); const postId = doc.id; const authorData = usersDataCache[post.authorId]; if (!authorData) return; const postEl = document.createElement('div'); postEl.className = 'card p-5'; const timestamp = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now'; const editedTimestampText = post.editedAt ? `(edited ${post.editedAt.toDate().toLocaleString()})` : ''; let userStatusHTML = ''; const role = authorData.role || 'newbie'; if (authorData.banned) { userStatusHTML = `<span class="ml-2 px-2.5 py-1 text-xs font-bold text-white bg-red-600 rounded-full">Banned</span>`; } else { let roleColor = 'bg-blue-500'; if (role === 'admin') roleColor = 'bg-violet-500'; if (role === 'contributor') roleColor = 'bg-green-500'; userStatusHTML = `<span class="ml-2 px-2.5 py-1 text-xs font-bold text-white ${roleColor} rounded-full">${role}</span>`; } const canEdit = auth.currentUser && (auth.currentUser.uid === post.authorId || currentUserRole === 'admin'); postEl.innerHTML = ` <div class="flex items-start flex-wrap"> <div class="flex items-center mb-2 sm:mb-0"> <div class="font-bold text-[var(--text-primary)]">${authorData.displayName}</div> ${userStatusHTML} </div> <div class="ml-auto flex items-center space-x-2"> ${canEdit ? ` <button data-post-id="${postId}" class="edit-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]" title="Edit Post"> <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg> </button>` : ''} ${currentUserRole === 'admin' ? ` <button data-post-id="${postId}" data-pinned="${post.pinned}" class="pin-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]" title="${post.pinned ? 'Unpin Post' : 'Pin Post'}"> <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5.586l2.293-2.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 9.586V4a1 1 0 011-1z" clip-rule="evenodd" /><path d="M3 12a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" /></svg> </button> <button data-author-id="${post.authorId}" data-author-name="${authorData.displayName}" class="manage-user-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]" title="Manage User"> <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg> </button> <button data-post-id="${postId}" class="delete-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--destructive)]" title="Delete Post"> <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg> </button> ` : ''} </div> </div> <div class="text-xs text-[var(--text-secondary)]">${timestamp} <span class="italic">${editedTimestampText}</span></div> <h4 class="text-xl font-semibold text-[var(--text-accent)] mt-2 hover:underline cursor-pointer view-post-btn flex items-center gap-2" data-post-id="${postId}"> ${post.pinned ? '<span class="text-xl" title="Pinned Post">📌</span>' : ''} <span>${post.title}</span> </h4> `; postList.appendChild(postEl); }); }
 
     // --- Firestore Listeners ---
     function attachFirestoreListeners() { if (window.firestoreUnsubscribes) { window.firestoreUnsubscribes.forEach(unsub => unsub()); } window.firestoreUnsubscribes = []; const usersColRef = collection(db, "users"); const usersUnsub = onSnapshot(usersColRef, (snapshot) => { document.getElementById("totalMembers").textContent = snapshot.size; usersDataCache = {}; snapshot.forEach(doc => { usersDataCache[doc.id] = doc.data(); }); renderPosts(postDocsCache); renderMembersList(); loadConversations(); }); const statusRef = ref(rtdb, "status"); const presenceUnsub = onValue(statusRef, (snapshot) => { onlineUsers = snapshot.val() || {}; document.getElementById("onlineVisitors").textContent = snapshot.exists() ? Object.keys(onlineUsers).length : 0; renderMembersList(); }); const postsColRef = collection(db, "posts"); const q = query(postsColRef, orderBy("createdAt", "desc")); const postsUnsub = onSnapshot(q, (snapshot) => { if (isSearching) return; let docs = snapshot.docs; docs.sort((a, b) => (b.data().pinned ? 1 : 0) - (a.data().pinned ? 1 : 0)); postDocsCache = docs; renderPosts(postDocsCache); }); window.firestoreUnsubscribes.push(usersUnsub, presenceUnsub, postsUnsub); }
     
-    // --- Post Management (Original, kept intact) ---
-    document.getElementById('createPostBtn').addEventListener('click', async () => { const title = document.getElementById("postTitle").value.trim(); const content = document.getElementById("postContent").value.trim(); const user = auth.currentUser; if (title && content && user && currentUserData) { if (!currentUserData.banned) { const postsColRef = collection(db, "posts"); await addDoc(postsColRef, { title: title, content: content, authorId: user.uid, authorName: currentUserData.displayName, createdAt: serverTimestamp(), pinned: false, }); document.getElementById("postTitle").value = ''; document.getElementById("postContent").value = ''; } else { showAlert("Your account is banned and you cannot create posts."); } } else { showAlert("Please provide a title and content for your post."); } });
-    postList.addEventListener('click', e => { const viewBtn = e.target.closest('.view-post-btn'); const deleteBtn = e.target.closest('.delete-post-btn'); const manageBtn = e.target.closest('.manage-user-btn'); const editBtn = e.target.closest('.edit-post-btn'); const pinBtn = e.target.closest('.pin-post-btn'); if (viewBtn) { const postId = viewBtn.dataset.postId; const postDoc = currentRenderedDocs.find(doc => doc.id === postId); if(postDoc) { const post = postDoc.data(); const author = usersDataCache[post.authorId]; document.getElementById('postViewTitle').textContent = post.title; document.getElementById('postViewContent').textContent = post.content; document.getElementById('postViewMeta').textContent = `Posted by ${author.displayName} on ${post.createdAt.toDate().toLocaleString()}`; postViewModal.style.display = 'flex'; } } if (deleteBtn) { const postId = deleteBtn.dataset.postId; showConfirm('Are you sure you want to delete this post permanently?', () => { deleteDoc(doc(db, "posts", postId)).then(() => { showAlert('Post deleted successfully.'); }).catch(err => console.error("Error deleting post:", err)); }); } if (manageBtn) { const userId = manageBtn.dataset.authorId; const userName = usersDataCache[userId]?.displayName; if(userName) { openAdminModal(userId, userName); } } if (editBtn) { const postId = editBtn.dataset.postId; const postDoc = currentRenderedDocs.find(doc => doc.id === postId); if (postDoc) { openEditModal(postDoc.data(), postId); } } if (pinBtn) { const postId = pinBtn.dataset.postId; const shouldPin = pinBtn.dataset.pinned !== 'true'; togglePin(postId, shouldPin); } });
+    // --- Post Management ---
+    document.getElementById('createPostBtn').addEventListener('click', async () => { const title = document.getElementById("postTitle").value.trim(); const content = document.getElementById("postContent").innerHTML.trim(); const user = auth.currentUser; if (title && content && user && currentUserData) { if (!currentUserData.banned) { const postsColRef = collection(db, "posts"); await addDoc(postsColRef, { title: title, content: content, authorId: user.uid, authorName: currentUserData.displayName, createdAt: serverTimestamp(), pinned: false, }); document.getElementById("postTitle").value = ''; document.getElementById("postContent").innerHTML = ''; } else { showAlert("Your account is banned and you cannot create posts."); } } else { showAlert("Please provide a title and content for your post."); } });
+    postList.addEventListener('click', e => { const viewBtn = e.target.closest('.view-post-btn'); const deleteBtn = e.target.closest('.delete-post-btn'); const manageBtn = e.target.closest('.manage-user-btn'); const editBtn = e.target.closest('.edit-post-btn'); const pinBtn = e.target.closest('.pin-post-btn'); if (viewBtn) { const postId = viewBtn.dataset.postId; const postDoc = currentRenderedDocs.find(doc => doc.id === postId); if(postDoc) { const post = postDoc.data(); const author = usersDataCache[post.authorId]; document.getElementById('postViewTitle').textContent = post.title; document.getElementById('postViewContent').innerHTML = post.content; document.getElementById('postViewMeta').textContent = `Posted by ${author.displayName} on ${post.createdAt.toDate().toLocaleString()}`; postViewModal.style.display = 'flex'; } } if (deleteBtn) { const postId = deleteBtn.dataset.postId; showConfirm('Are you sure you want to delete this post permanently?', () => { deleteDoc(doc(db, "posts", postId)).then(() => { showAlert('Post deleted successfully.'); }).catch(err => console.error("Error deleting post:", err)); }); } if (manageBtn) { const userId = manageBtn.dataset.authorId; const userName = usersDataCache[userId]?.displayName; if(userName) { openAdminModal(userId, userName); } } if (editBtn) { const postId = editBtn.dataset.postId; const postDoc = currentRenderedDocs.find(doc => doc.id === postId); if (postDoc) { openEditModal(postDoc.data(), postId); } } if (pinBtn) { const postId = pinBtn.dataset.postId; const shouldPin = pinBtn.dataset.pinned !== 'true'; togglePin(postId, shouldPin); } });
     closePostViewModal.addEventListener('click', () => postViewModal.style.display = 'none');
 
     let targetUserId = null;
@@ -578,9 +716,7 @@
     document.getElementById('banUserBtn').onclick = async () => { if (!targetUserId) return; await updateDoc(doc(db, "users", targetUserId), { banned: true }); showAlert('User has been banned.'); adminModal.style.display = 'none'; };
     document.getElementById('unbanUserBtn').onclick = async () => { if (!targetUserId) return; await updateDoc(doc(db, "users", targetUserId), { banned: false }); showAlert('User has been unbanned.'); adminModal.style.display = 'none'; };
     
-    // --- NEW/REFACTORED Messaging & Inbox System ---
-    
-    // Unified message sending function
+    // --- Messaging & Inbox System ---
     async function sendMessage(recipientId, content, { isWarning = false } = {}) {
         const user = auth.currentUser;
         if (!user || user.isAnonymous) return { success: false, message: 'You must be logged in.' };
@@ -604,10 +740,8 @@
         };
 
         try {
-            // UPDATED: Create/update the conversation document BEFORE adding the message.
             await setDoc(conversationRef, conversationData, { merge: true });
             await addDoc(messagesRef, messageData);
-            // After sending, update the lastReadBy to include the sender
             await updateDoc(conversationRef, { lastReadBy: [user.uid] });
             
             return { success: true };
@@ -617,7 +751,6 @@
         }
     }
 
-    // Event listeners for opening/closing modals
     messagesBtn.addEventListener('click', () => { if (auth.currentUser && !auth.currentUser.isAnonymous) { conversationsModal.style.display = 'flex'; loadConversations();} else { showToast('Please sign in to view messages.', 'error'); } });
     closeConversationsModal.onclick = () => conversationsModal.style.display = 'none';
     newConversationBtn.onclick = () => newChatModal.style.display = 'flex';
@@ -631,7 +764,6 @@
         return { gradientClass };
     }
 
-    // Load existing conversations
     function loadConversations() {
         if (conversationListenerUnsubscribe) conversationListenerUnsubscribe();
         const user = auth.currentUser;
@@ -679,7 +811,6 @@
         });
     });
 
-    // Render member list for starting NEW chats
     function renderMembersList() {
         if (!memberList) return;
         memberList.innerHTML = '';
@@ -698,12 +829,10 @@
         });
     }
 
-    // Open a chat window
     async function openChat(uid, name) {
         currentChatRecipient = { uid, name };
         chatHeader.textContent = `Chat with ${name}`;
         
-        // Hide other modals and show chat
         conversationsModal.style.display = 'none';
         newChatModal.style.display = 'none';
         chatModal.style.display = 'block';
@@ -711,7 +840,6 @@
         messageHistory.innerHTML = '';
         loadMessageHistory();
 
-        // Mark conversation as read
         const user = auth.currentUser;
         if (user) {
             const conversationId = [user.uid, uid].sort().join('_');
@@ -720,7 +848,6 @@
         }
     }
 
-    // Send a message from the chat window
     sendMessageBtn.onclick = async () => {
         const result = await sendMessage(currentChatRecipient.uid, messageInput.value);
         if (result.success) {
@@ -730,7 +857,6 @@
         }
     };
     
-    // Load messages for the current open chat
     function loadMessageHistory() {
         if (messageListenerUnsubscribe) messageListenerUnsubscribe();
         if (!currentChatRecipient || !auth.currentUser) return;
@@ -751,7 +877,6 @@
         });
     }
     
-    // Send a warning from the admin panel
     sendWarningBtn.onclick = async () => {
         const messageText = warningMessage.textContent.trim();
         const styledContent = `<p style="background: linear-gradient(90deg, #f97316, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">${messageText.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`;
@@ -764,13 +889,13 @@
         }
     };
 
-    // --- User Profile Logic (Original, kept intact) ---
+    // --- User Profile Logic ---
     userInfoContainer.addEventListener('click', async () => { const user = auth.currentUser; if (!user || user.isAnonymous) return; const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid)); const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid)); const postSnap = await getDocs(postsQuery); const contributorSnap = await getDocs(contributorPostsQuery); profilePostCount.textContent = postSnap.size + contributorSnap.size; if (currentUserRole === 'admin' || currentUserRole === 'contributor') { const thirtyDaysInMillis = 30 * 24 * 60 * 60 * 1000; const lastChange = currentUserData.lastUsernameChange?.toMillis(); const now = Date.now(); if (lastChange && (now - lastChange < thirtyDaysInMillis)) { const daysRemaining = Math.ceil((thirtyDaysInMillis - (now - lastChange)) / (1000 * 60 * 60 * 24)); changeUsernameBtn.disabled = true; newUsernameInput.disabled = true; changeUsernameError.textContent = `You can change your username again in ${daysRemaining} days.`; changeUsernameError.style.display = 'block'; } else { changeUsernameBtn.disabled = false; newUsernameInput.disabled = false; changeUsernameError.style.display = 'none'; } changeUsernameSection.style.display = 'block'; } else { changeUsernameSection.style.display = 'none'; } userProfileModal.style.display = 'flex'; });
     closeUserProfileModal.addEventListener('click', () => { userProfileModal.style.display = 'none'; });
     changeUsernameBtn.addEventListener('click', async () => { const newUsername = newUsernameInput.value.trim(); const user = auth.currentUser; changeUsernameError.style.display = 'none'; if (!newUsername) { changeUsernameError.textContent = "New username cannot be empty."; changeUsernameError.style.display = 'block'; return; } const usersRef = collection(db, "users"); const q = query(usersRef, where("displayName", "==", newUsername)); const querySnapshot = await getDocs(q); if (!querySnapshot.empty) { changeUsernameError.textContent = "This username is already taken."; changeUsernameError.style.display = 'block'; return; } const batch = writeBatch(db); const userRef = doc(db, "users", user.uid); batch.update(userRef, { displayName: newUsername, lastUsernameChange: serverTimestamp() }); const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid)); const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid)); const postSnap = await getDocs(postsQuery); postSnap.forEach(postDoc => { batch.update(postDoc.ref, { authorName: newUsername }); }); const contributorSnap = await getDocs(contributorPostsQuery); contributorSnap.forEach(postDoc => { batch.update(postDoc.ref, { authorName: newUsername }); }); try { await batch.commit(); showAlert("Username updated successfully!"); userProfileModal.style.display = 'none'; } catch (error) { console.error("Error updating username:", error); showAlert("Failed to update username. Please try again."); } });
     closeAccountBtn.addEventListener('click', () => { const user = auth.currentUser; if (!user || user.isAnonymous) return; showConfirm("Are you sure you want to close your account? This action will rename all your posts to '[Deleted User]' and permanently ban you. This cannot be undone.", async () => { const batch = writeBatch(db); const userRef = doc(db, "users", user.uid); batch.update(userRef, { displayName: "[Deleted User]", banned: true }); const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid)); const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid)); const postSnap = await getDocs(postsQuery); postSnap.forEach(postDoc => { batch.update(postDoc.ref, { authorName: "[Deleted User]" }); }); const contributorSnap = await getDocs(contributorPostsQuery); contributorSnap.forEach(postDoc => { batch.update(postDoc.ref, { authorName: "[Deleted User]" }); }); try { await batch.commit(); await signOut(auth); showAlert("Your account has been closed."); userProfileModal.style.display = 'none'; } catch (error) { console.error("Error closing account:", error); showAlert("Failed to close account. Please try again."); } }); });
 
-    // --- Search Logic (Original, kept intact) ---
+    // --- Search Logic ---
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
     let isSearching = false;
@@ -778,13 +903,16 @@
     function highlightMatch(text, keyword) { if (!text) return ''; const regex = new RegExp(`(${keyword})`, 'gi'); return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-600 rounded">$1</mark>'); }
     searchBtn.addEventListener('click', async () => { const keyword = searchInput.value.trim().toLowerCase(); if (!keyword) { isSearching = false; attachFirestoreListeners(); return; } isSearching = true; postList.innerHTML = `<p class="text-center text-[var(--text-secondary)]">Searching...</p>`; try { const postsSnap = await getDocs(collection(db, "posts")); const contribSnap = await getDocs(collection(db, "contributorPosts")); allDocsCache = [...postsSnap.docs, ...contribSnap.docs]; let filtered = allDocsCache.filter(doc => { const data = doc.data(); return ( data.title?.toLowerCase().includes(keyword) || data.content?.toLowerCase().includes(keyword) ); }); filtered.sort((a, b) => (b.data().pinned ? 1 : 0) - (a.data().pinned ? 1 : 0)); renderPosts(filtered) } catch(error) { console.error("Error during search:", error); postList.innerHTML = `<p class="text-center text-[var(--destructive)]">An error occurred during search.</p>`; } });
     
-    // --- Post Editing & Pinning (Original, kept intact) ---
+    // --- Post Editing & Pinning ---
     closeEditPostModal.onclick = () => { editPostModal.style.display = 'none'; currentEditingPostId = null; };
     async function togglePin(postId, shouldPin) { const postRef = doc(db, "posts", postId); try { await updateDoc(postRef, { pinned: shouldPin }); } catch (e) { console.error("Error toggling pin status:", e); showAlert("Failed to update pin status."); } }
-    function openEditModal(post, postId) { currentEditingPostId = postId; editPostTitleInput.value = post.title; editPostContentInput.value = post.content; editPostModal.style.display = 'flex'; }
-    async function savePostEdit() { if (!currentEditingPostId) return; const title = editPostTitleInput.value.trim(); const content = editPostContentInput.value.trim(); if (!title || !content) { showAlert("Title and content cannot be empty."); return; } const postRef = doc(db, "posts", currentEditingPostId); try { await updateDoc(postRef, { title, content, editedAt: serverTimestamp() }); editPostModal.style.display = 'none'; currentEditingPostId = null; } catch(e) { console.error("Error saving post edit:", e); showAlert("Failed to save changes."); } }
+    function openEditModal(post, postId) { currentEditingPostId = postId; editPostTitleInput.value = post.title; editPostContentInput.innerHTML = post.content; editPostModal.style.display = 'flex'; }
+    async function savePostEdit() { if (!currentEditingPostId) return; const title = editPostTitleInput.value.trim(); const content = editPostContentInput.innerHTML.trim(); if (!title || !content) { showAlert("Title and content cannot be empty."); return; } const postRef = doc(db, "posts", currentEditingPostId); try { await updateDoc(postRef, { title, content, editedAt: serverTimestamp() }); editPostModal.style.display = 'none'; currentEditingPostId = null; } catch(e) { console.error("Error saving post edit:", e); showAlert("Failed to save changes."); } }
     saveEditBtn.addEventListener('click', savePostEdit);
 
+    // Initialize toolbars
+    setupToolbar('createPostToolbar', 'postContent');
+    setupToolbar('editPostToolbar', 'editPostContent');
 </script>
 </body>
 </html>
