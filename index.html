@@ -357,8 +357,16 @@
             </div>
             <div id="messageHistory" class="flex-grow overflow-y-auto p-4 space-y-4"></div>
             <div class="p-4 border-t border-[var(--border-primary)]">
-                 <textarea id="messageInput" placeholder="Type your message..." class="form-input h-20 mb-2"></textarea>
-                 <button id="sendMessageBtn" class="btn btn-primary w-full">Send Message</button>
+                <div class="relative">
+                     <textarea id="messageInput" placeholder="Type your message..." class="form-input h-20 mb-2 pr-12"></textarea>
+                     <button id="emojiBtn" class="absolute top-2 right-2 text-2xl text-[var(--text-secondary)] hover:text-[var(--text-accent)]">
+                        😊
+                    </button>
+                    <div id="emojiPicker" class="hidden absolute bottom-full right-0 mb-2 bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg shadow-lg p-2 w-64 h-48 overflow-y-auto grid grid-cols-8 gap-1 z-10">
+                        <!-- Emojis populated here -->
+                    </div>
+                </div>
+                 <button id="sendMessageBtn" class="btn btn-primary w-full mt-2">Send Message</button>
             </div>
          </div>
     </div>
@@ -499,6 +507,8 @@
     const messageHistory = document.getElementById('messageHistory');
     const messageInput = document.getElementById('messageInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
+    const emojiBtn = document.getElementById('emojiBtn');
+    const emojiPicker = document.getElementById('emojiPicker');
     
     // --- App State ---
     let currentUserRole = null;
@@ -561,7 +571,14 @@
     signUpWithGoogleBtn.addEventListener("click", (e) => { e.preventDefault(); googleSignInHandler(); createAccountDropdown.classList.add('hidden'); });
     signUpWithEmailBtn.addEventListener("click", (e) => { e.preventDefault(); signupForm.style.display = 'block'; createAccountDropdown.classList.add('hidden'); });
     createAccountBtn.addEventListener("click", (event) => { event.stopPropagation(); createAccountDropdown.classList.toggle('hidden'); });
-    window.addEventListener("click", (event) => { if (!document.getElementById('createAccountDropdownContainer').contains(event.target)) createAccountDropdown.classList.add('hidden'); });
+    window.addEventListener("click", (event) => {
+        if (!document.getElementById('createAccountDropdownContainer').contains(event.target)) {
+            createAccountDropdown.classList.add('hidden');
+        }
+        if (emojiPicker && !emojiPicker.contains(event.target) && event.target !== emojiBtn) {
+            emojiPicker.classList.add('hidden');
+        }
+    });
     signInWithEmailBtnModal.addEventListener('click', async () => { const identifier = document.getElementById('signInIdentifier').value.trim(); const password = document.getElementById('signInPassword').value; const signInError = document.getElementById('signInError'); signInError.style.display = 'none'; if (!identifier || !password) { signInError.textContent = 'Please enter your credentials.'; signInError.style.display = 'block'; return; } let email = identifier; try { if (!identifier.includes('@')) { const usersRef = collection(db, "users"); const q = query(usersRef, where("displayName", "==", identifier)); const querySnapshot = await getDocs(q); if (querySnapshot.empty) { signInError.textContent = 'User not found.'; signInError.style.display = 'block'; return; } email = querySnapshot.docs[0].data().email; } await signInWithEmailAndPassword(auth, email, password); signInModal.style.display = 'none'; } catch (error) { console.error("Sign in error:", error); signInError.textContent = 'Invalid credentials. Please try again.'; signInError.style.display = 'block'; } });
     signupBtn.addEventListener("click", async () => { const email = document.getElementById("signupEmail").value; const password = signupPasswordInput.value; const username = signupUsernameInput.value.trim(); passwordError.style.display = 'none'; signupUsernameError.style.display = 'none'; const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,16}$/; if (!email || !password || !username) { showAlert("Please fill out all fields."); return; } if (!passwordRegex.test(password)) { passwordError.innerHTML = "Must be 7-16 characters & contain letters, numbers, & special characters.<br>e.g., Password@1, Secure!23, MyP@ssw0rd"; passwordError.style.display = 'block'; return; } const usersRef = collection(db, "users"); const q = query(usersRef, where("displayName", "==", username)); const querySnapshot = await getDocs(q); if (!querySnapshot.empty) { signupUsernameError.textContent = "Username is already taken. Please choose another one."; signupUsernameError.style.display = 'block'; return; } try { const userCredential = await createUserWithEmailAndPassword(auth, email, password); await handleUser(userCredential.user, username); signupForm.style.display = 'none'; } catch (error) { console.error("Email signup error:", error); showAlert(`Error: ${error.message}`); } });
     signOutBtn.addEventListener("click", () => signOut(auth));
@@ -851,6 +868,30 @@
         }
     };
 
+    const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '🤡', '💩', '👻', '💀', '☠️', '👽', '👾', '🤖', '🎃', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦵', '🦿', '🦶', '👂', '🦻', '👃', '🧠', '🦷', '🦴', '👀', '👁️', '👅', '👄', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟'];
+
+    function populateEmojiPicker() {
+        emojiPicker.innerHTML = '';
+        emojis.forEach(emoji => {
+            const span = document.createElement('span');
+            span.textContent = emoji;
+            span.className = 'cursor-pointer text-2xl p-1 text-center rounded-md hover:bg-[var(--bg-tertiary)]';
+            span.onclick = () => {
+                messageInput.value += emoji;
+                messageInput.focus();
+            };
+            emojiPicker.appendChild(span);
+        });
+    }
+
+    emojiBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        emojiPicker.classList.toggle('hidden');
+    });
+
+    populateEmojiPicker();
+
+
     // --- User Profile Logic (Original, kept intact) ---
     userInfoContainer.addEventListener('click', async () => { const user = auth.currentUser; if (!user || user.isAnonymous) return; const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid)); const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid)); const postSnap = await getDocs(postsQuery); const contributorSnap = await getDocs(contributorPostsQuery); profilePostCount.textContent = postSnap.size + contributorSnap.size; if (currentUserRole === 'admin' || currentUserRole === 'contributor') { const thirtyDaysInMillis = 30 * 24 * 60 * 60 * 1000; const lastChange = currentUserData.lastUsernameChange?.toMillis(); const now = Date.now(); if (lastChange && (now - lastChange < thirtyDaysInMillis)) { const daysRemaining = Math.ceil((thirtyDaysInMillis - (now - lastChange)) / (1000 * 60 * 60 * 24)); changeUsernameBtn.disabled = true; newUsernameInput.disabled = true; changeUsernameError.textContent = `You can change your username again in ${daysRemaining} days.`; changeUsernameError.style.display = 'block'; } else { changeUsernameBtn.disabled = false; newUsernameInput.disabled = false; changeUsernameError.style.display = 'none'; } changeUsernameSection.style.display = 'block'; } else { changeUsernameSection.style.display = 'none'; } userProfileModal.style.display = 'flex'; });
     closeUserProfileModal.addEventListener('click', () => { userProfileModal.style.display = 'none'; });
@@ -875,4 +916,5 @@
 </script>
 </body>
 </html>
+", in which I have selected the entire contents. Please add a "Back" button to the chat interface.
 
