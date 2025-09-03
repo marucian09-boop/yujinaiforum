@@ -408,9 +408,16 @@
                 <div id="chatHeader" class="font-bold text-[var(--text-primary)]"></div>
                 <button id="closeChatModal" class="btn btn-ghost !p-1 h-8 w-8">&times;</button>
             </div>
-            <div id="messageHistory" class="flex-grow overflow-y-auto p-4 space-y-4"></div>
+            <div id="messageHistory" class="flex-grow overflow-y-auto p-4 space-y-2"></div>
+            <div id="emojiPicker" class="hidden p-2 grid grid-cols-8 gap-2 bg-[var(--bg-tertiary)] border-t border-[var(--border-primary)] max-h-48 overflow-y-auto">
+                <!-- Emojis will be populated here by JS -->
+            </div>
             <div class="p-4 border-t border-[var(--border-primary)]">
-                 <textarea id="messageInput" placeholder="Type your message..." class="form-input h-20 mb-2"></textarea>
+                <div id="chatLockMessage" class="hidden text-center text-sm text-[var(--text-secondary)] mb-2"></div>
+                <div class="relative">
+                    <textarea id="messageInput" placeholder="Type your message..." class="form-input h-20 mb-2 pr-10"></textarea>
+                    <button id="emojiBtn" class="absolute top-2 right-2 text-xl text-[var(--text-secondary)] hover:text-[var(--text-accent)]">😀</button>
+                </div>
                  <button id="sendMessageBtn" class="btn btn-primary w-full">Send Message</button>
             </div>
          </div>
@@ -550,6 +557,9 @@
     const messageHistory = document.getElementById('messageHistory');
     const messageInput = document.getElementById('messageInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
+    const emojiBtn = document.getElementById('emojiBtn');
+    const emojiPicker = document.getElementById('emojiPicker');
+    const chatLockMessage = document.getElementById('chatLockMessage');
     
     // --- App State ---
     let currentUserRole = null;
@@ -600,6 +610,18 @@
     darkModeToggle.checked = initialDarkMode;
     applyDarkMode(initialDarkMode);
     darkModeToggle.addEventListener("change", (e) => applyDarkMode(e.target.checked));
+
+    function escapeHTML(str) {
+        return str.replace(/[&<>'"]/g, 
+            tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag] || tag)
+        );
+    }
 
     // --- Rich Text Editor Functions ---
     function formatDoc(editorId, command, value = null) {
@@ -737,33 +759,53 @@
     document.getElementById('unbanUserBtn').onclick = async () => { if (!targetUserId) return; await updateDoc(doc(db, "users", targetUserId), { banned: false }); showAlert('User has been unbanned.'); adminModal.style.display = 'none'; };
     
     // --- Messaging & Inbox System ---
+    const emojis = ['😀', '😂', '😍', '🤔', '👍', '❤️', '🙏', '🎉', '🔥', '💯', '👋', '😢', '😡', '🤯', '😎', '😴', '🥳', '🥺', '🤣', '🥰'];
+    emojis.forEach(emoji => {
+        const span = document.createElement('span');
+        span.className = 'cursor-pointer text-2xl text-center hover:bg-[var(--bg-secondary)] rounded-md';
+        span.textContent = emoji;
+        span.onclick = () => {
+            messageInput.value += emoji;
+            messageInput.focus();
+        };
+        emojiPicker.appendChild(span);
+    });
+    emojiBtn.addEventListener('click', () => emojiPicker.classList.toggle('hidden'));
+
     async function sendMessage(recipientId, content, { isWarning = false } = {}) {
         const user = auth.currentUser;
         if (!user || user.isAnonymous) return { success: false, message: 'You must be logged in.' };
         if (!content.trim()) return { success: false, message: 'Message cannot be empty.' };
 
         const conversationId = [user.uid, recipientId].sort().join('_');
-        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
         const conversationRef = doc(db, 'conversations', conversationId);
+        const convDoc = await getDoc(conversationRef);
+
+        if (convDoc.exists() && convDoc.data().lockedBy && convDoc.data().lockedBy !== user.uid) {
+             return { success: false, message: 'This conversation has been ended by the other user.' };
+        }
+
+        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
 
         const messageData = {
             senderId: user.uid,
             content: content,
             createdAt: serverTimestamp(),
-            isWarning: isWarning
+            isWarning: isWarning,
+            deletedBy: []
         };
 
-        const conversationData = {
+        const conversationUpdateData = {
             participants: [user.uid, recipientId],
             lastMessage: isWarning ? "You have received a warning" : content.substring(0, 40) + (content.length > 40 ? '...' : ''),
             lastMessageTimestamp: serverTimestamp(),
+            lastReadBy: [user.uid],
+            lockedBy: null
         };
-
+        
         try {
-            await setDoc(conversationRef, conversationData, { merge: true });
+            await setDoc(conversationRef, conversationUpdateData, { merge: true });
             await addDoc(messagesRef, messageData);
-            await updateDoc(conversationRef, { lastReadBy: [user.uid] });
-            
             return { success: true };
         } catch (error) {
             console.error("Error sending message:", error);
@@ -858,6 +900,8 @@
         chatModal.style.display = 'block';
 
         messageHistory.innerHTML = '';
+        messageInput.value = '';
+        emojiPicker.classList.add('hidden');
         loadMessageHistory();
 
         const user = auth.currentUser;
@@ -865,6 +909,20 @@
             const conversationId = [user.uid, uid].sort().join('_');
             const conversationRef = doc(db, 'conversations', conversationId);
             await setDoc(conversationRef, { lastReadBy: arrayUnion(user.uid) }, { merge: true }).catch(()=>{});
+            
+            const convDoc = await getDoc(conversationRef);
+            if (convDoc.exists() && convDoc.data().lockedBy && convDoc.data().lockedBy !== user.uid) {
+                messageInput.disabled = true;
+                sendMessageBtn.disabled = true;
+                emojiBtn.disabled = true;
+                chatLockMessage.textContent = 'The other user has ended this conversation. You can no longer reply.';
+                chatLockMessage.style.display = 'block';
+            } else {
+                messageInput.disabled = false;
+                sendMessageBtn.disabled = false;
+                emojiBtn.disabled = false;
+                chatLockMessage.style.display = 'none';
+            }
         }
     }
 
@@ -885,21 +943,98 @@
         const q = query(messagesRef, orderBy('createdAt'));
         messageListenerUnsubscribe = onSnapshot(q, (snapshot) => {
             messageHistory.innerHTML = '';
-            snapshot.forEach(doc => {
-                const msg = doc.data();
+            snapshot.forEach(docSnap => {
+                const msg = docSnap.data();
+                const msgId = docSnap.id;
                 const msgEl = document.createElement('div');
+                msgEl.className = 'group relative'; 
+
                 const isSender = msg.senderId === auth.currentUser.uid;
-                msgEl.className = `p-3 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-[var(--accent-primary)] text-white ml-auto' : 'bg-[var(--bg-secondary)] text-[var(--text-primary)] mr-auto shadow-sm'}`;
-                msg.isWarning ? (msgEl.innerHTML = msg.content) : (msgEl.textContent = msg.content);
+                const hasBeenDeletedByMe = msg.deletedBy?.includes(auth.currentUser.uid);
+
+                let messageContentHTML = '';
+                if (hasBeenDeletedByMe) {
+                     messageContentHTML = `<div class="italic text-gray-400">You deleted this message</div>`;
+                } else if (msg.isWarning) {
+                    messageContentHTML = msg.content;
+                } else {
+                    messageContentHTML = escapeHTML(msg.content);
+                }
+                
+                const deleteButtonHTML = `
+                    <button data-msg-id="${msgId}" class="delete-msg-btn absolute top-1/2 -translate-y-1/2 ${isSender ? '-left-8' : '-right-8'} p-1 text-[var(--text-secondary)] hover:text-[var(--destructive)] opacity-0 group-hover:opacity-100 transition-opacity" title="Delete Message">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                    </button>
+                `;
+
+                msgEl.innerHTML = `
+                    <div class="p-3 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-[var(--accent-primary)] text-white ml-auto' : 'bg-[var(--bg-secondary)] text-[var(--text-primary)] mr-auto shadow-sm'}">
+                        ${messageContentHTML}
+                    </div>
+                    ${!hasBeenDeletedByMe ? deleteButtonHTML : ''}
+                `;
+
                 messageHistory.appendChild(msgEl);
             });
             messageHistory.scrollTop = messageHistory.scrollHeight;
         });
     }
+
+    messageHistory.addEventListener('click', (e) => {
+        const deleteBtn = e.target.closest('.delete-msg-btn');
+        if (deleteBtn && currentChatRecipient) {
+            const msgId = deleteBtn.dataset.msgId;
+            showConfirm("Are you sure you want to delete this message? This will only remove it from your view unless the other user also deletes it.", () => {
+                handleDeleteMessage(msgId);
+            });
+        }
+    });
+
+    async function handleDeleteMessage(msgId) {
+        const user = auth.currentUser;
+        if (!user || !currentChatRecipient) return;
+
+        const conversationId = [user.uid, currentChatRecipient.uid].sort().join('_');
+        const msgRef = doc(db, `conversations/${conversationId}/messages`, msgId);
+        const conversationRef = doc(db, 'conversations', conversationId);
+
+        try {
+            const msgDoc = await getDoc(msgRef);
+            if (!msgDoc.exists()) return;
+
+            const msgData = msgDoc.data();
+            const senderId = msgData.senderId;
+            
+            let deletedBy = msgData.deletedBy || [];
+            if (!deletedBy.includes(user.uid)) {
+                deletedBy.push(user.uid);
+            }
+
+            const convoDoc = await getDoc(conversationRef);
+            const participants = convoDoc.data().participants || [];
+            const allHaveDeleted = participants.every(p => deletedBy.includes(p));
+
+            if (allHaveDeleted) {
+                await deleteDoc(msgRef);
+                showToast("Message permanently removed.", 'success');
+            } else {
+                await updateDoc(msgRef, { deletedBy });
+                if (user.uid === senderId) {
+                    await updateDoc(conversationRef, { lockedBy: user.uid });
+                    showToast("Message deleted. The other user can no longer reply.", 'success');
+                } else {
+                    showToast("Message deleted for you.", 'success');
+                }
+            }
+        } catch (error) {
+            console.error("Error deleting message:", error);
+            showToast("Failed to delete message.", 'error');
+        }
+    }
     
     sendWarningBtn.onclick = async () => {
         const messageText = warningMessage.textContent.trim();
-        const styledContent = `<p style="background: linear-gradient(90deg, #f97316, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">${messageText.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`;
+        const styledContent = `<p style="background: linear-gradient(90deg, #f97316, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">${escapeHTML(messageText)}</p>`;
         const result = await sendMessage(targetUserId, styledContent, { isWarning: true });
         if (result.success) {
             showToast('Warning sent successfully.', 'success');
@@ -936,4 +1071,3 @@
 </script>
 </body>
 </html>
-
