@@ -239,7 +239,7 @@
             <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-4">Create a New Post</h2>
             <div>
                 <input type="text" id="postTitle" placeholder="Post Title" class="form-input mb-4">
-                <div id="createPostToolbar" class="flex items-center space-x-2 p-2 bg-[var(--bg-tertiary)] rounded-t-lg border border-b-0 border-[var(--border-primary)]">
+                <div id="createPostToolbar" class="flex flex-wrap items-center gap-2 p-2 bg-[var(--bg-tertiary)] rounded-t-lg border border-b-0 border-[var(--border-primary)]">
                     <button type="button" class="toolbar-btn" data-cmd="bold" title="Bold"><b>B</b></button>
                     <button type="button" class="toolbar-btn" data-cmd="italic" title="Italic"><i>I</i></button>
                     <button type="button" class="toolbar-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
@@ -254,6 +254,16 @@
                         <option value="Georgia, serif">Georgia</option>
                         <option value="Times New Roman, serif">Times New Roman</option>
                         <option value="Verdana, sans-serif">Verdana</option>
+                    </select>
+                    <select class="toolbar-select" data-cmd="fontSize" title="Font Size">
+                        <option selected>Size</option>
+                        <option value="1">XS</option>
+                        <option value="2">S</option>
+                        <option value="3">M</option>
+                        <option value="4">L</option>
+                        <option value="5">XL</option>
+                        <option value="6">2XL</option>
+                        <option value="7">3XL</option>
                     </select>
                 </div>
                 <div id="postContent" contenteditable="false" placeholder="What's on your mind?" class="form-input h-32 rounded-t-none focus:rounded-t-none"></div>
@@ -292,7 +302,7 @@
             </div>
             <div>
                 <input type="text" id="editPostTitle" placeholder="Post Title" class="form-input mb-4">
-                <div id="editPostToolbar" class="flex items-center space-x-2 p-2 bg-[var(--bg-tertiary)] rounded-t-lg border border-b-0 border-[var(--border-primary)]">
+                <div id="editPostToolbar" class="flex flex-wrap items-center gap-2 p-2 bg-[var(--bg-tertiary)] rounded-t-lg border border-b-0 border-[var(--border-primary)]">
                     <button type="button" class="toolbar-btn" data-cmd="bold" title="Bold"><b>B</b></button>
                     <button type="button" class="toolbar-btn" data-cmd="italic" title="Italic"><i>I</i></button>
                     <button type="button" class="toolbar-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
@@ -307,6 +317,16 @@
                         <option value="Georgia, serif">Georgia</option>
                         <option value="Times New Roman, serif">Times New Roman</option>
                         <option value="Verdana, sans-serif">Verdana</option>
+                    </select>
+                    <select class="toolbar-select" data-cmd="fontSize" title="Font Size">
+                        <option selected>Size</option>
+                        <option value="1">XS</option>
+                        <option value="2">S</option>
+                        <option value="3">M</option>
+                        <option value="4">L</option>
+                        <option value="5">XL</option>
+                        <option value="6">2XL</option>
+                        <option value="7">3XL</option>
                     </select>
                 </div>
                 <div id="editPostContent" contenteditable="true" placeholder="What's on your mind?" class="form-input h-48 rounded-t-none"></div>
@@ -916,3 +936,4 @@
 </script>
 </body>
 </html>
+
