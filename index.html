@@ -1,42 +1,1078 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fixed Script</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Community Forum - Home</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M21 15a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v9zM5 7a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1H5zm4 5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm5 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z'/%3E%3C/svg%3E">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    /* =========================================
+    Modern Design System for Community Forum
+    =========================================
+    */
+
+    /* --- Font & Base --- */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    
+    :root {
+        --font-sans: 'Inter', sans-serif;
+        
+        /* Light Theme Colors */
+        --bg-primary: #f8fafc; /* slate-50 */
+        --bg-secondary: #ffffff; /* white */
+        --bg-tertiary: #f1f5f9; /* slate-100 */
+        --border-primary: #e2e8f0; /* slate-200 */
+        --text-primary: #0f172a; /* slate-900 */
+        --text-secondary: #64748b; /* slate-500 */
+        --text-accent: #4f46e5; /* indigo-600 */
+        --accent-primary: #4f46e5; /* indigo-600 */
+        --accent-primary-hover: #4338ca; /* indigo-700 */
+        --destructive: #dc2626; /* red-600 */
+        --destructive-hover: #b91c1c; /* red-700 */
+        --success: #16a34a; /* green-600 */
+        --success-hover: #15803d; /* green-700 */
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+
+    .dark {
+        /* Dark Theme Colors */
+        --bg-primary: #0f172a; /* slate-900 */
+        --bg-secondary: #1e293b; /* slate-800 */
+        --bg-tertiary: #334155; /* slate-700 */
+        --border-primary: #334155; /* slate-700 */
+        --text-primary: #f8fafc; /* slate-50 */
+        --text-secondary: #94a3b8; /* slate-400 */
+        --text-accent: #818cf8; /* indigo-400 */
+        --accent-primary: #6366f1; /* indigo-500 */
+        --accent-primary-hover: #818cf8; /* indigo-400 */
+        --destructive: #f87171; /* red-400 */
+        --destructive-hover: #ef4444; /* red-500 */
+        --success: #4ade80; /* green-400 */
+        --success-hover: #22c55e; /* green-500 */
+    }
+
+    body {
+        font-family: var(--font-sans);
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        transition: background-color 0.3s ease, color 0.3s ease;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* --- Animations --- */
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes modalEnter { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes toastOut { to { opacity: 0; transform: translateY(20px); } }
+
+    .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    .modal-content-animation { animation: modalEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+    /* --- Custom Components & Utilities --- */
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem; transition: all 0.2s ease; border: 1px solid transparent; cursor: pointer; box-shadow: var(--shadow-sm); }
+    .btn:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+    .btn-primary { background-color: var(--accent-primary); color: white; }
+    .btn-primary:hover { background-color: var(--accent-primary-hover); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .btn-primary:disabled { background-color: var(--bg-tertiary); color: var(--text-secondary); cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-success { background-color: var(--success); color: white; }
+    .btn-success:hover { background-color: var(--success-hover); }
+    .btn-danger { background-color: var(--destructive); color: white; }
+    .btn-danger:hover { background-color: var(--destructive-hover); }
+    .btn-secondary { background-color: var(--bg-secondary); color: var(--text-primary); border-color: var(--border-primary); }
+    .btn-secondary:hover { background-color: var(--bg-tertiary); }
+    .btn-ghost { background-color: transparent; color: var(--text-secondary); box-shadow: none; }
+    .btn-ghost:hover { background-color: var(--bg-tertiary); color: var(--text-primary); }
+
+    .form-input { width: 100%; padding: 0.625rem 0.75rem; border-radius: 0.5rem; background-color: var(--bg-secondary); border: 1px solid var(--border-primary); color: var(--text-primary); transition: border-color 0.2s, box-shadow 0.2s; }
+    .form-input::placeholder { color: var(--text-secondary); opacity: 0.7; }
+    .form-input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 20%, transparent); }
+    
+    .card { background-color: var(--bg-secondary); border-radius: 0.75rem; border: 1px solid var(--border-primary); box-shadow: var(--shadow-md); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    
+    .modal-overlay { background-color: rgb(0 0 0 / 0.5); backdrop-filter: blur(4px); }
+
+    /* --- Toggle Switch --- */
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--bg-tertiary); transition: .4s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: var(--shadow-sm); }
+    input:checked + .slider { background-color: var(--accent-primary); }
+    input:checked + .slider:before { transform: translateX(20px); }
+    
+    [contenteditable=true]:empty:before { content: attr(placeholder); pointer-events: none; display: block; /* For Firefox */ color: var(--text-secondary); opacity: 0.7; }
+
+    /* --- Rich Text Editor & Messaging Styles --- */
+    .rich-text-editor-container { border: 1px solid var(--border-primary); border-radius: 0.5rem; background-color: var(--bg-secondary); }
+    .rich-text-editor-container:focus-within { border-color: var(--accent-primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 20%, transparent); }
+    .rich-text-toolbar { display: flex; flex-wrap: wrap; gap: 0.25rem; padding: 0.5rem; border-bottom: 1px solid var(--border-primary); }
+    .toolbar-btn { background: none; border: 1px solid transparent; padding: 0.25rem; border-radius: 0.25rem; cursor: pointer; color: var(--text-secondary); }
+    .toolbar-btn:hover { background-color: var(--bg-tertiary); color: var(--text-primary); }
+    .toolbar-btn.active { background-color: color-mix(in srgb, var(--accent-primary) 20%, transparent); color: var(--text-accent); }
+    #editPostContent { min-height: 12rem; padding: 0.75rem; outline: none; }
+    .gradient-text-admin { background: linear-gradient(90deg, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .gradient-text-contributor { background: linear-gradient(90deg, #22c55e, #84cc16); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .gradient-text-newbie { background: linear-gradient(90deg, #3b82f6, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .color-swatch { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 0 0 1px var(--border-primary); }
+    .online-indicator, .offline-indicator { width: 10px; height: 10px; border-radius: 50%; }
+    .online-indicator { background-color: #22c55e; } /* green-500 */
+    .offline-indicator { background-color: #94a3b8; } /* slate-400 */
+    
+    #toast-container { position: fixed; bottom: 1rem; right: 1rem; z-index: 100; display: flex; flex-direction: column; gap: 0.5rem; }
+    .toast { padding: 1rem 1.5rem; border-radius: 0.5rem; color: white; font-weight: 500; box-shadow: var(--shadow-lg); animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards; }
+    .toast-success { background: linear-gradient(to right, var(--success), #15803d); }
+    .toast-error { background: linear-gradient(to right, var(--destructive), #b91c1c); }
+
+    .btn-warning-gradient { background: linear-gradient(90deg, #f97316, #f59e0b); color: white; border: none; }
+    .btn-warning-gradient:hover { transform: translateY(-2px); box-shadow: 0 6px 12px -2px rgba(249, 115, 22, 0.4); }
+    .warning-message-gradient { background: linear-gradient(90deg, rgba(249,115,22,0.1), rgba(245,158,11,0.1)); border-color: #f97316; color: var(--text-primary); padding: 0.75rem; }
+    
+    .unread-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: var(--accent-primary);
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+</style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex items-center justify-center min-h-screen">
-    <div class="text-center p-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-sm mx-auto">
-        <h1 class="text-3xl font-bold mb-4 text-indigo-600 dark:text-indigo-400">Code Execution Fixed</h1>
-        <p class="text-gray-600 dark:text-gray-300">The JavaScript on this page now runs without syntax errors.</p>
-        <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">You can open the browser's developer console (usually by pressing F12) to confirm there are no errors and see the log messages.</p>
+<body>
+
+<div id="app-container">
+    <!-- Header -->
+    <header class="bg-[var(--bg-secondary)]/80 backdrop-blur-lg sticky top-0 z-40 border-b border-[var(--border-primary)]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col sm:flex-row items-center justify-between py-4 sm:h-20">
+                <div class="flex items-center space-x-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-8 w-8 text-[var(--text-accent)]">
+                        <path d="M4.913 2.658c1.072.454 1.99 1.374 2.536 2.446l.004-.001.002.001.002.001c.148.28.275.57.382.868H20.25a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75H3.75a.75.75 0 0 1-.75-.75V8.118c0-.35.07-.68.2-1l.001-.002.002-.003c.15-.29.32-.563.504-.815.42-.575.92-1.077 1.488-1.487l.002-.001.002-.002.001-.001A4.5 4.5 0 0 1 8.25 3.75h5.385c1.47 0 2.82.553 3.82 1.513l.002.002.001.001c.49.49.9 1.06 1.18 1.688l.002.003.001.002c.07.16.12.33.15.5H8.25a3 3 0 0 0-3 3v4.5a.75.75 0 0 1-1.5 0v-4.5a4.5 4.5 0 0 1 1.163-3.142Z"></path>
+                    </svg>
+                    <h1 class="text-2xl font-bold text-[var(--text-primary)]">CommunityHub</h1>
+                </div>
+                <div class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 mt-4 sm:mt-0">
+                    <div id="userInfoContainer" class="hidden items-center space-x-3 cursor-pointer group">
+                        <span id="userName" class="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--text-accent)] transition-colors"></span>
+                        <span id="userRole" class="px-2.5 py-1 text-xs font-bold text-white rounded-full"></span>
+                    </div>
+                    <div id="auth-container" class="flex items-center space-x-2">
+                         <div class="text-right">
+                            <p class="text-xs text-[var(--text-secondary)]">Have an account?</p>
+                            <button id="signInLink" class="text-sm font-medium text-[var(--text-accent)] hover:underline">Sign in</button>
+                        </div>
+                        <div class="relative" id="createAccountDropdownContainer">
+                            <button id="createAccountBtn" type="button" class="btn btn-primary">Create account</button>
+                            <div id="createAccountDropdown" class="hidden absolute right-0 mt-2 w-48 bg-[var(--bg-secondary)] rounded-lg shadow-lg py-1 z-50 border border-[var(--border-primary)]">
+                                <a href="#" id="signUpWithGoogleBtn" class="flex items-center gap-2 px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]">Sign up with Google</a>
+                                <a href="#" id="signUpWithEmailBtn" class="flex items-center gap-2 px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]">Sign up via email</a>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="signOutBtn" type="button" style="display:none;" class="btn btn-danger">Sign out</button>
+                    <label class="switch">
+                        <input type="checkbox" id="darkModeToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+             <div class="pb-4 flex flex-col sm:flex-row gap-2 justify-center sm:justify-end items-center space-x-4 text-xs text-[var(--text-secondary)]">
+                <span><span class="font-bold text-[var(--text-primary)]" id="totalMembers">0</span> Total Members</span>
+                <span class="hidden sm:block h-4 border-l border-[var(--border-primary)]"></span>
+                <span><span class="font-bold text-[var(--text-primary)]" id="onlineVisitors">0</span> Online</span>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Navigation -->
+    <nav class="bg-[var(--bg-secondary)] border-b border-[var(--border-primary)]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-wrap justify-center sm:justify-start items-center space-x-2 h-auto sm:h-14 py-2 sm:py-0">
+                <a href="./index.html" class="px-3 py-2 text-sm font-medium text-[var(--text-secondary)] rounded-md hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors">Home</a>
+                <a href="#" id="messagesBtn" class="px-3 py-2 text-sm font-medium text-[var(--text-secondary)] rounded-md hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors">Messages</a>
+                <a href="./contributor.html" class="px-3 py-2 text-sm font-medium text-[var(--text-secondary)] rounded-md hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors">Contributor Section</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <!-- Signup Form (hidden by default) -->
+        <div id="signupForm" style="display:none;" class="mb-6 card p-6 fade-in">
+            <h3 class="text-xl font-bold text-[var(--text-primary)] mb-4">Create an Account</h3>
+            <div class="space-y-4">
+                <div>
+                    <input type="text" id="signupUsername" placeholder="Username" autocomplete="off" class="form-input">
+                    <p id="signupUsernameError" class="text-xs text-[var(--destructive)] mt-1" style="display: none;"></p>
+                </div>
+                <input type="email" id="signupEmail" placeholder="Email address" autocomplete="off" class="form-input">
+                <div>
+                    <div class="relative">
+                        <input type="password" id="signupPassword" placeholder="Password" autocomplete="new-password" class="form-input pr-10">
+                        <button type="button" id="togglePasswordVisibility" class="absolute inset-y-0 right-0 px-3 flex items-center text-[var(--text-secondary)]">
+                            <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.02 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>
+                            <svg id="eyeSlashIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.955 9.955 0 00-4.502 1.071L3.707 2.293zM10.707 10.707a2 2 0 00-2.828-2.828l2.828 2.828zM10 12a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /><path d="M2.043 10c1.274 4.057 5.02 7 9.542 7 .848 0 1.67-.11 2.458-.316l-1.473-1.473A10.014 10.014 0 012.043 10z" /></svg>
+                        </button>
+                    </div>
+                    <p id="passwordError" class="text-xs text-[var(--destructive)] mt-1" style="display: none;"></p>
+                </div>
+                <button id="signupBtn" class="btn btn-success w-full">Sign Up</button>
+            </div>
+        </div>
+        
+        <!-- Search Section -->
+        <section id="search-section" class="mb-8 flex flex-col sm:flex-row gap-2">
+            <input type="text" id="searchInput" placeholder="Search by keyword in title or content..." class="form-input flex-grow">
+            <button id="searchBtn" class="btn btn-primary">Search</button>
+        </section>
+
+        <!-- Post Creation Section -->
+        <section id="post-creation" class="card p-6">
+            <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-4">Create a New Post</h2>
+            <div class="space-y-4">
+                <input type="text" id="postTitle" placeholder="Post Title" class="form-input">
+                <textarea id="postContent" placeholder="What's on your mind?" class="form-input h-32" disabled></textarea>
+            </div>
+            <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <button id="createPostBtn" class="btn btn-primary w-full sm:w-auto" disabled>Create Post</button>
+                <p id="auth-prompt" class="text-sm text-[var(--destructive)] font-medium text-center sm:text-left">Please sign in to create a post.</p>
+            </div>
+        </section>
+
+        <!-- Post List -->
+        <div id="postList" class="mt-8 space-y-6">
+            <!-- Posts will be dynamically inserted here -->
+        </div>
+        <div class="text-center mt-8">
+            <button id="loadMoreBtn" style="display:none;" class="btn btn-primary">Load More Posts</button>
+        </div>
+    </main>
+    
+    <!-- Modals -->
+    <div id="confirmModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-sm text-center modal-content-animation">
+            <p id="confirmMessage" class="text-[var(--text-primary)] mb-6"></p>
+            <div class="flex justify-end space-x-4">
+                <button id="confirmCancelBtn" class="btn btn-secondary">Cancel</button>
+                <button id="confirmOkBtn" class="btn btn-danger">OK</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="editPostModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-2xl modal-content-animation">
+            <div class="flex justify-between items-start mb-4">
+                <h3 class="text-lg font-bold text-[var(--text-primary)]">Edit Post</h3>
+                <button id="closeEditPostModal" class="btn btn-ghost !p-1 h-8 w-8">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <input type="text" id="editPostTitle" placeholder="Post Title" class="form-input">
+                <div class="rich-text-editor-container">
+                    <div id="editPostToolbar" class="rich-text-toolbar">
+                        <!-- Toolbar buttons will be injected here -->
+                    </div>
+                    <div id="editPostContent" contenteditable="true" class="form-input h-auto min-h-[12rem]" placeholder="What's on your mind?"></div>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button id="saveEditBtn" class="btn btn-success">Save Changes</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="userProfileModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-md modal-content-animation">
+            <div class="flex justify-between items-start mb-4">
+                <h3 class="text-lg font-bold text-[var(--text-primary)]">User Profile</h3>
+                <button id="closeUserProfileModal" class="btn btn-ghost !p-1 h-8 w-8">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <p class="text-[var(--text-primary)]">Total Posts: <span id="profilePostCount" class="font-bold">0</span></p>
+                <div id="changeUsernameSection" style="display: none;" class="space-y-2">
+                    <label for="newUsernameInput" class="block text-sm font-medium text-[var(--text-secondary)]">Change Username</label>
+                    <div class="flex">
+                        <input type="text" id="newUsernameInput" placeholder="New username" class="form-input rounded-r-none">
+                        <button id="changeUsernameBtn" class="btn btn-primary rounded-l-none">Save</button>
+                    </div>
+                    <p id="changeUsernameError" class="text-xs text-[var(--destructive)] mt-1" style="display: none;"></p>
+                </div>
+                <button id="closeAccountBtn" class="btn btn-danger w-full">Close My Account</button>
+            </div>
+        </div>
     </div>
 
-    <script>
-        // The original code was likely missing a closing brace '}' or parenthesis ')',
-        // which is a common cause for a "SyntaxError: Unexpected end of input".
+    <div id="postViewModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-2xl relative flex flex-col max-h-[85vh] modal-content-animation">
+            <div class="flex-shrink-0">
+                <button id="closePostViewModal" class="absolute top-3 right-3 btn btn-ghost !p-1 h-8 w-8 z-10">&times;</button>
+                <h3 id="postViewTitle" class="text-2xl font-bold text-[var(--text-primary)] mb-2 pr-8"></h3>
+                <div id="postViewMeta" class="text-sm text-[var(--text-secondary)] mb-4"></div>
+            </div>
+            <div id="postViewContentContainer" class="overflow-y-auto pr-4 -mr-4">
+                <div id="postViewContent" class="text-[var(--text-primary)] whitespace-pre-wrap leading-relaxed"></div>
+            </div>
+        </div>
+    </div>
 
-        function demonstrateFix(value) {
-            if (value > 10) {
-                console.log("The value is greater than 10.");
-                // An if-statement block requires an opening and closing brace.
-            } else {
-                console.log("The value is 10 or less.");
+    <!-- NEW Conversations Modal -->
+    <div id="conversationsModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-md h-[75vh] flex flex-col modal-content-animation">
+            <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                <h3 class="text-lg font-bold text-[var(--text-primary)]">Conversations</h3>
+                <button id="closeConversationsModal" class="btn btn-ghost !p-1 h-8 w-8">&times;</button>
+            </div>
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="conversationSearch" placeholder="Search conversations..." class="form-input flex-grow">
+                <button id="newConversationBtn" class="btn btn-primary flex-shrink-0">New</button>
+            </div>
+            <div id="conversationList" class="flex-grow overflow-y-auto space-y-1 pr-2 -mr-2">
+                <!-- Conversation list will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW Members List Modal (for starting new chats) -->
+    <div id="newChatModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-md h-[75vh] flex flex-col modal-content-animation">
+            <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                <h3 class="text-lg font-bold text-[var(--text-primary)]">Start New Chat</h3>
+                <button id="closeNewChatModal" class="btn btn-ghost !p-1 h-8 w-8">&times;</button>
+            </div>
+            <div class="mb-4">
+                <input type="text" id="memberSearch" placeholder="Search for a member..." class="form-input">
+            </div>
+            <div id="memberList" class="flex-grow overflow-y-auto space-y-2 pr-2 -mr-2">
+                 <!-- Member list for new chats will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Modal -->
+    <div id="chatModal" style="display:none;" class="fixed top-0 right-0 h-full w-full max-w-md z-50">
+         <div class="card !rounded-l-lg !rounded-r-none h-full w-full flex flex-col modal-content-animation border-r-0">
+            <div class="flex justify-between items-center p-4 border-b border-[var(--border-primary)]">
+                <div class="flex items-center gap-2">
+                    <button id="backToConversationsBtn" class="btn btn-ghost !p-1 h-8 w-8">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <div id="chatHeader" class="font-bold text-[var(--text-primary)]"></div>
+                </div>
+                <button id="closeChatModal" class="btn btn-ghost !p-1 h-8 w-8">&times;</button>
+            </div>
+            <div id="messageHistory" class="flex-grow overflow-y-auto p-4 space-y-4"></div>
+            <div class="p-4 border-t border-[var(--border-primary)]">
+                <div class="relative">
+                     <textarea id="messageInput" placeholder="Type your message..." class="form-input h-20 mb-2 pr-12"></textarea>
+                     <button id="emojiBtn" class="absolute top-2 right-2 text-2xl text-[var(--text-secondary)] hover:text-[var(--text-accent)]">
+                        😊
+                    </button>
+                    <div id="emojiPicker" class="hidden absolute bottom-full right-0 mb-2 bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg shadow-lg p-2 w-64 h-48 overflow-y-auto grid grid-cols-8 gap-1 z-10">
+                        <!-- Emojis populated here -->
+                    </div>
+                </div>
+                 <button id="sendMessageBtn" class="btn btn-primary w-full mt-2">Send Message</button>
+            </div>
+         </div>
+    </div>
+
+    <div id="signInModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-sm modal-content-animation">
+            <div class="flex justify-between items-start mb-4"><h3 class="text-lg font-bold text-[var(--text-primary)]">Sign In</h3><button id="closeSignInModal" class="btn btn-ghost !p-1 h-8 w-8">&times;</button></div>
+            <div class="space-y-4">
+                <button id="signInWithGoogleBtnModal" class="w-full flex items-center justify-center btn btn-secondary"><svg class="w-5 h-5 mr-3" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.223,0-9.657-3.356-11.303-7.962l-6.571,4.819C9.656,39.663,16.318,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C44.464,34.048,48,27.421,48,20c0-1.577-0.191-3.118-0.54-4.594l-0.231,0.195C45.696,17.227,44.254,19.14,43.611,20.083z"></path></svg>Sign in with Google</button>
+                <div class="relative flex py-2 items-center"><div class="flex-grow border-t border-[var(--border-primary)]"></div><span class="flex-shrink mx-4 text-[var(--text-secondary)]">or</span><div class="flex-grow border-t border-[var(--border-primary)]"></div></div>
+                <input type="text" id="signInIdentifier" placeholder="Username or Email" class="form-input">
+                <input type="password" id="signInPassword" placeholder="Password" class="form-input">
+                <p id="signInError" class="text-xs text-[var(--destructive)] mt-1" style="display: none;"></p>
+                <button id="signInWithEmailBtnModal" class="btn btn-success w-full">Sign In</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="usernameModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-sm modal-content-animation">
+            <h3 class="text-lg font-bold text-[var(--text-primary)] mb-4">Choose a Username</h3>
+            <p class="text-sm text-[var(--text-secondary)] mb-4">This will be your public name in the forum.</p>
+            <input type="text" id="modalUsernameInput" placeholder="Enter a unique username" class="form-input">
+            <p id="usernameError" class="text-xs text-[var(--destructive)] mt-1" style="display: none;"></p>
+            <button id="submitUsernameBtn" class="mt-4 w-full btn btn-primary">Confirm Username</button>
+        </div>
+    </div>
+    
+    <div id="adminModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-md modal-content-animation">
+            <h3 class="text-lg font-bold text-[var(--text-primary)] mb-2">Manage User</h3>
+            <p id="adminModalUsername" class="text-sm font-medium text-[var(--text-accent)] mb-4"></p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-secondary)]">Send Warning</label>
+                    <div id="warningMessage" contenteditable="true" placeholder="Enter warning message..." class="form-input mt-1 h-24 warning-message-gradient"></div>
+                    <button id="sendWarningBtn" class="mt-2 w-full btn btn-warning-gradient">Send Warning</button>
+                </div>
+                <div class="flex space-x-4"><button id="banUserBtn" class="w-full btn btn-danger">Ban User</button><button id="unbanUserBtn" class="w-full btn btn-success">Unban User</button></div>
+                <button id="closeAdminModal" class="mt-4 w-full btn btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="alertModal" style="display:none;" class="fixed inset-0 modal-overlay overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
+        <div class="card p-6 w-full max-w-sm text-center modal-content-animation">
+            <p id="alertMessage" class="text-[var(--text-primary)] mb-4"></p>
+            <button id="closeAlertModal" class="btn btn-primary">OK</button>
+        </div>
+    </div>
+
+</div>
+<div id="toast-container"></div>
+<script type="module">
+    // Firebase imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInWithEmailAndPassword, signInAnonymously, deleteUser } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, onSnapshot, addDoc, query, orderBy, where, getDocs, updateDoc, deleteDoc, writeBatch, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDfAUIe4mrxSJ4SIlCDlTb7RehaD7fVog4",
+      authDomain: "forum-3dec5.firebaseapp.com",
+      databaseURL: "https://forum-3dec5-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "forum-3dec5",
+      storageBucket: "forum-3dec5.firebasestorage.app",
+      messagingSenderId: "519284298976",
+      appId: "1:519284298976:web:8bb5e94a44f202802c2c85",
+      measurementId: "G-SXS8FRTT03"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const rtdb = getDatabase(app);
+    const provider = new GoogleAuthProvider();
+
+    // --- UI Elements ---
+    const signOutBtn = document.getElementById("signOutBtn");
+    const darkModeToggle = document.getElementById("darkModeToggle");
+    const postList = document.getElementById("postList");
+    const authContainer = document.getElementById("auth-container");
+    const userInfoContainer = document.getElementById("userInfoContainer");
+    const userNameEl = document.getElementById("userName");
+    const userRoleEl = document.getElementById("userRole");
+    const signInLink = document.getElementById("signInLink");
+    const createAccountBtn = document.getElementById("createAccountBtn");
+    const createAccountDropdown = document.getElementById("createAccountDropdown");
+    const signUpWithGoogleBtn = document.getElementById("signUpWithGoogleBtn");
+    const signUpWithEmailBtn = document.getElementById("signUpWithEmailBtn");
+    const signInModal = document.getElementById("signInModal");
+    const closeSignInModal = document.getElementById("closeSignInModal");
+    const signInWithGoogleBtnModal = document.getElementById("signInWithGoogleBtnModal");
+    const signInWithEmailBtnModal = document.getElementById("signInWithEmailBtnModal");
+    const signupForm = document.getElementById("signupForm");
+    const signupBtn = document.getElementById("signupBtn");
+    const signupUsernameInput = document.getElementById("signupUsername");
+    const signupUsernameError = document.getElementById("signupUsernameError");
+    const signupPasswordInput = document.getElementById("signupPassword");
+    const togglePasswordVisibilityBtn = document.getElementById("togglePasswordVisibility");
+    const eyeIcon = document.getElementById("eyeIcon");
+    const eyeSlashIcon = document.getElementById("eyeSlashIcon");
+    const passwordError = document.getElementById("passwordError");
+    const postViewModal = document.getElementById('postViewModal');
+    const closePostViewModal = document.getElementById('closePostViewModal');
+    const editPostModal = document.getElementById('editPostModal');
+    const closeEditPostModal = document.getElementById('closeEditPostModal');
+    const editPostTitleInput = document.getElementById('editPostTitle');
+    const editPostContent = document.getElementById('editPostContent');
+    const saveEditBtn = document.getElementById('saveEditBtn');
+    const userProfileModal = document.getElementById('userProfileModal');
+    const closeUserProfileModal = document.getElementById('closeUserProfileModal');
+    const profilePostCount = document.getElementById('profilePostCount');
+    const changeUsernameSection = document.getElementById('changeUsernameSection');
+    const newUsernameInput = document.getElementById('newUsernameInput');
+    const changeUsernameBtn = document.getElementById('changeUsernameBtn');
+    const changeUsernameError = document.getElementById('changeUsernameError');
+    const closeAccountBtn = document.getElementById('closeAccountBtn');
+    const adminModal = document.getElementById('adminModal');
+    const warningMessage = document.getElementById('warningMessage');
+    const sendWarningBtn = document.getElementById('sendWarningBtn');
+
+    // --- Messaging UI Elements ---
+    const messagesBtn = document.getElementById('messagesBtn');
+    const conversationsModal = document.getElementById('conversationsModal');
+    const closeConversationsModal = document.getElementById('closeConversationsModal');
+    const conversationSearch = document.getElementById('conversationSearch');
+    const newConversationBtn = document.getElementById('newConversationBtn');
+    const conversationList = document.getElementById('conversationList');
+    const newChatModal = document.getElementById('newChatModal');
+    const closeNewChatModal = document.getElementById('closeNewChatModal');
+    const memberList = document.getElementById('memberList');
+    const memberSearch = document.getElementById('memberSearch');
+    const chatModal = document.getElementById('chatModal');
+    const closeChatModal = document.getElementById('closeChatModal');
+    const backToConversationsBtn = document.getElementById('backToConversationsBtn');
+    const chatHeader = document.getElementById('chatHeader');
+    const messageHistory = document.getElementById('messageHistory');
+    const messageInput = document.getElementById('messageInput');
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
+    const emojiBtn = document.getElementById('emojiBtn');
+    const emojiPicker = document.getElementById('emojiPicker');
+    
+    // --- App State ---
+    let currentUserRole = null;
+    let usersDataCache = {};
+    let postDocsCache = [];
+    let currentRenderedDocs = [];
+    let currentUserData = null;
+    let currentEditingPostId = null;
+    let onlineUsers = {};
+    let currentChatRecipient = null;
+    let messageListenerUnsubscribe = null;
+    let conversationListenerUnsubscribe = null;
+
+    // --- Util Functions ---
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+    
+    const alertModal = document.getElementById('alertModal');
+    const alertMessage = document.getElementById('alertMessage');
+    const closeAlertModal = document.getElementById('closeAlertModal');
+    function showAlert(message) { alertMessage.textContent = message; alertModal.style.display = 'flex'; }
+    closeAlertModal.onclick = () => alertModal.style.display = 'none';
+
+    function showConfirm(message, onConfirm) {
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmMessage = document.getElementById('confirmMessage');
+        const confirmOkBtn = document.getElementById('confirmOkBtn');
+        const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+        confirmMessage.textContent = message;
+        confirmModal.style.display = 'flex';
+        const okListener = () => { confirmModal.style.display = 'none'; onConfirm(); confirmOkBtn.removeEventListener('click', okListener); confirmCancelBtn.removeEventListener('click', cancelListener); };
+        const cancelListener = () => { confirmModal.style.display = 'none'; confirmOkBtn.removeEventListener('click', okListener); confirmCancelBtn.removeEventListener('click', cancelListener); };
+        confirmOkBtn.addEventListener('click', okListener);
+        confirmCancelBtn.addEventListener('click', cancelListener);
+    }
+
+    function applyDarkMode(isDark) { document.documentElement.classList.toggle('dark', isDark); localStorage.setItem("darkMode", isDark); }
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedMode = localStorage.getItem("darkMode");
+    const initialDarkMode = savedMode !== null ? savedMode === 'true' : prefersDark;
+    darkModeToggle.checked = initialDarkMode;
+    applyDarkMode(initialDarkMode);
+    darkModeToggle.addEventListener("change", (e) => applyDarkMode(e.target.checked));
+
+    // --- Authentication (Original, kept intact) ---
+    togglePasswordVisibilityBtn.addEventListener("click", () => { const type = signupPasswordInput.getAttribute("type") === "password" ? "text" : "password"; signupPasswordInput.setAttribute("type", type); eyeIcon.classList.toggle("hidden"); eyeSlashIcon.classList.toggle("hidden"); });
+    signupPasswordInput.addEventListener("input", () => { if (passwordError.style.display === 'block') passwordError.style.display = 'none'; });
+    signupUsernameInput.addEventListener("input", () => { if (signupUsernameError.style.display === 'block') signupUsernameError.style.display = 'none'; });
+    const googleSignInHandler = async () => { try { const result = await signInWithPopup(auth, provider); await handleUser(result.user); signInModal.style.display = 'none'; } catch (error) { console.error("Google sign-in error:", error); } };
+    signInLink.addEventListener("click", () => { signInModal.style.display = 'flex'; });
+    closeSignInModal.addEventListener("click", () => { signInModal.style.display = 'none'; });
+    signInWithGoogleBtnModal.addEventListener("click", googleSignInHandler);
+    signUpWithGoogleBtn.addEventListener("click", (e) => { e.preventDefault(); googleSignInHandler(); createAccountDropdown.classList.add('hidden'); });
+    signUpWithEmailBtn.addEventListener("click", (e) => { e.preventDefault(); signupForm.style.display = 'block'; createAccountDropdown.classList.add('hidden'); });
+    createAccountBtn.addEventListener("click", (event) => { event.stopPropagation(); createAccountDropdown.classList.toggle('hidden'); });
+    window.addEventListener("click", (event) => {
+        if (!document.getElementById('createAccountDropdownContainer').contains(event.target)) {
+            createAccountDropdown.classList.add('hidden');
+        }
+        if (emojiPicker && !emojiPicker.contains(event.target) && event.target !== emojiBtn) {
+            emojiPicker.classList.add('hidden');
+        }
+        const colorPalette = document.getElementById('colorPalette');
+        if (colorPalette && !colorPalette.contains(event.target) && !event.target.closest('[data-command="foreColor"]')) {
+            colorPalette.classList.add('hidden');
+        }
+    });
+    signInWithEmailBtnModal.addEventListener('click', async () => { const identifier = document.getElementById('signInIdentifier').value.trim(); const password = document.getElementById('signInPassword').value; const signInError = document.getElementById('signInError'); signInError.style.display = 'none'; if (!identifier || !password) { signInError.textContent = 'Please enter your credentials.'; signInError.style.display = 'block'; return; } let email = identifier; try { if (!identifier.includes('@')) { const usersRef = collection(db, "users"); const q = query(usersRef, where("displayName", "==", identifier)); const querySnapshot = await getDocs(q); if (querySnapshot.empty) { signInError.textContent = 'User not found.'; signInError.style.display = 'block'; return; } email = querySnapshot.docs[0].data().email; } await signInWithEmailAndPassword(auth, email, password); signInModal.style.display = 'none'; } catch (error) { console.error("Sign in error:", error); signInError.textContent = 'Invalid credentials. Please try again.'; signInError.style.display = 'block'; } });
+    signupBtn.addEventListener("click", async () => { const email = document.getElementById("signupEmail").value; const password = signupPasswordInput.value; const username = signupUsernameInput.value.trim(); passwordError.style.display = 'none'; signupUsernameError.style.display = 'none'; const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,16}$/; if (!email || !password || !username) { showAlert("Please fill out all fields."); return; } if (!passwordRegex.test(password)) { passwordError.innerHTML = "Must be 7-16 characters & contain letters, numbers, & special characters.<br>e.g., Password@1, Secure!23, MyP@ssw0rd"; passwordError.style.display = 'block'; return; } const usersRef = collection(db, "users"); const q = query(usersRef, where("displayName", "==", username)); const querySnapshot = await getDocs(q); if (!querySnapshot.empty) { signupUsernameError.textContent = "Username is already taken. Please choose another one."; signupUsernameError.style.display = 'block'; return; } try { const userCredential = await createUserWithEmailAndPassword(auth, email, password); await handleUser(userCredential.user, username); signupForm.style.display = 'none'; } catch (error) { console.error("Email signup error:", error); showAlert(`Error: ${error.message}`); } });
+    signOutBtn.addEventListener("click", () => signOut(auth));
+
+    async function handleUser(user, chosenUsername = null) { if (!user) return; const userRef = doc(db, "users", user.uid); const userDoc = await getDoc(userRef); if (!userDoc.exists()) { const isAdmin = user.email === 'yujinbussinessmatter@gmail.com'; const newUserRole = isAdmin ? 'admin' : 'newbie'; const finalUsername = isAdmin ? "Y̶U̶J̶I̶N̶" : chosenUsername; if (finalUsername) { await setDoc(userRef, { uid: user.uid, email: user.email, displayName: finalUsername, createdAt: serverTimestamp(), role: newUserRole, banned: false, warnings: [] }); } else { const usernameModal = document.getElementById("usernameModal"); usernameModal.style.display = 'flex'; document.getElementById("submitUsernameBtn").onclick = async () => { const modalUsernameInput = document.getElementById("modalUsernameInput"); const usernameError = document.getElementById("usernameError"); const newUsername = isAdmin ? "Y̶U̶J̶I̶N̶" : modalUsernameInput.value.trim(); if (!newUsername) { usernameError.textContent = "Username cannot be empty."; usernameError.style.display = "block"; return; } const usersRef = collection(db, "users"); const q = query(usersRef, where("displayName", "==", newUsername)); const querySnapshot = await getDocs(q); if (!querySnapshot.empty && !isAdmin) { usernameError.textContent = "This username is already taken."; usernameError.style.display = "block"; } else { await setDoc(userRef, { uid: user.uid, email: user.email, displayName: newUsername, createdAt: serverTimestamp(), role: newUserRole, banned: false, warnings: [] }); usernameModal.style.display = 'none'; } }; } } }
+    
+    onAuthStateChanged(auth, async (user) => { if (user) { const userDocRef = doc(db, "users", user.uid); const userDocSnap = await getDoc(userDocRef); setupPresence(user); attachFirestoreListeners(); if (user.isAnonymous) { authContainer.style.display = 'flex'; signOutBtn.style.display = 'none'; userInfoContainer.style.display = 'none'; document.getElementById("postContent").disabled = true; document.getElementById("createPostBtn").disabled = true; document.getElementById("auth-prompt").style.display = 'block'; } else if (userDocSnap.exists()) { authContainer.style.display = 'none'; signOutBtn.style.display = 'block'; userInfoContainer.style.display = 'flex'; document.getElementById("postContent").disabled = false; document.getElementById("createPostBtn").disabled = false; document.getElementById("auth-prompt").style.display = 'none'; currentUserData = userDocSnap.data(); if (user.email === 'yujinbussinessmatter@gmail.com') { let updates = {}; if (currentUserData.role !== 'admin') updates.role = 'admin'; if (currentUserData.displayName !== "Y̶U̶J̶I̶N̶") updates.displayName = "Y̶U̶J̶I̶N̶"; if (Object.keys(updates).length > 0) { await updateDoc(userDocRef, updates); Object.assign(currentUserData, updates); } } currentUserRole = currentUserData.role || 'newbie'; userNameEl.textContent = currentUserData.displayName || user.email; if (currentUserData.banned) { userRoleEl.textContent = 'Banned'; userRoleEl.className = 'px-2.5 py-1 text-xs font-bold text-white rounded-full bg-red-600'; } else { userRoleEl.textContent = currentUserRole; userRoleEl.className = 'px-2.5 py-1 text-xs font-bold text-white rounded-full'; switch (currentUserRole) { case 'admin': userRoleEl.classList.add('bg-violet-500'); break; case 'contributor': userRoleEl.classList.add('bg-green-500'); break; default: userRoleEl.classList.add('bg-blue-500'); break; } } } else { userNameEl.textContent = user.email; userRoleEl.textContent = '...'; userRoleEl.classList.add('bg-gray-500'); } } else { authContainer.style.display = 'flex'; signOutBtn.style.display = 'none'; userInfoContainer.style.display = 'none'; document.getElementById("postContent").disabled = true; document.getElementById("createPostBtn").disabled = true; document.getElementById("auth-prompt").style.display = 'block'; postList.innerHTML = ''; currentUserRole = null; if(window.firestoreUnsubscribes) { window.firestoreUnsubscribes.forEach(unsub => unsub()); } signInAnonymously(auth).catch(error => { console.error("Anonymous sign-in failed:", error); }); } });
+    
+    // --- Presence Management ---
+    function setupPresence(user) { if (!user) return; const myConnectionsRef = ref(rtdb, `status/${user.uid}`); const connectedRef = ref(rtdb, '.info/connected'); onValue(connectedRef, (snap) => { if (snap.val() === true) { set(myConnectionsRef, { online: true, last_changed: rtdbServerTimestamp() }); onDisconnect(myConnectionsRef).remove(); } }); }
+    
+    // --- Post Rendering ---
+    function renderPosts(docsToRender) { currentRenderedDocs = docsToRender; postList.innerHTML = ''; if (docsToRender.length === 0 && isSearching) { postList.innerHTML = `<p class="text-center text-[var(--text-secondary)]">No matching posts found for "${searchInput.value}".</p>`; return; } docsToRender.forEach(doc => { const post = doc.data(); const postId = doc.id; const authorData = usersDataCache[post.authorId]; if (!authorData) return; const postEl = document.createElement('div'); postEl.className = 'card p-5'; const timestamp = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now'; const editedTimestampText = post.editedAt ? `(edited ${post.editedAt.toDate().toLocaleString()})` : ''; let userStatusHTML = ''; const role = authorData.role || 'newbie'; if (authorData.banned) { userStatusHTML = `<span class="ml-2 px-2.5 py-1 text-xs font-bold text-white bg-red-600 rounded-full">Banned</span>`; } else { let roleColor = 'bg-blue-500'; if (role === 'admin') roleColor = 'bg-violet-500'; if (role === 'contributor') roleColor = 'bg-green-500'; userStatusHTML = `<span class="ml-2 px-2.5 py-1 text-xs font-bold text-white ${roleColor} rounded-full">${role}</span>`; } const canEdit = auth.currentUser && (auth.currentUser.uid === post.authorId || currentUserRole === 'admin'); postEl.innerHTML = ` <div class="flex items-start flex-wrap"> <div class="flex items-center mb-2 sm:mb-0"> <div class="font-bold text-[var(--text-primary)]">${authorData.displayName}</div> ${userStatusHTML} </div> <div class="ml-auto flex items-center space-x-2"> ${canEdit ? ` <button data-post-id="${postId}" class="edit-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]" title="Edit Post"> <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg> </button>` : ''} ${currentUserRole === 'admin' ? ` <button data-post-id="${postId}" data-pinned="${post.pinned}" class="pin-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]" title="${post.pinned ? 'Unpin Post' : 'Pin Post'}"> <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5.586l2.293-2.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 9.586V4a1 1 0 011-1z" clip-rule="evenodd" /><path d="M3 12a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" /></svg> </button> <button data-author-id="${post.authorId}" data-author-name="${authorData.displayName}" class="manage-user-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]" title="Manage User"> <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg> </button> <button data-post-id="${postId}" class="delete-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--destructive)]" title="Delete Post"> <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg> </button> ` : ''} </div> </div> <div class="text-xs text-[var(--text-secondary)]">${timestamp} <span class="italic">${editedTimestampText}</span></div> <h4 class="text-xl font-semibold text-[var(--text-accent)] mt-2 hover:underline cursor-pointer view-post-btn flex items-center gap-2" data-post-id="${postId}"> ${post.pinned ? '<span class="text-xl" title="Pinned Post">📌</span>' : ''} <span>${post.title}</span> </h4> `; postList.appendChild(postEl); }); }
+
+    // --- Firestore Listeners ---
+    function attachFirestoreListeners() { if (window.firestoreUnsubscribes) { window.firestoreUnsubscribes.forEach(unsub => unsub()); } window.firestoreUnsubscribes = []; const usersColRef = collection(db, "users"); const usersUnsub = onSnapshot(usersColRef, (snapshot) => { document.getElementById("totalMembers").textContent = snapshot.size; usersDataCache = {}; snapshot.forEach(doc => { usersDataCache[doc.id] = doc.data(); }); renderPosts(postDocsCache); renderMembersList(); loadConversations(); }); const statusRef = ref(rtdb, "status"); const presenceUnsub = onValue(statusRef, (snapshot) => { onlineUsers = snapshot.val() || {}; document.getElementById("onlineVisitors").textContent = snapshot.exists() ? Object.keys(onlineUsers).length : 0; renderMembersList(); }); const postsColRef = collection(db, "posts"); const q = query(postsColRef, orderBy("createdAt", "desc")); const postsUnsub = onSnapshot(q, (snapshot) => { if (isSearching) return; let docs = snapshot.docs; docs.sort((a, b) => (b.data().pinned ? 1 : 0) - (a.data().pinned ? 1 : 0)); postDocsCache = docs; renderPosts(postDocsCache); }); window.firestoreUnsubscribes.push(usersUnsub, presenceUnsub, postsUnsub); }
+    
+    // --- Post Management ---
+    document.getElementById('createPostBtn').addEventListener('click', async () => { const title = document.getElementById("postTitle").value.trim(); const content = document.getElementById("postContent").value.trim(); const user = auth.currentUser; if (title && content && user && currentUserData) { if (!currentUserData.banned) { const postsColRef = collection(db, "posts"); await addDoc(postsColRef, { title: title, content: content, authorId: user.uid, authorName: currentUserData.displayName, createdAt: serverTimestamp(), pinned: false, }); document.getElementById("postTitle").value = ''; document.getElementById("postContent").value = ''; } else { showAlert("Your account is banned and you cannot create posts."); } } else { showAlert("Please provide a title and content for your post."); } });
+    postList.addEventListener('click', e => { const viewBtn = e.target.closest('.view-post-btn'); const deleteBtn = e.target.closest('.delete-post-btn'); const manageBtn = e.target.closest('.manage-user-btn'); const editBtn = e.target.closest('.edit-post-btn'); const pinBtn = e.target.closest('.pin-post-btn'); if (viewBtn) { const postId = viewBtn.dataset.postId; const postDoc = currentRenderedDocs.find(doc => doc.id === postId); if(postDoc) { const post = postDoc.data(); const author = usersDataCache[post.authorId]; document.getElementById('postViewTitle').textContent = post.title; document.getElementById('postViewContent').innerHTML = post.content; // Use innerHTML to render formatted text document.getElementById('postViewMeta').textContent = `Posted by ${author.displayName} on ${post.createdAt.toDate().toLocaleString()}`; postViewModal.style.display = 'flex'; } } if (deleteBtn) { const postId = deleteBtn.dataset.postId; showConfirm('Are you sure you want to delete this post permanently?', () => { deleteDoc(doc(db, "posts", postId)).then(() => { showAlert('Post deleted successfully.'); }).catch(err => console.error("Error deleting post:", err)); }); } if (manageBtn) { const userId = manageBtn.dataset.authorId; const userName = usersDataCache[userId]?.displayName; if(userName) { openAdminModal(userId, userName); } } if (editBtn) { const postId = editBtn.dataset.postId; const postDoc = currentRenderedDocs.find(doc => doc.id === postId); if (postDoc) { openEditModal(postDoc.data(), postId); } } if (pinBtn) { const postId = pinBtn.dataset.postId; const shouldPin = pinBtn.dataset.pinned !== 'true'; togglePin(postId, shouldPin); } });
+    closePostViewModal.addEventListener('click', () => postViewModal.style.display = 'none');
+
+    let targetUserId = null;
+    function openAdminModal(userId, userName) { targetUserId = userId; document.getElementById('adminModalUsername').textContent = userName; warningMessage.innerHTML = ''; adminModal.style.display = 'flex'; }
+    document.getElementById('closeAdminModal').onclick = () => adminModal.style.display = 'none';
+    document.getElementById('banUserBtn').onclick = async () => { if (!targetUserId) return; await updateDoc(doc(db, "users", targetUserId), { banned: true }); showAlert('User has been banned.'); adminModal.style.display = 'none'; };
+    document.getElementById('unbanUserBtn').onclick = async () => { if (!targetUserId) return; await updateDoc(doc(db, "users", targetUserId), { banned: false }); showAlert('User has been unbanned.'); adminModal.style.display = 'none'; };
+    
+    // --- Messaging & Inbox System ---
+    
+    // Unified message sending function
+    async function sendMessage(recipientId, content, { isWarning = false } = {}) {
+        const user = auth.currentUser;
+        if (!user || user.isAnonymous) return { success: false, message: 'You must be logged in.' };
+        if (!content.trim()) return { success: false, message: 'Message cannot be empty.' };
+
+        const conversationId = [user.uid, recipientId].sort().join('_');
+        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
+        const conversationRef = doc(db, 'conversations', conversationId);
+
+        const messageData = {
+            senderId: user.uid,
+            content: content,
+            createdAt: serverTimestamp(),
+            isWarning: isWarning
+        };
+
+        const conversationData = {
+            participants: [user.uid, recipientId],
+            lastMessage: isWarning ? "You have received a warning" : content.substring(0, 40) + (content.length > 40 ? '...' : ''),
+            lastMessageTimestamp: serverTimestamp(),
+        };
+
+        try {
+            await setDoc(conversationRef, conversationData, { merge: true });
+            await addDoc(messagesRef, messageData);
+            await updateDoc(conversationRef, { lastReadBy: [user.uid] });
+            
+            return { success: true };
+        } catch (error) {
+            console.error("Error sending message:", error);
+            return { success: false, message: 'Failed to send message.' };
+        }
+    }
+
+    // Event listeners for opening/closing modals
+    messagesBtn.addEventListener('click', () => { if (auth.currentUser && !auth.currentUser.isAnonymous) { conversationsModal.style.display = 'flex'; loadConversations();} else { showToast('Please sign in to view messages.', 'error'); } });
+    closeConversationsModal.onclick = () => conversationsModal.style.display = 'none';
+    newConversationBtn.onclick = () => newChatModal.style.display = 'flex';
+    closeNewChatModal.onclick = () => newChatModal.style.display = 'none';
+    closeChatModal.onclick = () => { chatModal.style.display = 'none'; if (messageListenerUnsubscribe) messageListenerUnsubscribe(); currentChatRecipient = null; };
+    backToConversationsBtn.onclick = () => {
+        chatModal.style.display = 'none';
+        conversationsModal.style.display = 'flex';
+        if (messageListenerUnsubscribe) messageListenerUnsubscribe();
+        currentChatRecipient = null;
+    };
+    
+    function getRoleUI(role) {
+        let gradientClass = 'gradient-text-newbie';
+        if (role === 'admin') gradientClass = 'gradient-text-admin';
+        else if (role === 'contributor') gradientClass = 'gradient-text-contributor';
+        return { gradientClass };
+    }
+
+    // Load existing conversations
+    function loadConversations() {
+        if (conversationListenerUnsubscribe) conversationListenerUnsubscribe();
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const convosRef = collection(db, 'conversations');
+        const q = query(convosRef, where('participants', 'array-contains', user.uid), orderBy('lastMessageTimestamp', 'desc'));
+        
+        conversationListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+            conversationList.innerHTML = '';
+            let conversationsFound = false;
+            snapshot.forEach(doc => {
+                const convo = doc.data();
+                if (convo.hiddenFor && convo.hiddenFor.includes(user.uid)) {
+                    return; // Skip rendering this conversation
+                }
+                conversationsFound = true;
+                const otherUserId = convo.participants.find(id => id !== user.uid);
+                const otherUserData = usersDataCache[otherUserId];
+                if (!otherUserData) return;
+
+                const isUnread = convo.lastReadBy && !convo.lastReadBy.includes(user.uid);
+                const convoEl = document.createElement('div');
+                convoEl.className = 'flex items-center p-3 rounded-lg hover:bg-[var(--bg-tertiary)] cursor-pointer conversation-item';
+                convoEl.dataset.uid = otherUserId;
+                convoEl.dataset.name = otherUserData.displayName;
+                
+                convoEl.innerHTML = `
+                    <div class="flex-grow conversation-details">
+                        <p class="font-bold text-[var(--text-primary)]">${otherUserData.displayName}</p>
+                        <p class="text-sm text-[var(--text-secondary)] truncate">${convo.lastMessage}</p>
+                    </div>
+                    <div class="flex flex-col items-end pl-2">
+                        ${isUnread ? '<div class="unread-indicator mb-1"></div>' : '<div class="h-[12px] mb-1"></div>'}
+                        <button class="delete-conversation-btn btn btn-ghost !p-1 h-6 w-6 text-[var(--text-secondary)] hover:text-[var(--destructive)]">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>
+                `;
+                conversationList.appendChild(convoEl);
+            });
+
+            if (!conversationsFound) {
+                conversationList.innerHTML = `<p class="text-center text-[var(--text-secondary)] p-4">No conversations yet. Start a new one!</p>`;
             }
-            // The error was most likely caused by a missing '}' for the 'demonstrateFix'
-            // function's body, which has now been added.
+        });
+    }
+    
+    conversationsModal.addEventListener('click', (e) => {
+        const conversationDetails = e.target.closest('.conversation-details');
+        if (conversationDetails) {
+            const conversationEl = conversationDetails.closest('.conversation-item');
+            openChat(conversationEl.dataset.uid, conversationEl.dataset.name);
         }
 
-        // Calling the function to demonstrate it works correctly.
-        demonstrateFix(25);
-        console.log("Script finished executing successfully.");
-    </script>
+        const deleteBtn = e.target.closest('.delete-conversation-btn');
+        if (deleteBtn) {
+            e.stopPropagation();
+            const conversationEl = deleteBtn.closest('.conversation-item');
+            const otherUserId = conversationEl.dataset.uid;
+            const otherUserName = conversationEl.dataset.name;
+
+            showConfirm(`Are you sure you want to delete this conversation with ${otherUserName}? This will only hide it from your view. If the other user also deletes it, the conversation will be removed permanently.`, async () => {
+                const user = auth.currentUser;
+                if (user) {
+                    const conversationId = [user.uid, otherUserId].sort().join('_');
+                    const conversationRef = doc(db, 'conversations', conversationId);
+                    try {
+                        const convoDoc = await getDoc(conversationRef);
+                        if (!convoDoc.exists()) {
+                            showToast('Conversation already deleted.', 'error');
+                            return;
+                        }
+                        const convoData = convoDoc.data();
+
+                        if (convoData.hiddenFor && convoData.hiddenFor.includes(otherUserId)) {
+                            // This is the second user deleting, so permanently delete.
+                            const messagesRef = collection(db, `conversations/${conversationId}/messages`);
+                            const messagesSnapshot = await getDocs(messagesRef);
+                            const batch = writeBatch(db);
+                            messagesSnapshot.forEach(messageDoc => {
+                                batch.delete(messageDoc.ref);
+                            });
+                            batch.delete(conversationRef);
+                            await batch.commit();
+                            showToast('Conversation permanently deleted.', 'success');
+                        } else {
+                            // This is the first user deleting, so just hide it.
+                            await updateDoc(conversationRef, {
+                                hiddenFor: arrayUnion(user.uid)
+                            });
+                            showToast('Conversation hidden.', 'success');
+                        }
+                    } catch (error) {
+                        console.error("Error deleting conversation:", error);
+                        showToast('Could not delete conversation.', 'error');
+                    }
+                }
+            });
+        }
+    });
+
+    conversationSearch.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        document.querySelectorAll('#conversationList > .conversation-item').forEach(el => {
+            const name = el.dataset.name.toLowerCase();
+            el.style.display = name.includes(searchTerm) ? 'flex' : 'none';
+        });
+    });
+
+    // Render member list for starting NEW chats
+    function renderMembersList() {
+        if (!memberList) return;
+        memberList.innerHTML = '';
+        Object.entries(usersDataCache).forEach(([uid, userData]) => {
+            if (uid === auth.currentUser?.uid) return;
+            const isOnline = onlineUsers[uid]?.online;
+            const { gradientClass } = getRoleUI(userData.role);
+            const memberEl = document.createElement('div');
+            memberEl.className = 'flex items-center p-2 rounded-lg hover:bg-[var(--bg-tertiary)] cursor-pointer member-item';
+            memberEl.onclick = () => openChat(uid, userData.displayName);
+            memberEl.innerHTML = `
+                <div class="flex-shrink-0 mr-3"><div class="${isOnline ? 'online-indicator' : 'offline-indicator'}"></div></div>
+                <div class="flex-grow"><p class="font-bold ${gradientClass}">${userData.displayName}</p></div>
+            `;
+            memberList.appendChild(memberEl);
+        });
+    }
+
+    memberSearch.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        document.querySelectorAll('#memberList > .member-item').forEach(el => {
+            const name = el.querySelector('p').textContent.toLowerCase();
+            el.style.display = name.includes(searchTerm) ? 'flex' : 'none';
+        });
+    });
+
+    // Open a chat window
+    async function openChat(uid, name) {
+        currentChatRecipient = { uid, name };
+        chatHeader.textContent = `Chat with ${name}`;
+        
+        // Hide other modals and show chat
+        conversationsModal.style.display = 'none';
+        newChatModal.style.display = 'none';
+        chatModal.style.display = 'block';
+
+        messageHistory.innerHTML = '';
+        loadMessageHistory();
+
+        // Mark conversation as read
+        const user = auth.currentUser;
+        if (user) {
+            const conversationId = [user.uid, uid].sort().join('_');
+            const conversationRef = doc(db, 'conversations', conversationId);
+            await setDoc(conversationRef, { lastReadBy: arrayUnion(user.uid) }, { merge: true }).catch(()=>{});
+        }
+    }
+
+    // Send a message from the chat window
+    sendMessageBtn.onclick = async () => {
+        const result = await sendMessage(currentChatRecipient.uid, messageInput.value);
+        if (result.success) {
+            messageInput.value = '';
+        } else {
+            showToast(result.message, 'error');
+        }
+    };
+    
+    // Load messages for the current open chat
+    function loadMessageHistory() {
+        if (messageListenerUnsubscribe) messageListenerUnsubscribe();
+        if (!currentChatRecipient || !auth.currentUser) return;
+        const conversationId = [auth.currentUser.uid, currentChatRecipient.uid].sort().join('_');
+        const messagesRef = collection(db, `conversations/${conversationId}/messages`);
+        const q = query(messagesRef, orderBy('createdAt'));
+        messageListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+            messageHistory.innerHTML = '';
+            snapshot.forEach(doc => {
+                const msg = doc.data();
+                const msgEl = document.createElement('div');
+                const isSender = msg.senderId === auth.currentUser.uid;
+                msgEl.className = `p-3 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-[var(--accent-primary)] text-white ml-auto' : 'bg-[var(--bg-secondary)] text-[var(--text-primary)] mr-auto shadow-sm'}`;
+                msg.isWarning ? (msgEl.innerHTML = msg.content) : (msgEl.textContent = msg.content);
+                messageHistory.appendChild(msgEl);
+            });
+            messageHistory.scrollTop = messageHistory.scrollHeight;
+        });
+    }
+    
+    // Send a warning from the admin panel
+    sendWarningBtn.onclick = async () => {
+        const messageText = warningMessage.textContent.trim();
+        const styledContent = `<p style="background: linear-gradient(90deg, #f97316, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">${messageText.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`;
+        const result = await sendMessage(targetUserId, styledContent, { isWarning: true });
+        if (result.success) {
+            showToast('Warning sent successfully.', 'success');
+            adminModal.style.display = 'none';
+        } else {
+            showToast(result.message, 'error');
+        }
+    };
+
+    const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '🤡', '💩', '👻', '💀', '☠️', '👽', '👾', '🤖', '🎃', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦵', '🦿', '🦶', '👂', '🦻', '👃', '🧠', '🦷', '🦴', '👀', '👁️', '👅', '👄', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟'];
+
+    function populateEmojiPicker() {
+        emojiPicker.innerHTML = '';
+        emojis.forEach(emoji => {
+            const span = document.createElement('span');
+            span.textContent = emoji;
+            span.className = 'cursor-pointer text-2xl p-1 text-center rounded-md hover:bg-[var(--bg-tertiary)]';
+            span.onclick = () => {
+                messageInput.value += emoji;
+                messageInput.focus();
+            };
+            emojiPicker.appendChild(span);
+        });
+    }
+
+    emojiBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        emojiPicker.classList.toggle('hidden');
+    });
+
+    populateEmojiPicker();
+
+
+    // --- User Profile Logic (Original, kept intact) ---
+    userInfoContainer.addEventListener('click', async () => { const user = auth.currentUser; if (!user || user.isAnonymous) return; const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid)); const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid)); const postSnap = await getDocs(postsQuery); const contributorSnap = await getDocs(contributorPostsQuery); profilePostCount.textContent = postSnap.size + contributorSnap.size; if (currentUserRole === 'admin' || currentUserRole === 'contributor') { const thirtyDaysInMillis = 30 * 24 * 60 * 60 * 1000; const lastChange = currentUserData.lastUsernameChange?.toMillis(); const now = Date.now(); if (lastChange && (now - lastChange < thirtyDaysInMillis)) { const daysRemaining = Math.ceil((thirtyDaysInMillis - (now - lastChange)) / (1000 * 60 * 60 * 24)); changeUsernameBtn.disabled = true; newUsernameInput.disabled = true; changeUsernameError.textContent = `You can change your username again in ${daysRemaining} days.`; changeUsernameError.style.display = 'block'; } else { changeUsernameBtn.disabled = false; newUsernameInput.disabled = false; changeUsernameError.style.display = 'none'; } changeUsernameSection.style.display = 'block'; } else { changeUsernameSection.style.display = 'none'; } userProfileModal.style.display = 'flex'; });
+    closeUserProfileModal.addEventListener('click', () => { userProfileModal.style.display = 'none'; });
+    changeUsernameBtn.addEventListener('click', async () => { const newUsername = newUsernameInput.value.trim(); const user = auth.currentUser; changeUsernameError.style.display = 'none'; if (!newUsername) { changeUsernameError.textContent = "New username cannot be empty."; changeUsernameError.style.display = 'block'; return; } const usersRef = collection(db, "users"); const q = query(usersRef, where("displayName", "==", newUsername)); const querySnapshot = await getDocs(q); if (!querySnapshot.empty) { changeUsernameError.textContent = "This username is already taken."; changeUsernameError.style.display = 'block'; return; } const batch = writeBatch(db); const userRef = doc(db, "users", user.uid); batch.update(userRef, { displayName: newUsername, lastUsernameChange: serverTimestamp() }); const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid)); const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid)); const postSnap = await getDocs(postsQuery); postSnap.forEach(postDoc => { batch.update(postDoc.ref, { authorName: newUsername }); }); const contributorSnap = await getDocs(contributorPostsQuery); contributorSnap.forEach(postDoc => { batch.update(postDoc.ref, { authorName: newUsername }); }); try { await batch.commit(); showAlert("Username updated successfully!"); userProfileModal.style.display = 'none'; } catch (error) { console.error("Error updating username:", error); showAlert("Failed to update username. Please try again."); } });
+    closeAccountBtn.addEventListener('click', () => { const user = auth.currentUser; if (!user || user.isAnonymous) return; showConfirm("Are you sure you want to close your account? This action will rename all your posts to '[Deleted User]' and permanently ban you. This cannot be undone.", async () => { const batch = writeBatch(db); const userRef = doc(db, "users", user.uid); batch.update(userRef, { displayName: "[Deleted User]", banned: true }); const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid)); const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid)); const postSnap = await getDocs(postsQuery); postSnap.forEach(postDoc => { batch.update(postDoc.ref, { authorName: "[Deleted User]" }); }); const contributorSnap = await getDocs(contributorPostsQuery); contributorSnap.forEach(postDoc => { batch.update(postDoc.ref, { authorName: "[Deleted User]" }); }); try { await batch.commit(); await signOut(auth); showAlert("Your account has been closed."); userProfileModal.style.display = 'none'; } catch (error) { console.error("Error closing account:", error); showAlert("Failed to close account. Please try again."); } }); });
+
+    // --- Search Logic ---
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    let isSearching = false;
+    let allDocsCache = [];
+    function highlightMatch(text, keyword) { if (!text) return ''; const regex = new RegExp(`(${keyword})`, 'gi'); return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-600 rounded">$1</mark>'); }
+    searchBtn.addEventListener('click', async () => { const keyword = searchInput.value.trim().toLowerCase(); if (!keyword) { isSearching = false; attachFirestoreListeners(); return; } isSearching = true; postList.innerHTML = `<p class="text-center text-[var(--text-secondary)]">Searching...</p>`; try { const postsSnap = await getDocs(collection(db, "posts")); const contribSnap = await getDocs(collection(db, "contributorPosts")); allDocsCache = [...postsSnap.docs, ...contribSnap.docs]; let filtered = allDocsCache.filter(doc => { const data = doc.data(); return ( data.title?.toLowerCase().includes(keyword) || data.content?.toLowerCase().includes(keyword) ); }); filtered.sort((a, b) => (b.data().pinned ? 1 : 0) - (a.data().pinned ? 1 : 0)); renderPosts(filtered) } catch(error) { console.error("Error during search:", error); postList.innerHTML = `<p class="text-center text-[var(--destructive)]">An error occurred during search.</p>`; } });
+    
+    // --- Post Editing & Pinning ---
+    closeEditPostModal.onclick = () => { editPostModal.style.display = 'none'; currentEditingPostId = null; };
+    async function togglePin(postId, shouldPin) { const postRef = doc(db, "posts", postId); try { await updateDoc(postRef, { pinned: shouldPin }); } catch (e) { console.error("Error toggling pin status:", e); showAlert("Failed to update pin status."); } }
+    
+    function openEditModal(post, postId) {
+        currentEditingPostId = postId;
+        editPostTitleInput.value = post.title;
+        editPostContent.innerHTML = post.content;
+        editPostModal.style.display = 'flex';
+    }
+
+    async function savePostEdit() {
+        if (!currentEditingPostId) return;
+        const title = editPostTitleInput.value.trim();
+        const content = editPostContent.innerHTML; // Get innerHTML from the contenteditable div
+        if (!title || !content.trim()) {
+            showAlert("Title and content cannot be empty.");
+            return;
+        }
+        const postRef = doc(db, "posts", currentEditingPostId);
+        try {
+            await updateDoc(postRef, {
+                title,
+                content,
+                editedAt: serverTimestamp()
+            });
+            editPostModal.style.display = 'none';
+            currentEditingPostId = null;
+        } catch(e) {
+            console.error("Error saving post edit:", e);
+            showAlert("Failed to save changes.");
+        }
+    }
+    saveEditBtn.addEventListener('click', savePostEdit);
+
+    // --- Rich Text Editor Toolbar Setup ---
+    function setupRichTextEditor() {
+        const toolbar = document.getElementById('editPostToolbar');
+        const contentArea = document.getElementById('editPostContent');
+        const commands = [
+            { command: 'bold', icon: '<b>B</b>' },
+            { command: 'italic', icon: '<i>I</i>' },
+            { command: 'strikeThrough', icon: '<strike>S</strike>' },
+            { command: 'insertUnorderedList', icon: '&#8226;' },
+            { command: 'formatBlock', value: 'H2', icon: '<b>H2</b>' },
+            { command: 'formatBlock', value: 'H3', icon: '<b>H3</b>' },
+            { command: 'createLink', icon: '&#128279;' },
+            { command: 'foreColor', icon: 'A', hasPalette: true }
+        ];
+
+        commands.forEach(({ command, icon, value, hasPalette }) => {
+            const button = document.createElement('button');
+            button.innerHTML = icon;
+            button.className = 'toolbar-btn';
+            button.dataset.command = command;
+            if (value) button.dataset.value = value;
+            
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (command === 'createLink') {
+                    const url = prompt('Enter the link URL:');
+                    if (url) {
+                        contentArea.focus();
+                        document.execCommand(command, false, url);
+                    }
+                } else if (hasPalette) {
+                    toggleColorPalette(button);
+                }
+                 else {
+                    contentArea.focus();
+                    document.execCommand(command, false, value || null);
+                }
+            });
+            toolbar.appendChild(button);
+        });
+
+        // Add the color palette div
+        const paletteContainer = document.createElement('div');
+        paletteContainer.id = 'colorPalette';
+        paletteContainer.className = 'hidden absolute bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg shadow-lg p-2 grid grid-cols-4 gap-2 z-20';
+        toolbar.parentElement.appendChild(paletteContainer);
+    }
+
+    function toggleColorPalette(button) {
+        const palette = document.getElementById('colorPalette');
+        if (!palette.classList.contains('hidden')) {
+            palette.classList.add('hidden');
+            return;
+        }
+        
+        palette.innerHTML = ''; // Clear old swatches
+        const gradients = [
+            { name: 'Admin', class: 'gradient-text-admin' },
+            { name: 'Contributor', class: 'gradient-text-contributor' },
+            { name: 'Newbie', class: 'gradient-text-newbie' },
+            { name: 'Plain', class: '' }
+        ];
+
+        gradients.forEach(grad => {
+            const swatch = document.createElement('div');
+            swatch.textContent = 'Aa';
+            swatch.className = `p-1 rounded cursor-pointer ${grad.class || ''}`;
+            if (!grad.class) swatch.style.color = 'var(--text-primary)';
+            swatch.title = grad.name;
+            swatch.onclick = () => {
+                applyGradient(grad.class);
+                palette.classList.add('hidden');
+            };
+            palette.appendChild(swatch);
+        });
+
+        palette.style.top = `${button.offsetTop + button.offsetHeight}px`;
+        palette.style.left = `${button.offsetLeft}px`;
+        palette.classList.remove('hidden');
+    }
+
+    function applyGradient(className) {
+        const contentArea = document.getElementById('editPostContent');
+        contentArea.focus();
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+
+        const range = selection.getRangeAt(0);
+        const selectedText = range.toString();
+
+        if (selectedText) {
+            // First, remove any existing gradient spans within the selection
+            const parent = range.commonAncestorContainer;
+            if (parent.nodeType === Node.ELEMENT_NODE) {
+                parent.querySelectorAll('span[class^="gradient-text-"]').forEach(span => {
+                    if (selection.containsNode(span, true)) {
+                        const text = span.textContent;
+                        span.replaceWith(text);
+                    }
+                });
+            }
+             // Re-get the selection as it might have changed
+            const newRange = window.getSelection().getRangeAt(0);
+            
+            if (className) {
+                const span = document.createElement('span');
+                span.className = className;
+                newRange.surroundContents(span);
+            }
+        }
+        selection.removeAllRanges();
+    }
+    
+    setupRichTextEditor();
+
+</script>
 </body>
 </html>
+
