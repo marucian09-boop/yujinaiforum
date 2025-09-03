@@ -106,18 +106,11 @@
     
     [contenteditable=true]:empty:before { content: attr(placeholder); pointer-events: none; display: block; /* For Firefox */ color: var(--text-secondary); opacity: 0.7; }
 
-    /* --- Rich Text Editor & Messaging Styles --- */
-    .rich-text-editor-container { border: 1px solid var(--border-primary); border-radius: 0.5rem; background-color: var(--bg-secondary); }
-    .rich-text-editor-container:focus-within { border-color: var(--accent-primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 20%, transparent); }
-    .rich-text-toolbar { display: flex; flex-wrap: wrap; gap: 0.25rem; padding: 0.5rem; border-bottom: 1px solid var(--border-primary); }
-    .toolbar-btn { background: none; border: 1px solid transparent; padding: 0.25rem; border-radius: 0.25rem; cursor: pointer; color: var(--text-secondary); }
-    .toolbar-btn:hover { background-color: var(--bg-tertiary); color: var(--text-primary); }
-    .toolbar-btn.active { background-color: color-mix(in srgb, var(--accent-primary) 20%, transparent); color: var(--text-accent); }
-    #editPostContent { min-height: 12rem; padding: 0.75rem; outline: none; }
+    /* --- Messaging & Inbox Styles --- */
     .gradient-text-admin { background: linear-gradient(90deg, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .gradient-text-contributor { background: linear-gradient(90deg, #22c55e, #84cc16); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .gradient-text-newbie { background: linear-gradient(90deg, #3b82f6, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .color-swatch { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 0 0 1px var(--border-primary); }
+    
     .online-indicator, .offline-indicator { width: 10px; height: 10px; border-radius: 50%; }
     .online-indicator { background-color: #22c55e; } /* green-500 */
     .offline-indicator { background-color: #94a3b8; } /* slate-400 */
@@ -273,12 +266,7 @@
             </div>
             <div class="space-y-4">
                 <input type="text" id="editPostTitle" placeholder="Post Title" class="form-input">
-                <div class="rich-text-editor-container">
-                    <div id="editPostToolbar" class="rich-text-toolbar">
-                        <!-- Toolbar buttons will be injected here -->
-                    </div>
-                    <div id="editPostContent" contenteditable="true" class="form-input h-auto min-h-[12rem]" placeholder="What's on your mind?"></div>
-                </div>
+                <textarea id="editPostContent" placeholder="What's on your mind?" class="form-input h-48"></textarea>
             </div>
             <div class="mt-4 flex justify-end">
                 <button id="saveEditBtn" class="btn btn-success">Save Changes</button>
@@ -314,8 +302,8 @@
                 <h3 id="postViewTitle" class="text-2xl font-bold text-[var(--text-primary)] mb-2 pr-8"></h3>
                 <div id="postViewMeta" class="text-sm text-[var(--text-secondary)] mb-4"></div>
             </div>
-            <div id="postViewContentContainer" class="overflow-y-auto pr-4 -mr-4">
-                <div id="postViewContent" class="text-[var(--text-primary)] whitespace-pre-wrap leading-relaxed"></div>
+            <div class="overflow-y-auto pr-4 -mr-4">
+                <p id="postViewContent" class="text-[var(--text-primary)] whitespace-pre-wrap leading-relaxed"></p>
             </div>
         </div>
     </div>
@@ -344,9 +332,6 @@
                 <h3 class="text-lg font-bold text-[var(--text-primary)]">Start New Chat</h3>
                 <button id="closeNewChatModal" class="btn btn-ghost !p-1 h-8 w-8">&times;</button>
             </div>
-            <div class="mb-4">
-                <input type="text" id="memberSearch" placeholder="Search for a member..." class="form-input">
-            </div>
             <div id="memberList" class="flex-grow overflow-y-auto space-y-2 pr-2 -mr-2">
                  <!-- Member list for new chats will be populated here -->
             </div>
@@ -357,28 +342,13 @@
     <div id="chatModal" style="display:none;" class="fixed top-0 right-0 h-full w-full max-w-md z-50">
          <div class="card !rounded-l-lg !rounded-r-none h-full w-full flex flex-col modal-content-animation border-r-0">
             <div class="flex justify-between items-center p-4 border-b border-[var(--border-primary)]">
-                <div class="flex items-center gap-2">
-                    <button id="backToConversationsBtn" class="btn btn-ghost !p-1 h-8 w-8">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                    <div id="chatHeader" class="font-bold text-[var(--text-primary)]"></div>
-                </div>
+                <div id="chatHeader" class="font-bold text-[var(--text-primary)]"></div>
                 <button id="closeChatModal" class="btn btn-ghost !p-1 h-8 w-8">&times;</button>
             </div>
             <div id="messageHistory" class="flex-grow overflow-y-auto p-4 space-y-4"></div>
             <div class="p-4 border-t border-[var(--border-primary)]">
-                <div class="relative">
-                     <textarea id="messageInput" placeholder="Type your message..." class="form-input h-20 mb-2 pr-12"></textarea>
-                     <button id="emojiBtn" class="absolute top-2 right-2 text-2xl text-[var(--text-secondary)] hover:text-[var(--text-accent)]">
-                        😊
-                    </button>
-                    <div id="emojiPicker" class="hidden absolute bottom-full right-0 mb-2 bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg shadow-lg p-2 w-64 h-48 overflow-y-auto grid grid-cols-8 gap-1 z-10">
-                        <!-- Emojis populated here -->
-                    </div>
-                </div>
-                 <button id="sendMessageBtn" class="btn btn-primary w-full mt-2">Send Message</button>
+                 <textarea id="messageInput" placeholder="Type your message..." class="form-input h-20 mb-2"></textarea>
+                 <button id="sendMessageBtn" class="btn btn-primary w-full">Send Message</button>
             </div>
          </div>
     </div>
@@ -436,7 +406,7 @@
     // Firebase imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInWithEmailAndPassword, signInAnonymously, deleteUser } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, onSnapshot, addDoc, query, orderBy, where, getDocs, updateDoc, deleteDoc, writeBatch, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, serverTimestamp, collection, onSnapshot, addDoc, query, orderBy, where, getDocs, updateDoc, deleteDoc, arrayUnion, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp as rtdbServerTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
     const firebaseConfig = {
@@ -487,7 +457,7 @@
     const editPostModal = document.getElementById('editPostModal');
     const closeEditPostModal = document.getElementById('closeEditPostModal');
     const editPostTitleInput = document.getElementById('editPostTitle');
-    const editPostContent = document.getElementById('editPostContent');
+    const editPostContentInput = document.getElementById('editPostContent');
     const saveEditBtn = document.getElementById('saveEditBtn');
     const userProfileModal = document.getElementById('userProfileModal');
     const closeUserProfileModal = document.getElementById('closeUserProfileModal');
@@ -511,16 +481,12 @@
     const newChatModal = document.getElementById('newChatModal');
     const closeNewChatModal = document.getElementById('closeNewChatModal');
     const memberList = document.getElementById('memberList');
-    const memberSearch = document.getElementById('memberSearch');
     const chatModal = document.getElementById('chatModal');
     const closeChatModal = document.getElementById('closeChatModal');
-    const backToConversationsBtn = document.getElementById('backToConversationsBtn');
     const chatHeader = document.getElementById('chatHeader');
     const messageHistory = document.getElementById('messageHistory');
     const messageInput = document.getElementById('messageInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
-    const emojiBtn = document.getElementById('emojiBtn');
-    const emojiPicker = document.getElementById('emojiPicker');
     
     // --- App State ---
     let currentUserRole = null;
@@ -583,18 +549,7 @@
     signUpWithGoogleBtn.addEventListener("click", (e) => { e.preventDefault(); googleSignInHandler(); createAccountDropdown.classList.add('hidden'); });
     signUpWithEmailBtn.addEventListener("click", (e) => { e.preventDefault(); signupForm.style.display = 'block'; createAccountDropdown.classList.add('hidden'); });
     createAccountBtn.addEventListener("click", (event) => { event.stopPropagation(); createAccountDropdown.classList.toggle('hidden'); });
-    window.addEventListener("click", (event) => {
-        if (!document.getElementById('createAccountDropdownContainer').contains(event.target)) {
-            createAccountDropdown.classList.add('hidden');
-        }
-        if (emojiPicker && !emojiPicker.contains(event.target) && event.target !== emojiBtn) {
-            emojiPicker.classList.add('hidden');
-        }
-        const colorPalette = document.getElementById('colorPalette');
-        if (colorPalette && !colorPalette.contains(event.target) && !event.target.closest('[data-command="foreColor"]')) {
-            colorPalette.classList.add('hidden');
-        }
-    });
+    window.addEventListener("click", (event) => { if (!document.getElementById('createAccountDropdownContainer').contains(event.target)) createAccountDropdown.classList.add('hidden'); });
     signInWithEmailBtnModal.addEventListener('click', async () => { const identifier = document.getElementById('signInIdentifier').value.trim(); const password = document.getElementById('signInPassword').value; const signInError = document.getElementById('signInError'); signInError.style.display = 'none'; if (!identifier || !password) { signInError.textContent = 'Please enter your credentials.'; signInError.style.display = 'block'; return; } let email = identifier; try { if (!identifier.includes('@')) { const usersRef = collection(db, "users"); const q = query(usersRef, where("displayName", "==", identifier)); const querySnapshot = await getDocs(q); if (querySnapshot.empty) { signInError.textContent = 'User not found.'; signInError.style.display = 'block'; return; } email = querySnapshot.docs[0].data().email; } await signInWithEmailAndPassword(auth, email, password); signInModal.style.display = 'none'; } catch (error) { console.error("Sign in error:", error); signInError.textContent = 'Invalid credentials. Please try again.'; signInError.style.display = 'block'; } });
     signupBtn.addEventListener("click", async () => { const email = document.getElementById("signupEmail").value; const password = signupPasswordInput.value; const username = signupUsernameInput.value.trim(); passwordError.style.display = 'none'; signupUsernameError.style.display = 'none'; const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,16}$/; if (!email || !password || !username) { showAlert("Please fill out all fields."); return; } if (!passwordRegex.test(password)) { passwordError.innerHTML = "Must be 7-16 characters & contain letters, numbers, & special characters.<br>e.g., Password@1, Secure!23, MyP@ssw0rd"; passwordError.style.display = 'block'; return; } const usersRef = collection(db, "users"); const q = query(usersRef, where("displayName", "==", username)); const querySnapshot = await getDocs(q); if (!querySnapshot.empty) { signupUsernameError.textContent = "Username is already taken. Please choose another one."; signupUsernameError.style.display = 'block'; return; } try { const userCredential = await createUserWithEmailAndPassword(auth, email, password); await handleUser(userCredential.user, username); signupForm.style.display = 'none'; } catch (error) { console.error("Email signup error:", error); showAlert(`Error: ${error.message}`); } });
     signOutBtn.addEventListener("click", () => signOut(auth));
@@ -606,15 +561,15 @@
     // --- Presence Management ---
     function setupPresence(user) { if (!user) return; const myConnectionsRef = ref(rtdb, `status/${user.uid}`); const connectedRef = ref(rtdb, '.info/connected'); onValue(connectedRef, (snap) => { if (snap.val() === true) { set(myConnectionsRef, { online: true, last_changed: rtdbServerTimestamp() }); onDisconnect(myConnectionsRef).remove(); } }); }
     
-    // --- Post Rendering ---
+    // --- Post Rendering (Original, kept intact) ---
     function renderPosts(docsToRender) { currentRenderedDocs = docsToRender; postList.innerHTML = ''; if (docsToRender.length === 0 && isSearching) { postList.innerHTML = `<p class="text-center text-[var(--text-secondary)]">No matching posts found for "${searchInput.value}".</p>`; return; } docsToRender.forEach(doc => { const post = doc.data(); const postId = doc.id; const authorData = usersDataCache[post.authorId]; if (!authorData) return; const postEl = document.createElement('div'); postEl.className = 'card p-5'; const timestamp = post.createdAt ? post.createdAt.toDate().toLocaleString() : 'Just now'; const editedTimestampText = post.editedAt ? `(edited ${post.editedAt.toDate().toLocaleString()})` : ''; let userStatusHTML = ''; const role = authorData.role || 'newbie'; if (authorData.banned) { userStatusHTML = `<span class="ml-2 px-2.5 py-1 text-xs font-bold text-white bg-red-600 rounded-full">Banned</span>`; } else { let roleColor = 'bg-blue-500'; if (role === 'admin') roleColor = 'bg-violet-500'; if (role === 'contributor') roleColor = 'bg-green-500'; userStatusHTML = `<span class="ml-2 px-2.5 py-1 text-xs font-bold text-white ${roleColor} rounded-full">${role}</span>`; } const canEdit = auth.currentUser && (auth.currentUser.uid === post.authorId || currentUserRole === 'admin'); postEl.innerHTML = ` <div class="flex items-start flex-wrap"> <div class="flex items-center mb-2 sm:mb-0"> <div class="font-bold text-[var(--text-primary)]">${authorData.displayName}</div> ${userStatusHTML} </div> <div class="ml-auto flex items-center space-x-2"> ${canEdit ? ` <button data-post-id="${postId}" class="edit-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]" title="Edit Post"> <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg> </button>` : ''} ${currentUserRole === 'admin' ? ` <button data-post-id="${postId}" data-pinned="${post.pinned}" class="pin-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]" title="${post.pinned ? 'Unpin Post' : 'Pin Post'}"> <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5.586l2.293-2.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 9.586V4a1 1 0 011-1z" clip-rule="evenodd" /><path d="M3 12a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" /></svg> </button> <button data-author-id="${post.authorId}" data-author-name="${authorData.displayName}" class="manage-user-btn p-1 text-[var(--text-secondary)] hover:text-[var(--text-accent)]" title="Manage User"> <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg> </button> <button data-post-id="${postId}" class="delete-post-btn p-1 text-[var(--text-secondary)] hover:text-[var(--destructive)]" title="Delete Post"> <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg> </button> ` : ''} </div> </div> <div class="text-xs text-[var(--text-secondary)]">${timestamp} <span class="italic">${editedTimestampText}</span></div> <h4 class="text-xl font-semibold text-[var(--text-accent)] mt-2 hover:underline cursor-pointer view-post-btn flex items-center gap-2" data-post-id="${postId}"> ${post.pinned ? '<span class="text-xl" title="Pinned Post">📌</span>' : ''} <span>${post.title}</span> </h4> `; postList.appendChild(postEl); }); }
 
     // --- Firestore Listeners ---
     function attachFirestoreListeners() { if (window.firestoreUnsubscribes) { window.firestoreUnsubscribes.forEach(unsub => unsub()); } window.firestoreUnsubscribes = []; const usersColRef = collection(db, "users"); const usersUnsub = onSnapshot(usersColRef, (snapshot) => { document.getElementById("totalMembers").textContent = snapshot.size; usersDataCache = {}; snapshot.forEach(doc => { usersDataCache[doc.id] = doc.data(); }); renderPosts(postDocsCache); renderMembersList(); loadConversations(); }); const statusRef = ref(rtdb, "status"); const presenceUnsub = onValue(statusRef, (snapshot) => { onlineUsers = snapshot.val() || {}; document.getElementById("onlineVisitors").textContent = snapshot.exists() ? Object.keys(onlineUsers).length : 0; renderMembersList(); }); const postsColRef = collection(db, "posts"); const q = query(postsColRef, orderBy("createdAt", "desc")); const postsUnsub = onSnapshot(q, (snapshot) => { if (isSearching) return; let docs = snapshot.docs; docs.sort((a, b) => (b.data().pinned ? 1 : 0) - (a.data().pinned ? 1 : 0)); postDocsCache = docs; renderPosts(postDocsCache); }); window.firestoreUnsubscribes.push(usersUnsub, presenceUnsub, postsUnsub); }
     
-    // --- Post Management ---
+    // --- Post Management (Original, kept intact) ---
     document.getElementById('createPostBtn').addEventListener('click', async () => { const title = document.getElementById("postTitle").value.trim(); const content = document.getElementById("postContent").value.trim(); const user = auth.currentUser; if (title && content && user && currentUserData) { if (!currentUserData.banned) { const postsColRef = collection(db, "posts"); await addDoc(postsColRef, { title: title, content: content, authorId: user.uid, authorName: currentUserData.displayName, createdAt: serverTimestamp(), pinned: false, }); document.getElementById("postTitle").value = ''; document.getElementById("postContent").value = ''; } else { showAlert("Your account is banned and you cannot create posts."); } } else { showAlert("Please provide a title and content for your post."); } });
-    postList.addEventListener('click', e => { const viewBtn = e.target.closest('.view-post-btn'); const deleteBtn = e.target.closest('.delete-post-btn'); const manageBtn = e.target.closest('.manage-user-btn'); const editBtn = e.target.closest('.edit-post-btn'); const pinBtn = e.target.closest('.pin-post-btn'); if (viewBtn) { const postId = viewBtn.dataset.postId; const postDoc = currentRenderedDocs.find(doc => doc.id === postId); if(postDoc) { const post = postDoc.data(); const author = usersDataCache[post.authorId]; document.getElementById('postViewTitle').textContent = post.title; document.getElementById('postViewContent').innerHTML = post.content; // Use innerHTML to render formatted text document.getElementById('postViewMeta').textContent = `Posted by ${author.displayName} on ${post.createdAt.toDate().toLocaleString()}`; postViewModal.style.display = 'flex'; } } if (deleteBtn) { const postId = deleteBtn.dataset.postId; showConfirm('Are you sure you want to delete this post permanently?', () => { deleteDoc(doc(db, "posts", postId)).then(() => { showAlert('Post deleted successfully.'); }).catch(err => console.error("Error deleting post:", err)); }); } if (manageBtn) { const userId = manageBtn.dataset.authorId; const userName = usersDataCache[userId]?.displayName; if(userName) { openAdminModal(userId, userName); } } if (editBtn) { const postId = editBtn.dataset.postId; const postDoc = currentRenderedDocs.find(doc => doc.id === postId); if (postDoc) { openEditModal(postDoc.data(), postId); } } if (pinBtn) { const postId = pinBtn.dataset.postId; const shouldPin = pinBtn.dataset.pinned !== 'true'; togglePin(postId, shouldPin); } });
+    postList.addEventListener('click', e => { const viewBtn = e.target.closest('.view-post-btn'); const deleteBtn = e.target.closest('.delete-post-btn'); const manageBtn = e.target.closest('.manage-user-btn'); const editBtn = e.target.closest('.edit-post-btn'); const pinBtn = e.target.closest('.pin-post-btn'); if (viewBtn) { const postId = viewBtn.dataset.postId; const postDoc = currentRenderedDocs.find(doc => doc.id === postId); if(postDoc) { const post = postDoc.data(); const author = usersDataCache[post.authorId]; document.getElementById('postViewTitle').textContent = post.title; document.getElementById('postViewContent').textContent = post.content; document.getElementById('postViewMeta').textContent = `Posted by ${author.displayName} on ${post.createdAt.toDate().toLocaleString()}`; postViewModal.style.display = 'flex'; } } if (deleteBtn) { const postId = deleteBtn.dataset.postId; showConfirm('Are you sure you want to delete this post permanently?', () => { deleteDoc(doc(db, "posts", postId)).then(() => { showAlert('Post deleted successfully.'); }).catch(err => console.error("Error deleting post:", err)); }); } if (manageBtn) { const userId = manageBtn.dataset.authorId; const userName = usersDataCache[userId]?.displayName; if(userName) { openAdminModal(userId, userName); } } if (editBtn) { const postId = editBtn.dataset.postId; const postDoc = currentRenderedDocs.find(doc => doc.id === postId); if (postDoc) { openEditModal(postDoc.data(), postId); } } if (pinBtn) { const postId = pinBtn.dataset.postId; const shouldPin = pinBtn.dataset.pinned !== 'true'; togglePin(postId, shouldPin); } });
     closePostViewModal.addEventListener('click', () => postViewModal.style.display = 'none');
 
     let targetUserId = null;
@@ -623,7 +578,7 @@
     document.getElementById('banUserBtn').onclick = async () => { if (!targetUserId) return; await updateDoc(doc(db, "users", targetUserId), { banned: true }); showAlert('User has been banned.'); adminModal.style.display = 'none'; };
     document.getElementById('unbanUserBtn').onclick = async () => { if (!targetUserId) return; await updateDoc(doc(db, "users", targetUserId), { banned: false }); showAlert('User has been unbanned.'); adminModal.style.display = 'none'; };
     
-    // --- Messaging & Inbox System ---
+    // --- NEW/REFACTORED Messaging & Inbox System ---
     
     // Unified message sending function
     async function sendMessage(recipientId, content, { isWarning = false } = {}) {
@@ -649,8 +604,10 @@
         };
 
         try {
+            // UPDATED: Create/update the conversation document BEFORE adding the message.
             await setDoc(conversationRef, conversationData, { merge: true });
             await addDoc(messagesRef, messageData);
+            // After sending, update the lastReadBy to include the sender
             await updateDoc(conversationRef, { lastReadBy: [user.uid] });
             
             return { success: true };
@@ -666,12 +623,6 @@
     newConversationBtn.onclick = () => newChatModal.style.display = 'flex';
     closeNewChatModal.onclick = () => newChatModal.style.display = 'none';
     closeChatModal.onclick = () => { chatModal.style.display = 'none'; if (messageListenerUnsubscribe) messageListenerUnsubscribe(); currentChatRecipient = null; };
-    backToConversationsBtn.onclick = () => {
-        chatModal.style.display = 'none';
-        conversationsModal.style.display = 'flex';
-        if (messageListenerUnsubscribe) messageListenerUnsubscribe();
-        currentChatRecipient = null;
-    };
     
     function getRoleUI(role) {
         let gradientClass = 'gradient-text-newbie';
@@ -691,101 +642,38 @@
         
         conversationListenerUnsubscribe = onSnapshot(q, (snapshot) => {
             conversationList.innerHTML = '';
-            let conversationsFound = false;
+            if (snapshot.empty) {
+                conversationList.innerHTML = `<p class="text-center text-[var(--text-secondary)] p-4">No conversations yet. Start a new one!</p>`;
+                return;
+            }
             snapshot.forEach(doc => {
                 const convo = doc.data();
-                if (convo.hiddenFor && convo.hiddenFor.includes(user.uid)) {
-                    return; // Skip rendering this conversation
-                }
-                conversationsFound = true;
                 const otherUserId = convo.participants.find(id => id !== user.uid);
                 const otherUserData = usersDataCache[otherUserId];
                 if (!otherUserData) return;
 
                 const isUnread = convo.lastReadBy && !convo.lastReadBy.includes(user.uid);
                 const convoEl = document.createElement('div');
-                convoEl.className = 'flex items-center p-3 rounded-lg hover:bg-[var(--bg-tertiary)] cursor-pointer conversation-item';
+                convoEl.className = 'flex items-center p-3 rounded-lg hover:bg-[var(--bg-tertiary)] cursor-pointer';
                 convoEl.dataset.uid = otherUserId;
                 convoEl.dataset.name = otherUserData.displayName;
                 
                 convoEl.innerHTML = `
-                    <div class="flex-grow conversation-details">
+                    <div class="flex-grow">
                         <p class="font-bold text-[var(--text-primary)]">${otherUserData.displayName}</p>
                         <p class="text-sm text-[var(--text-secondary)] truncate">${convo.lastMessage}</p>
                     </div>
-                    <div class="flex flex-col items-end pl-2">
-                        ${isUnread ? '<div class="unread-indicator mb-1"></div>' : '<div class="h-[12px] mb-1"></div>'}
-                        <button class="delete-conversation-btn btn btn-ghost !p-1 h-6 w-6 text-[var(--text-secondary)] hover:text-[var(--destructive)]">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                        </button>
-                    </div>
+                    ${isUnread ? '<div class="unread-indicator ml-2"></div>' : ''}
                 `;
+                convoEl.onclick = () => openChat(otherUserId, otherUserData.displayName);
                 conversationList.appendChild(convoEl);
             });
-
-            if (!conversationsFound) {
-                conversationList.innerHTML = `<p class="text-center text-[var(--text-secondary)] p-4">No conversations yet. Start a new one!</p>`;
-            }
         });
     }
-    
-    conversationsModal.addEventListener('click', (e) => {
-        const conversationDetails = e.target.closest('.conversation-details');
-        if (conversationDetails) {
-            const conversationEl = conversationDetails.closest('.conversation-item');
-            openChat(conversationEl.dataset.uid, conversationEl.dataset.name);
-        }
-
-        const deleteBtn = e.target.closest('.delete-conversation-btn');
-        if (deleteBtn) {
-            e.stopPropagation();
-            const conversationEl = deleteBtn.closest('.conversation-item');
-            const otherUserId = conversationEl.dataset.uid;
-            const otherUserName = conversationEl.dataset.name;
-
-            showConfirm(`Are you sure you want to delete this conversation with ${otherUserName}? This will only hide it from your view. If the other user also deletes it, the conversation will be removed permanently.`, async () => {
-                const user = auth.currentUser;
-                if (user) {
-                    const conversationId = [user.uid, otherUserId].sort().join('_');
-                    const conversationRef = doc(db, 'conversations', conversationId);
-                    try {
-                        const convoDoc = await getDoc(conversationRef);
-                        if (!convoDoc.exists()) {
-                            showToast('Conversation already deleted.', 'error');
-                            return;
-                        }
-                        const convoData = convoDoc.data();
-
-                        if (convoData.hiddenFor && convoData.hiddenFor.includes(otherUserId)) {
-                            // This is the second user deleting, so permanently delete.
-                            const messagesRef = collection(db, `conversations/${conversationId}/messages`);
-                            const messagesSnapshot = await getDocs(messagesRef);
-                            const batch = writeBatch(db);
-                            messagesSnapshot.forEach(messageDoc => {
-                                batch.delete(messageDoc.ref);
-                            });
-                            batch.delete(conversationRef);
-                            await batch.commit();
-                            showToast('Conversation permanently deleted.', 'success');
-                        } else {
-                            // This is the first user deleting, so just hide it.
-                            await updateDoc(conversationRef, {
-                                hiddenFor: arrayUnion(user.uid)
-                            });
-                            showToast('Conversation hidden.', 'success');
-                        }
-                    } catch (error) {
-                        console.error("Error deleting conversation:", error);
-                        showToast('Could not delete conversation.', 'error');
-                    }
-                }
-            });
-        }
-    });
 
     conversationSearch.addEventListener('input', (e) => {
         const searchTerm = e.target.value.toLowerCase();
-        document.querySelectorAll('#conversationList > .conversation-item').forEach(el => {
+        document.querySelectorAll('#conversationList > div').forEach(el => {
             const name = el.dataset.name.toLowerCase();
             el.style.display = name.includes(searchTerm) ? 'flex' : 'none';
         });
@@ -800,7 +688,7 @@
             const isOnline = onlineUsers[uid]?.online;
             const { gradientClass } = getRoleUI(userData.role);
             const memberEl = document.createElement('div');
-            memberEl.className = 'flex items-center p-2 rounded-lg hover:bg-[var(--bg-tertiary)] cursor-pointer member-item';
+            memberEl.className = 'flex items-center p-2 rounded-lg hover:bg-[var(--bg-tertiary)] cursor-pointer';
             memberEl.onclick = () => openChat(uid, userData.displayName);
             memberEl.innerHTML = `
                 <div class="flex-shrink-0 mr-3"><div class="${isOnline ? 'online-indicator' : 'offline-indicator'}"></div></div>
@@ -809,14 +697,6 @@
             memberList.appendChild(memberEl);
         });
     }
-
-    memberSearch.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        document.querySelectorAll('#memberList > .member-item').forEach(el => {
-            const name = el.querySelector('p').textContent.toLowerCase();
-            el.style.display = name.includes(searchTerm) ? 'flex' : 'none';
-        });
-    });
 
     // Open a chat window
     async function openChat(uid, name) {
@@ -884,37 +764,13 @@
         }
     };
 
-    const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '🤡', '💩', '👻', '💀', '☠️', '👽', '👾', '🤖', '🎃', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦵', '🦿', '🦶', '👂', '🦻', '👃', '🧠', '🦷', '🦴', '👀', '👁️', '👅', '👄', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟'];
-
-    function populateEmojiPicker() {
-        emojiPicker.innerHTML = '';
-        emojis.forEach(emoji => {
-            const span = document.createElement('span');
-            span.textContent = emoji;
-            span.className = 'cursor-pointer text-2xl p-1 text-center rounded-md hover:bg-[var(--bg-tertiary)]';
-            span.onclick = () => {
-                messageInput.value += emoji;
-                messageInput.focus();
-            };
-            emojiPicker.appendChild(span);
-        });
-    }
-
-    emojiBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        emojiPicker.classList.toggle('hidden');
-    });
-
-    populateEmojiPicker();
-
-
     // --- User Profile Logic (Original, kept intact) ---
     userInfoContainer.addEventListener('click', async () => { const user = auth.currentUser; if (!user || user.isAnonymous) return; const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid)); const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid)); const postSnap = await getDocs(postsQuery); const contributorSnap = await getDocs(contributorPostsQuery); profilePostCount.textContent = postSnap.size + contributorSnap.size; if (currentUserRole === 'admin' || currentUserRole === 'contributor') { const thirtyDaysInMillis = 30 * 24 * 60 * 60 * 1000; const lastChange = currentUserData.lastUsernameChange?.toMillis(); const now = Date.now(); if (lastChange && (now - lastChange < thirtyDaysInMillis)) { const daysRemaining = Math.ceil((thirtyDaysInMillis - (now - lastChange)) / (1000 * 60 * 60 * 24)); changeUsernameBtn.disabled = true; newUsernameInput.disabled = true; changeUsernameError.textContent = `You can change your username again in ${daysRemaining} days.`; changeUsernameError.style.display = 'block'; } else { changeUsernameBtn.disabled = false; newUsernameInput.disabled = false; changeUsernameError.style.display = 'none'; } changeUsernameSection.style.display = 'block'; } else { changeUsernameSection.style.display = 'none'; } userProfileModal.style.display = 'flex'; });
     closeUserProfileModal.addEventListener('click', () => { userProfileModal.style.display = 'none'; });
     changeUsernameBtn.addEventListener('click', async () => { const newUsername = newUsernameInput.value.trim(); const user = auth.currentUser; changeUsernameError.style.display = 'none'; if (!newUsername) { changeUsernameError.textContent = "New username cannot be empty."; changeUsernameError.style.display = 'block'; return; } const usersRef = collection(db, "users"); const q = query(usersRef, where("displayName", "==", newUsername)); const querySnapshot = await getDocs(q); if (!querySnapshot.empty) { changeUsernameError.textContent = "This username is already taken."; changeUsernameError.style.display = 'block'; return; } const batch = writeBatch(db); const userRef = doc(db, "users", user.uid); batch.update(userRef, { displayName: newUsername, lastUsernameChange: serverTimestamp() }); const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid)); const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid)); const postSnap = await getDocs(postsQuery); postSnap.forEach(postDoc => { batch.update(postDoc.ref, { authorName: newUsername }); }); const contributorSnap = await getDocs(contributorPostsQuery); contributorSnap.forEach(postDoc => { batch.update(postDoc.ref, { authorName: newUsername }); }); try { await batch.commit(); showAlert("Username updated successfully!"); userProfileModal.style.display = 'none'; } catch (error) { console.error("Error updating username:", error); showAlert("Failed to update username. Please try again."); } });
     closeAccountBtn.addEventListener('click', () => { const user = auth.currentUser; if (!user || user.isAnonymous) return; showConfirm("Are you sure you want to close your account? This action will rename all your posts to '[Deleted User]' and permanently ban you. This cannot be undone.", async () => { const batch = writeBatch(db); const userRef = doc(db, "users", user.uid); batch.update(userRef, { displayName: "[Deleted User]", banned: true }); const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.uid)); const contributorPostsQuery = query(collection(db, "contributorPosts"), where("authorId", "==", user.uid)); const postSnap = await getDocs(postsQuery); postSnap.forEach(postDoc => { batch.update(postDoc.ref, { authorName: "[Deleted User]" }); }); const contributorSnap = await getDocs(contributorPostsQuery); contributorSnap.forEach(postDoc => { batch.update(postDoc.ref, { authorName: "[Deleted User]" }); }); try { await batch.commit(); await signOut(auth); showAlert("Your account has been closed."); userProfileModal.style.display = 'none'; } catch (error) { console.error("Error closing account:", error); showAlert("Failed to close account. Please try again."); } }); });
 
-    // --- Search Logic ---
+    // --- Search Logic (Original, kept intact) ---
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
     let isSearching = false;
@@ -922,157 +778,13 @@
     function highlightMatch(text, keyword) { if (!text) return ''; const regex = new RegExp(`(${keyword})`, 'gi'); return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-600 rounded">$1</mark>'); }
     searchBtn.addEventListener('click', async () => { const keyword = searchInput.value.trim().toLowerCase(); if (!keyword) { isSearching = false; attachFirestoreListeners(); return; } isSearching = true; postList.innerHTML = `<p class="text-center text-[var(--text-secondary)]">Searching...</p>`; try { const postsSnap = await getDocs(collection(db, "posts")); const contribSnap = await getDocs(collection(db, "contributorPosts")); allDocsCache = [...postsSnap.docs, ...contribSnap.docs]; let filtered = allDocsCache.filter(doc => { const data = doc.data(); return ( data.title?.toLowerCase().includes(keyword) || data.content?.toLowerCase().includes(keyword) ); }); filtered.sort((a, b) => (b.data().pinned ? 1 : 0) - (a.data().pinned ? 1 : 0)); renderPosts(filtered) } catch(error) { console.error("Error during search:", error); postList.innerHTML = `<p class="text-center text-[var(--destructive)]">An error occurred during search.</p>`; } });
     
-    // --- Post Editing & Pinning ---
+    // --- Post Editing & Pinning (Original, kept intact) ---
     closeEditPostModal.onclick = () => { editPostModal.style.display = 'none'; currentEditingPostId = null; };
     async function togglePin(postId, shouldPin) { const postRef = doc(db, "posts", postId); try { await updateDoc(postRef, { pinned: shouldPin }); } catch (e) { console.error("Error toggling pin status:", e); showAlert("Failed to update pin status."); } }
-    
-    function openEditModal(post, postId) {
-        currentEditingPostId = postId;
-        editPostTitleInput.value = post.title;
-        editPostContent.innerHTML = post.content;
-        editPostModal.style.display = 'flex';
-    }
-
-    async function savePostEdit() {
-        if (!currentEditingPostId) return;
-        const title = editPostTitleInput.value.trim();
-        const content = editPostContent.innerHTML; // Get innerHTML from the contenteditable div
-        if (!title || !content.trim()) {
-            showAlert("Title and content cannot be empty.");
-            return;
-        }
-        const postRef = doc(db, "posts", currentEditingPostId);
-        try {
-            await updateDoc(postRef, {
-                title,
-                content,
-                editedAt: serverTimestamp()
-            });
-            editPostModal.style.display = 'none';
-            currentEditingPostId = null;
-        } catch(e) {
-            console.error("Error saving post edit:", e);
-            showAlert("Failed to save changes.");
-        }
-    }
+    function openEditModal(post, postId) { currentEditingPostId = postId; editPostTitleInput.value = post.title; editPostContentInput.value = post.content; editPostModal.style.display = 'flex'; }
+    async function savePostEdit() { if (!currentEditingPostId) return; const title = editPostTitleInput.value.trim(); const content = editPostContentInput.value.trim(); if (!title || !content) { showAlert("Title and content cannot be empty."); return; } const postRef = doc(db, "posts", currentEditingPostId); try { await updateDoc(postRef, { title, content, editedAt: serverTimestamp() }); editPostModal.style.display = 'none'; currentEditingPostId = null; } catch(e) { console.error("Error saving post edit:", e); showAlert("Failed to save changes."); } }
     saveEditBtn.addEventListener('click', savePostEdit);
-
-    // --- Rich Text Editor Toolbar Setup ---
-    function setupRichTextEditor() {
-        const toolbar = document.getElementById('editPostToolbar');
-        const contentArea = document.getElementById('editPostContent');
-        const commands = [
-            { command: 'bold', icon: '<b>B</b>' },
-            { command: 'italic', icon: '<i>I</i>' },
-            { command: 'strikeThrough', icon: '<strike>S</strike>' },
-            { command: 'insertUnorderedList', icon: '&#8226;' },
-            { command: 'formatBlock', value: 'H2', icon: '<b>H2</b>' },
-            { command: 'formatBlock', value: 'H3', icon: '<b>H3</b>' },
-            { command: 'createLink', icon: '&#128279;' },
-            { command: 'foreColor', icon: 'A', hasPalette: true }
-        ];
-
-        commands.forEach(({ command, icon, value, hasPalette }) => {
-            const button = document.createElement('button');
-            button.innerHTML = icon;
-            button.className = 'toolbar-btn';
-            button.dataset.command = command;
-            if (value) button.dataset.value = value;
-            
-            button.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (command === 'createLink') {
-                    const url = prompt('Enter the link URL:');
-                    if (url) {
-                        contentArea.focus();
-                        document.execCommand(command, false, url);
-                    }
-                } else if (hasPalette) {
-                    toggleColorPalette(button);
-                }
-                 else {
-                    contentArea.focus();
-                    document.execCommand(command, false, value || null);
-                }
-            });
-            toolbar.appendChild(button);
-        });
-
-        // Add the color palette div
-        const paletteContainer = document.createElement('div');
-        paletteContainer.id = 'colorPalette';
-        paletteContainer.className = 'hidden absolute bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg shadow-lg p-2 grid grid-cols-4 gap-2 z-20';
-        toolbar.parentElement.appendChild(paletteContainer);
-    }
-
-    function toggleColorPalette(button) {
-        const palette = document.getElementById('colorPalette');
-        if (!palette.classList.contains('hidden')) {
-            palette.classList.add('hidden');
-            return;
-        }
-        
-        palette.innerHTML = ''; // Clear old swatches
-        const gradients = [
-            { name: 'Admin', class: 'gradient-text-admin' },
-            { name: 'Contributor', class: 'gradient-text-contributor' },
-            { name: 'Newbie', class: 'gradient-text-newbie' },
-            { name: 'Plain', class: '' }
-        ];
-
-        gradients.forEach(grad => {
-            const swatch = document.createElement('div');
-            swatch.textContent = 'Aa';
-            swatch.className = `p-1 rounded cursor-pointer ${grad.class || ''}`;
-            if (!grad.class) swatch.style.color = 'var(--text-primary)';
-            swatch.title = grad.name;
-            swatch.onclick = () => {
-                applyGradient(grad.class);
-                palette.classList.add('hidden');
-            };
-            palette.appendChild(swatch);
-        });
-
-        palette.style.top = `${button.offsetTop + button.offsetHeight}px`;
-        palette.style.left = `${button.offsetLeft}px`;
-        palette.classList.remove('hidden');
-    }
-
-    function applyGradient(className) {
-        const contentArea = document.getElementById('editPostContent');
-        contentArea.focus();
-        const selection = window.getSelection();
-        if (!selection.rangeCount) return;
-
-        const range = selection.getRangeAt(0);
-        const selectedText = range.toString();
-
-        if (selectedText) {
-            // First, remove any existing gradient spans within the selection
-            const parent = range.commonAncestorContainer;
-            if (parent.nodeType === Node.ELEMENT_NODE) {
-                parent.querySelectorAll('span[class^="gradient-text-"]').forEach(span => {
-                    if (selection.containsNode(span, true)) {
-                        const text = span.textContent;
-                        span.replaceWith(text);
-                    }
-                });
-            }
-             // Re-get the selection as it might have changed
-            const newRange = window.getSelection().getRangeAt(0);
-            
-            if (className) {
-                const span = document.createElement('span');
-                span.className = className;
-                newRange.surroundContents(span);
-        }
-        selection.removeAllRanges();
-    }
-    
-    setupRichTextEditor();
 
 </script>
 </body>
 </html>
-
-
