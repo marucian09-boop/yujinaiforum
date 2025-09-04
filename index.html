@@ -947,32 +947,34 @@
                 const msg = docSnap.data();
                 const msgId = docSnap.id;
                 const msgEl = document.createElement('div');
-                msgEl.className = 'group relative'; 
-
+                
                 const isSender = msg.senderId === auth.currentUser.uid;
                 const hasBeenDeletedByMe = msg.deletedBy?.includes(auth.currentUser.uid);
 
-                let messageContentHTML = '';
                 if (hasBeenDeletedByMe) {
-                     messageContentHTML = `<div class="italic text-gray-400">You deleted this message</div>`;
-                } else if (msg.isWarning) {
-                    messageContentHTML = msg.content;
+                    msgEl.className = `flex ${isSender ? 'justify-end' : 'justify-start'}`;
+                    msgEl.innerHTML = `<div class="italic text-gray-400 p-3 my-1">You deleted this message</div>`;
                 } else {
-                    messageContentHTML = escapeHTML(msg.content);
-                }
-                
-                const deleteButtonHTML = `
-                    <button data-msg-id="${msgId}" class="delete-msg-btn absolute top-1/2 -translate-y-1/2 ${isSender ? '-left-8' : '-right-8'} p-1 text-[var(--text-secondary)] hover:text-[var(--destructive)] opacity-0 group-hover:opacity-100 transition-opacity" title="Delete Message">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                    </button>
-                `;
+                    msgEl.className = `group flex items-center gap-2 ${isSender ? 'justify-end' : 'justify-start'}`;
 
-                msgEl.innerHTML = `
-                    <div class="p-3 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-[var(--accent-primary)] text-white ml-auto' : 'bg-[var(--bg-secondary)] text-[var(--text-primary)] mr-auto shadow-sm'}">
-                        ${messageContentHTML}
-                    </div>
-                    ${!hasBeenDeletedByMe ? deleteButtonHTML : ''}
-                `;
+                    const messageContentHTML = `
+                        <div class="p-3 rounded-lg my-1 max-w-xs break-words ${isSender ? 'bg-[var(--accent-primary)] text-white' : 'bg-[var(--bg-secondary)] text-[var(--text-primary)] shadow-sm'}">
+                            ${msg.isWarning ? msg.content : escapeHTML(msg.content)}
+                        </div>
+                    `;
+                    
+                    const deleteButtonHTML = `
+                        <button data-msg-id="${msgId}" class="delete-msg-btn p-1 text-[var(--text-secondary)] hover:text-[var(--destructive)] opacity-0 group-hover:opacity-100 transition-opacity" title="Delete Message">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                        </button>
+                    `;
+
+                    if (isSender) {
+                        msgEl.innerHTML = `${deleteButtonHTML} ${messageContentHTML}`;
+                    } else {
+                        msgEl.innerHTML = `${messageContentHTML} ${deleteButtonHTML}`;
+                    }
+                }
 
                 messageHistory.appendChild(msgEl);
             });
@@ -1071,3 +1073,4 @@
 </script>
 </body>
 </html>
+
