@@ -1029,33 +1029,31 @@
         const conversationRef = doc(db, 'conversations', conversationId);
 
         try {
+            // First, get the message data to check who the sender is.
             const msgDoc = await getDoc(msgRef);
-            if (!msgDoc.exists()) return;
-
-            const msgData = msgDoc.data();
-            const senderId = msgData.senderId;
+            if (!msgDoc.exists()) return; // Message already deleted
             
-            let deletedBy = msgData.deletedBy || [];
-            if (!deletedBy.includes(user.uid)) {
-                deletedBy.push(user.uid);
-            }
+            const senderId = msgDoc.data().senderId;
 
-            const convoDoc = await getDoc(conversationRef);
-            const participants = convoDoc.data().participants || [];
-            const allHaveDeleted = participants.every(p => deletedBy.includes(p));
+            // Atomically add the current user's ID to the 'deletedBy' array.
+            // This is a "soft delete" which works with the provided security rules.
+            await updateDoc(msgRef, {
+                deletedBy: arrayUnion(user.uid)
+            });
 
-            if (allHaveDeleted) {
-                await deleteDoc(msgRef);
-                showToast("Message permanently removed.", 'success');
+            // If the current user was the sender, lock the conversation for the other user.
+            if (user.uid === senderId) {
+                await updateDoc(conversationRef, { lockedBy: user.uid });
+                showToast("Message deleted. The other user can no longer reply.", 'success');
             } else {
-                await updateDoc(msgRef, { deletedBy });
-                if (user.uid === senderId) {
-                    await updateDoc(conversationRef, { lockedBy: user.uid });
-                    showToast("Message deleted. The other user can no longer reply.", 'success');
-                } else {
-                    showToast("Message deleted for you.", 'success');
-                }
+                showToast("Message deleted for you.", 'success');
             }
+            
+            // Note: We are NOT performing a hard delete from the client.
+            // The provided security rules for `delete` make this unreliable from the client-side.
+            // A Cloud Function would be the best place to handle the final deletion 
+            // after all participants have soft-deleted the message.
+
         } catch (error) {
             console.error("Error deleting message:", error);
             showToast("Failed to delete message.", 'error');
