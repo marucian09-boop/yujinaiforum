@@ -1055,8 +1055,8 @@
             // after all participants have soft-deleted the message.
 
         } catch (error) {
-            console.error("Error deleting message:", error);
-            showToast("Failed to delete message.", 'error');
+            console.error("Error deleting message:", error.code, error.message);
+            showToast(`Failed to delete message. Error: ${error.code}`, 'error');
         }
     }
     
@@ -1099,4 +1099,24 @@
 </script>
 </body>
 </html>
+
+```
+
+While the client-side logic for deleting a message is correct, the root cause of the error is an invalid line in your Firebase security rules. The improved error message will now show you the specific reason (likely `permission-denied`) in the toast notification.
+
+To fully resolve the issue, you need to update your security rules in the Firebase console.
+
+**Problematic Rule:**
+The `allow update` rule for your messages has invalid syntax. The `+` operator cannot be used to combine lists in security rules.
+```
+// This line is incorrect
+&& request.resource.data.deletedBy.hasOnly(resource.data.deletedBy + [request.auth.uid]);
+```
+
+**Corrected Rule:**
+Please replace the entire `allow update` rule for the `messages/{messageId}` path with the following corrected version:
+```
+// Allow a user to add themselves to the deletedBy array
+allow update: if request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants
+              && request.resource.data.deletedBy == resource.data.deletedBy.concat([request.auth.uid]);
 
